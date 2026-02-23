@@ -32,7 +32,7 @@ const actions: QuickAction[] = [
   },
   {
     title: "Support",
-    href: "/admin/requests",
+    href: "/user/requests",
     cta: "GO TO REQUESTS",
     Icon: MessageSquareText,
   },
