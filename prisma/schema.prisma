@@ -72,6 +72,7 @@ model User {
   attendances Attendance[]
   requests    Request[]
   requestActivity RequestActivity[]
+  notifications Notification[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -328,6 +329,19 @@ model RequestActivity {
   fromStatus RequestStatus?
   toStatus   RequestStatus?
   note       String?
+
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String
+  message   String
+  href      String?
+  isRead    Boolean  @default(false)
 
   createdAt DateTime @default(now())
 }

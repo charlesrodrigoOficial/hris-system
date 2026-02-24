@@ -14,5 +14,16 @@ export async function PATCH(
     },
   });
 
+  // Create notification for the employee
+  await prisma.notification.create({
+    data: {
+      userId: updated.userId,
+      title: "Request Status Updated",
+      message: `Your request "${updated.title}" is now ${updated.status}.`,
+      href: "/user/requests",
+    },
+  });
+
+
   return NextResponse.json(updated);
 }

@@ -95,7 +95,7 @@ const Profile = async () => {
     <SessionProvider session={session}>
       <div className="space-y-6">
         {/* ✅ KEEP THIS CARD SAME (your current progress) */}
-        <div className="flex items-center justify-between rounded-xl bg-blue-600 p-6 text-white ">
+        <div className="flex items-center justify-between rounded bg-blue-600 p-6 text-white ">
           <div>
             <h1 className="text-2xl font-serif">
               Welcome, {session?.user.name}!

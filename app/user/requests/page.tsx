@@ -138,7 +138,7 @@ export default function RequestsPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="rounded-xl">Create Request</Button>
+            <Button variant="blueGradiant" className="rounded-xl text-white">Create Request</Button>
           </DialogTrigger>
 
           <DialogContent className="sm:max-w-[560px] rounded-2xl">
@@ -291,7 +291,7 @@ export default function RequestsPage() {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <CardTitle>Recent Requests</CardTitle>
-            <Button variant="outline" className="rounded-xl" onClick={load}>
+            <Button variant="blueGradiant" className="rounded-xl text-white" onClick={load}>
               Refresh
             </Button>
           </div>
