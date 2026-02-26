@@ -50,20 +50,17 @@ export default function NameCardClient({
   }
 
   return (
-    <div className="">
+    <div className="relative right-0 w-[1060px]">
       <div
         ref={cardRef}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
-        className="tilt-card relative overflow-hidden  flex-1 rounded-xl p-10 text-white shadow-lg"
+        className="tilt-card relative overflow-hidden flex-1 rounded-xl p-10 text-white shadow-lg"
       >
-        {/* Content */}
         <div className="relative z-10 pr-[290px]">
-          <p className="text-lg uppercase tracking-wide opacity-90">
-            HI {name}
-          </p>
+          <p className="text-lg uppercase tracking-wide opacity-90">HI {name}</p>
 
-          <h1 className="mt-3 text-4xl md:text-5xl font-bold leading-tight">
+          <h1 className="mt-3 text-4xl md:text-4xl font-bold leading-tight">
             Glad you&apos;re here
           </h1>
 
@@ -72,23 +69,18 @@ export default function NameCardClient({
           </p>
         </div>
 
-        {/* Bottom lava strip (optional, keep if you want) */}
         <div className="lava-container">
           <div className="lava" />
           <div className="lava-blur" />
         </div>
 
-        {/* Cursor highlight + glass shine */}
         <div className="tilt-highlight pointer-events-none absolute inset-0" />
         <div className="tilt-rim pointer-events-none absolute inset-0 rounded-2xl" />
-
-        {/* bevel (inner edge) */}
         <div className="tilt-bevel pointer-events-none absolute inset-0 rounded-2xl" />
       </div>
 
-      <div>
-        <Logo />
-      </div>
+      {/* ✅ LOGO OVERLAY anchored to this wrapper */}
+      <Logo />
     </div>
   );
 }

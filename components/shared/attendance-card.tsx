@@ -133,8 +133,9 @@ export function AttendanceCard() {
     return "NO_RECORD";
   }, [attendance]);
 
-  return (
-    <Card className="w-full bg-gradient-to-r from-blue-950 via-blue-600 to-blue-400 text-white shadow-xl rounded-2xl">
+  return (   
+    <Card className="w-[310px] bg-gradient-to-r from-blue-950 p-3 via-blue-600 to-blue-400 text-white shadow-xl rounded-2xl">
+      
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Attendance</CardTitle>
 
@@ -224,6 +225,7 @@ export function AttendanceCard() {
           )}
         </div>
       </CardContent>
+      
     </Card>
   );
 }

@@ -11,6 +11,9 @@ import {
   getMonthStats,
   getPaydayInfo,
 } from "@/lib/user/date-utils";
+import { ShoutoutComposer } from "@/components/shared/body/shoutout-composer";
+import { FeedPostCard } from "@/components/shared/body/feed-post-card";
+import { BirthdaysCarousel } from "@/components/shared/body/birthdays-carousel";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -91,22 +94,23 @@ const Profile = async () => {
 
   const latePct = clamp(attendanceThisMonth.lateHours * 6, 0, 100);
 
+  
+
+  const birthdays = [
+    { id: "b1", name: "John", subtitle: "Today" },
+    { id: "b2", name: "Maria", subtitle: "Tomorrow" },
+    { id: "b3", name: "Sam", subtitle: "6 Feb" },
+  ];
+
   return (
     <SessionProvider session={session}>
-      <div className="space-y-6">
+      <div className="space-y-6 ">
         {/* Rest of dashboard */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Quote of the day (wide) */}
-          <div className="lg:col-span-6 rounded-xl bg-blue-600 p-6 text-white shadow-md">
-            <h2 className="text-2xl- font-serif">Quote of the day</h2>
-            <div className="mt-5 space-y-2">
-              <p className="text-2xl italic text-slate-100">“{quote.text}”</p>
-              <p className="text-sm italic text-slate-400">- {quote.author}</p>
-            </div>
-          </div>
+        <div className="grid grid-cols- gap-6 lg:grid-cols-12">
+          
 
           {/* ✅ Intelurapedia (right - ABOVE salary) */}
-          <div className="lg:col-span-3 rounded-xl bg-blue-600  p-6 text-white shadow">
+          {/* <div className="lg:col-span-3 rounded-xl bg-blue-600  p-6 text-white shadow">
             <h2 className="text-2xl font-serif">Intelurapedia</h2>
             <p className="mt-4 text-sm text-slate-300">
               Company knowledge base, policies, internal guides and resources.
@@ -119,69 +123,8 @@ const Profile = async () => {
                 </button>
               </Link>
             </div>
-          </div>
-          <SalaryAndPaydayCard />
-          {/* Month data (middle) */}
-          <div className="lg:col-span-6 rounded-xl bg-blue-600  p-6 text-white shadow">
-            <h2 className="text-xl font-semibold">Data of {monthName(now)}</h2>
-
-            <div className="mt-6 space-y-3 text-slate-200">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 font-serif">Work Days:</span>
-                <span className="font-serif">{monthStats.workDays} Days</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 font-serif">Weekends:</span>
-                <span className="font-serif">{monthStats.weekends} Days</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300 font-serif">Holidays:</span>
-                <span className="font-serif">{monthStats.holidays} Days</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Attendance (right wide) */}
-          <div className="lg:col-span-6 rounded-xl bg-blue-600  p-6 text-white shadow">
-            <h2 className="text-xl font-semibold">
-              Your Attendance This Month
-            </h2>
-
-            <div className="mt-6 space-y-5 font-serif">
-              <Bar
-                label={`Attended ${attendanceThisMonth.attended}`}
-                value={attendedPct}
-                colorClass="bg-white"
-              />
-
-              <Bar
-                label={`Absented: ${attendanceThisMonth.absent}`}
-                value={absentPct}
-                colorClass="bg-white"
-              />
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm text-slate-200">
-                  <div className="flex items-center gap-2">
-                    <span className="font-serif">Hours:</span>
-                    <span className="text-slate-300">
-                      {attendanceThisMonth.hoursDelta}h
-                    </span>
-                  </div>
-                  <span className="text-slate-300">
-                    {attendanceThisMonth.lateHours.toFixed(2)} Hours late
-                  </span>
-                </div>
-
-                <div className="h-12 w-full rounded-full bg-slate-700/60 p-2">
-                  <div
-                    className="h-full rounded-full  bg-white"
-                    style={{ width: `${latePct}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          </div> */}
+          {/* <SalaryAndPaydayCard /> */}
         </div>
       </div>
     </SessionProvider>
