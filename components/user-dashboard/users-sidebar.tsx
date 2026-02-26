@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 const links = [
   { title: "Overview", href: "" },
   // { title: "", href: "" },
-  // { title: "", href: "" },
 ];
 
 export default function Sidebar() {

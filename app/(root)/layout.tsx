@@ -18,17 +18,6 @@ export default function RootLayout({
       <div className="border-b">
         <div className="container mx-auto">
           <div className="flex items-center h-16 px-4">
-            {/* <Link href="/" className="w-22">
-              <Image
-                src="/images/favicon.png"
-                height={148}
-                width={148}
-                alt={APP_NAME}
-              />
-            </Link> */}
-
-            {/* <MainNav className="mx-6" /> */}
-
             <div className="ml-auto items-center flex space-x-4">
               <Input
                 type="search"

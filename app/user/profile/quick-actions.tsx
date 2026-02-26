@@ -1,77 +1,71 @@
 // components/admin/quick-actions.tsx
+"use client";
+
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, MessageSquareText, Table2, Wallet } from "lucide-react";
+import {
+  CalendarDays,
+  MessageSquareText,
+  Table2,
+  Wallet,
+  Sparkles,
+} from "lucide-react";
 
 type QuickAction = {
   title: string;
   href: string;
-  cta: string;
   Icon: React.ElementType;
+  hint?: string;
 };
 
 const actions: QuickAction[] = [
-  {
-    title: "Payrolls",
-    href: "/admin/payrolls",
-    cta: "GO TO PAYMENTS",
-    Icon: Wallet,
-  },
-  {
-    title: "Attendance",
-    href: "/admin/attendance",
-    cta: "GO TO ATTENDANCE",
-    Icon: Table2,
-  },
-  {
-    title: "Calendar",
-    href: "/admin/calendar",
-    cta: "GO TO CALENDAR",
-    Icon: CalendarDays,
-  },
-  {
-    title: "Support",
-    href: "/user/requests",
-    cta: "GO TO REQUESTS",
-    Icon: MessageSquareText,
-  },
+  { title: "Payrolls", href: "/admin/payrolls", Icon: Wallet, hint: "Payments & salaries" },
+  { title: "Attendance", href: "/admin/attendance", Icon: Table2, hint: "Timesheets & status" },
+  { title: "Calendar", href: "/admin/calendar", Icon: CalendarDays, hint: "Events & holidays" },
+  { title: "Support", href: "/user/requests", Icon: MessageSquareText, hint: "Requests & helpdesk" },
 ];
 
 export function QuickActions() {
   return (
-    <Card className="rounded-2xl border-0 bg-blue-600 p-6 shadow-sm">
-      <h2 className="text-3xl font-semibold tracking-tight text-white">
-        Quick Actions
-      </h2>
+    <Card className="relative mb-6 overflow-hidden rounded-2xl border bg-white/70 p-3 shadow-sm backdrop-blur">
+      {/* subtle ring */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-blue-200/40" />
+      {/* soft glow */}
+      <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-[520px] -translate-x-1/2 rounded-full bg-blue-400/15 blur-3xl" />
 
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {actions.map(({ title, href, cta, Icon }) => (
-          <Card
-            key={title}
-            className="rounded-2xl border-0 bg-blue-900 p-8 shadow-sm"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600">
-                <Icon className="h-10 w-10 text-white" />
-              </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 px-2">
+          <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 text-white shadow-sm">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <div className="leading-tight">
+            <p className="text-sm font-semibold text-slate-900">Quick Actions</p>
+            <p className="text-xs text-slate-500">Jump into common tasks</p>
+          </div>
+        </div>
 
-              <h3 className="mt-6 text-2xl font-semibold text-white">
-                {title}
-              </h3>
-
-              <Button
-                asChild
-                variant="link"
-                className="mt-4 text-white hover:text-white"
-              >
-                <Link href={href} className="flex items-center gap-2">
-                  {cta} <span aria-hidden>→</span>
-                </Link>
-              </Button>
-            </div>
-          </Card>
-        ))}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+          {actions.map(({ title, href, Icon, hint }) => (
+            <Button
+              key={title}
+              asChild
+              variant="outline"
+              className="
+                group h-10 justify-start gap-2 rounded-xl border-slate-200 bg-white/70
+                px-3 text-sm text-slate-800 shadow-sm transition
+                hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/60 hover:shadow
+                active:translate-y-0
+              "
+              title={hint ?? title}
+            >
+              <Link href={href}>
+                <Icon className="h-4 w-4 text-slate-600 transition group-hover:text-blue-700" />
+                <span className="font-medium">{title}</span>
+              </Link>
+            </Button>
+          ))}
+        </div>
       </div>
     </Card>
   );
