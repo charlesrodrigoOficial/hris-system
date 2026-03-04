@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { QuickActions } from "@/app/user/profile/quick-actions"
-import { SalaryAndPaydayCard } from "@/app/user/profile/your-salary"
+import { QuickActions } from "@/app/(root)/user/profile/quick-actions"
+import { SalaryAndPaydayCard } from "@/app/(root)/user/profile/your-salary"
 
 export function RightPanel() {
   return (

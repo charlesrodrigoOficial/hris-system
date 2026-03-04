@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import ProfileForm from "./user/profile/profile-form";
+import ProfileForm from "./(root)/user/profile/profile-form";
 // import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from "@/lib/constants";
 // import { Toaster } from "@/components/ui/toaster";
 

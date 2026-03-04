@@ -11,7 +11,7 @@ import {
   getMonthStats,
   getPaydayInfo,
 } from "@/lib/user/date-utils";
-import { ShoutoutComposer } from "@/components/shared/body/shoutout-composer";
+import { ShoutoutComposer } from "@/components/shared/body/feed/shoutout-composer";
 import { FeedPostCard } from "@/components/shared/body/feed-post-card";
 import { BirthdaysCarousel } from "@/components/shared/body/birthdays-carousel";
 
