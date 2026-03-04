@@ -36,3 +36,11 @@ export const updateUserSchema = updateProfileSchema.extend({
   role: z.nativeEnum(UserRole),
   country: z.nativeEnum(Country).nullable().optional(),
 });
+
+// ✅ Schema for admin create user (same as signup form)
+export const createUserSchema = signUpFormSchema.and(
+  z.object({
+    role: z.nativeEnum(UserRole).optional(), // default in action
+    country: z.nativeEnum(Country).nullable().optional(),
+  })
+);

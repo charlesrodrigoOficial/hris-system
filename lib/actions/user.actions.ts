@@ -1,6 +1,6 @@
 "use server";
 
-import { signInFormSchema, signUpFormSchema, updateUserSchema } from "../validators";
+import { createUserSchema, signInFormSchema, signUpFormSchema, updateUserSchema } from "../validators";
 import { auth, signIn, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hashSync } from "bcrypt-ts-edge";
@@ -204,3 +204,61 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
   }
 }
 
+export async function createUser(prevState: unknown, formData: FormData) {
+  try {
+    const session = await auth();
+
+    if (!session?.user) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    // ✅ RBAC (adjust if your role field name differs)
+    const actorRole = (session.user as any).role as string | undefined;
+    if (!["ADMIN", "HR"].includes(actorRole ?? "")) {
+      return { success: false, message: "Not authorized" };
+    }
+
+    // ✅ Validate formData
+    const parsed = createUserSchema.parse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+      // future: role/country from form if you add
+      role: formData.get("role") ?? undefined,
+      country: formData.get("country") ?? undefined,
+    });
+
+    // ✅ check duplicate email
+    const exists = await prisma.user.findUnique({
+      where: { email: parsed.email },
+      select: { id: true },
+    });
+
+    if (exists) {
+      return { success: false, message: "Email already exists" };
+    }
+
+    // ✅ hash password
+    const hashedPassword = hashSync(parsed.password, 10);
+
+    // ✅ create user
+    await prisma.user.create({
+      data: {
+        name: parsed.name,
+        email: parsed.email,
+        password: hashedPassword, // IMPORTANT: your User model must have password
+        ...(parsed.role ? { role: parsed.role } : {}),
+        ...(parsed.country !== undefined ? { country: parsed.country } : {}),
+      } as any,
+    });
+
+    // ✅ refresh users list page
+    revalidatePath("/admin/users");
+
+    return { success: true, message: "User created successfully" };
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return { success: false, message: formatError(error) };
+  }
+}
