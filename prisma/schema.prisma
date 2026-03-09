@@ -7,17 +7,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum DepartmentName {
-  ADMINISTRATION
-  HR
-  FINANCE
-  ENGINEERING
-  OPERATIONS
-  SALES
-  MARKETING
-  CUSTOMER_SUPPORT
-}
-
 enum Gender {
   MALE
   FEMALE
@@ -282,7 +271,7 @@ model Branch {
 
 model Department {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  departmentName DepartmentName  @unique
+  departmentName String    @unique
   empCount       Int       @default(0)
   depManagerId   String?   @unique @db.Uuid
   depManager     Employee? @relation("DepartmentManager", fields: [depManagerId], references: [id])

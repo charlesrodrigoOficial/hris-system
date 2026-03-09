@@ -8,6 +8,7 @@ const links = [
   { title: "Overview", href: "/admin/overview" },
   { title: "Users", href: "/admin/users" },
   { title: "Employees", href: "/admin/employees" },
+  { title: "Departments", href: "/admin/departments" },
 ];
 
 export default function Sidebar() {

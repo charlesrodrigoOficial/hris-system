@@ -1,8 +1,18 @@
 import { prisma } from "./prisma";
-import { DepartmentName } from "@prisma/client";
+
+const DEPARTMENT_NAMES = [
+  "ADMINISTRATION",
+  "HR",
+  "FINANCE",
+  "ENGINEERING",
+  "OPERATIONS",
+  "SALES",
+  "MARKETING",
+  "CUSTOMER_SUPPORT",
+] as const;
 
 async function main() {
-  for (const departmentName of Object.values(DepartmentName)) {
+  for (const departmentName of DEPARTMENT_NAMES) {
     await prisma.department.upsert({
       where: { departmentName },
       update: {},
@@ -10,7 +20,7 @@ async function main() {
     });
   }
 
-  console.log("✅ Departments seeded");
+  console.log("Departments seeded");
 }
 
 main()

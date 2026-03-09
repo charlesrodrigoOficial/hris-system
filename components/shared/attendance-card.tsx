@@ -133,9 +133,8 @@ export function AttendanceCard() {
     return "NO_RECORD";
   }, [attendance]);
 
-  return (   
+  return (
     <Card className="w-full bg-gradient-to-r border-b-8 border-b-slate-300 from-blue-950 p-3 via-blue-600 to-blue-400 text-white shadow-xl rounded-2xl">
-      
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Attendance</CardTitle>
 
@@ -219,13 +218,16 @@ export function AttendanceCard() {
               {actionLoading === "out" ? "Checking out…" : "Check Out"}
             </Button>
           ) : (
-            <Button className="w-full bg-blue-600" variant="blue" onClick={loadToday}>
+            <Button
+              className="w-full bg-blue-600"
+              variant="blue"
+              onClick={loadToday}
+            >
               Completed (Refresh)
             </Button>
           )}
         </div>
       </CardContent>
-      
     </Card>
   );
 }
