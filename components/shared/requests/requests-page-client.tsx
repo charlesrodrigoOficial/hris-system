@@ -8,6 +8,7 @@ import type {
   LeaveRequestType,
   RequestFormContext,
   RequestRow,
+  SupportRequestType,
   RequestType,
 } from "@/lib/requests/types";
 import { fetchRequests, createRequest } from "@/lib/requests/clients";
@@ -26,11 +27,20 @@ export default function RequestsPageClient({ requester }: Props) {
   const [submitting, setSubmitting] = React.useState(false);
 
   const [type, setType] = React.useState<RequestType>("SUPPORT");
+  const [supportRequestType, setSupportRequestType] = React.useState<
+    SupportRequestType | ""
+  >("");
+  const [supportRequestTypeOther, setSupportRequestTypeOther] =
+    React.useState("");
+  const [expectedCompletionDate, setExpectedCompletionDate] =
+    React.useState("");
+  const [supportAdditionalNotes, setSupportAdditionalNotes] =
+    React.useState("");
   const [leaveType, setLeaveType] = React.useState<LeaveRequestType | "">("");
   const [claimPurpose, setClaimPurpose] = React.useState<ClaimPurpose | "">("");
   const [claimPurposeOther, setClaimPurposeOther] = React.useState("");
   const [managerId, setManagerId] = React.useState(
-    requester.managers[0]?.id ?? ""
+    requester.managers[0]?.id ?? "",
   );
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -42,7 +52,9 @@ export default function RequestsPageClient({ requester }: Props) {
   const [bankName, setBankName] = React.useState("");
   const [accountNumber, setAccountNumber] = React.useState("");
   const [ibanSwift, setIbanSwift] = React.useState("");
-  const [receiptDocument, setReceiptDocument] = React.useState<File | null>(null);
+  const [receiptDocument, setReceiptDocument] = React.useState<File | null>(
+    null,
+  );
   const [supportingDocument, setSupportingDocument] =
     React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -67,6 +79,10 @@ export default function RequestsPageClient({ requester }: Props) {
 
   function resetForm() {
     setType("SUPPORT");
+    setSupportRequestType("");
+    setSupportRequestTypeOther("");
+    setExpectedCompletionDate("");
+    setSupportAdditionalNotes("");
     setLeaveType("");
     setClaimPurpose("");
     setClaimPurposeOther("");
@@ -91,6 +107,10 @@ export default function RequestsPageClient({ requester }: Props) {
       type,
       title,
       description,
+      supportRequestType,
+      supportRequestTypeOther,
+      expectedCompletionDate,
+      supportAdditionalNotes,
       leaveType,
       claimPurpose,
       claimPurposeOther,
@@ -119,6 +139,10 @@ export default function RequestsPageClient({ requester }: Props) {
         type,
         title,
         description,
+        supportRequestType,
+        supportRequestTypeOther,
+        expectedCompletionDate,
+        supportAdditionalNotes,
         leaveType,
         claimPurpose,
         claimPurposeOther,
@@ -162,6 +186,14 @@ export default function RequestsPageClient({ requester }: Props) {
           setOpen={setOpen}
           type={type}
           setType={setType}
+          supportRequestType={supportRequestType}
+          setSupportRequestType={setSupportRequestType}
+          supportRequestTypeOther={supportRequestTypeOther}
+          setSupportRequestTypeOther={setSupportRequestTypeOther}
+          expectedCompletionDate={expectedCompletionDate}
+          setExpectedCompletionDate={setExpectedCompletionDate}
+          supportAdditionalNotes={supportAdditionalNotes}
+          setSupportAdditionalNotes={setSupportAdditionalNotes}
           leaveType={leaveType}
           setLeaveType={setLeaveType}
           claimPurpose={claimPurpose}

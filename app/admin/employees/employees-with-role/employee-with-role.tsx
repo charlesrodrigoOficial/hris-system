@@ -13,7 +13,7 @@ type TableRow = {
   user?: { name: string | null; email: string; role: string } | null;
   department?: { departmentName: string } | null;
   branch?: { branchName: string } | null;
-  position?: { name: string } | null;
+  position?: string | null;
   shift?: { name: string } | null;
 };
 
@@ -38,7 +38,7 @@ export default async function EmployeeWithRole() {
           contractEndDate: true,
           department: { select: { departmentName: true } },
           branch: { select: { branchName: true } },
-          position: { select: { name: true } },
+          position: true,
           shift: { select: { name: true } },
         },
       },

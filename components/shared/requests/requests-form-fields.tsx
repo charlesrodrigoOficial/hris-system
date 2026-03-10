@@ -15,18 +15,29 @@ import {
   claimPurposeLabel,
   LEAVE_TYPE_OPTIONS,
   leaveTypeLabel,
+  SUPPORT_REQUEST_OPTIONS,
+  supportRequestLabel,
 } from "@/lib/requests/helpers";
 import type {
   ClaimPurpose,
   LeaveRequestType,
   RequestFormContext,
   RequestType,
+  SupportRequestType,
 } from "@/lib/requests/types";
 
 type Props = {
   requester: RequestFormContext;
   type: RequestType;
   setType: (value: RequestType) => void;
+  supportRequestType: SupportRequestType | "";
+  setSupportRequestType: (value: SupportRequestType | "") => void;
+  supportRequestTypeOther: string;
+  setSupportRequestTypeOther: (value: string) => void;
+  expectedCompletionDate: string;
+  setExpectedCompletionDate: (value: string) => void;
+  supportAdditionalNotes: string;
+  setSupportAdditionalNotes: (value: string) => void;
   leaveType: LeaveRequestType | "";
   setLeaveType: (value: LeaveRequestType | "") => void;
   claimPurpose: ClaimPurpose | "";
@@ -88,6 +99,14 @@ export default function RequestFormFields({
   requester,
   type,
   setType,
+  supportRequestType,
+  setSupportRequestType,
+  supportRequestTypeOther,
+  setSupportRequestTypeOther,
+  expectedCompletionDate,
+  setExpectedCompletionDate,
+  supportAdditionalNotes,
+  setSupportAdditionalNotes,
   leaveType,
   setLeaveType,
   claimPurpose,
@@ -138,27 +157,86 @@ export default function RequestFormFields({
       </div>
 
       {type === "SUPPORT" && (
-        <>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Title</p>
-            <Input
-              className="rounded-xl"
-              placeholder="e.g. Account issue / System access"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+        <div className="space-y-4 rounded-2xl border p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Your Full Name</Label>
+              <Input className="rounded-xl" value={requester.fullName} readOnly />
+            </div>
+            <div className="space-y-2">
+              <Label>Your Position</Label>
+              <Input className="rounded-xl" value={requester.position} readOnly />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Message</p>
+            <Label>Type of Request</Label>
+            <Select
+              value={supportRequestType}
+              onValueChange={(value) =>
+                setSupportRequestType(value as SupportRequestType)
+              }
+            >
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Select support request type" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORT_REQUEST_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {supportRequestType && (
+              <p className="text-xs text-muted-foreground">
+                Selected: {supportRequestLabel(supportRequestType)}
+              </p>
+            )}
+          </div>
+
+          {supportRequestType === "OTHER" && (
+            <div className="space-y-2">
+              <Label>Other Request Type</Label>
+              <Input
+                className="rounded-xl"
+                placeholder="Specify the request type"
+                value={supportRequestTypeOther}
+                onChange={(e) => setSupportRequestTypeOther(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Purpose of Request</Label>
             <Textarea
               className="min-h-[120px] rounded-xl"
-              placeholder="Describe the issue and what you need help with."
+              placeholder="Your answer"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-        </>
+
+          <div className="space-y-2">
+            <Label>Expected Completion Date</Label>
+            <Input
+              className="rounded-xl"
+              type="date"
+              value={expectedCompletionDate}
+              onChange={(e) => setExpectedCompletionDate(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Additional Notes/Special Request</Label>
+            <Textarea
+              className="min-h-[120px] rounded-xl"
+              placeholder="Your answer"
+              value={supportAdditionalNotes}
+              onChange={(e) => setSupportAdditionalNotes(e.target.value)}
+            />
+          </div>
+        </div>
       )}
 
       {type === "LEAVE" && (

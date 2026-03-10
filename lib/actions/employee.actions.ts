@@ -27,7 +27,7 @@ export async function getUsersWithEmployeeRole() {
           contractEndDate: true,
           department: { select: { departmentName: true } },
           branch: { select: { branchName: true } },
-          position: { select: { name: true } },
+          position: true,
           shift: { select: { name: true } },
         },
       },

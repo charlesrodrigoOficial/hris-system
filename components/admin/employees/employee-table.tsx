@@ -28,7 +28,7 @@ type EmployeeRow = {
   user?: { name: string | null; email: string; role: string } | null;
   department?: { departmentName: string } | null;
   branch?: { branchName: string } | null;
-  position?: { name: string } | null;
+  position?: string | null;
   shift?: { name: string } | null;
 };
 

@@ -17,6 +17,22 @@ export async function createRequest(payload: CreateRequestPayload) {
     formData.set("description", payload.description);
   }
 
+  if (payload.supportRequestType) {
+    formData.set("supportRequestType", payload.supportRequestType);
+  }
+
+  if (payload.supportRequestTypeOther) {
+    formData.set("supportRequestTypeOther", payload.supportRequestTypeOther);
+  }
+
+  if (payload.expectedCompletionDate) {
+    formData.set("expectedCompletionDate", payload.expectedCompletionDate);
+  }
+
+  if (payload.supportAdditionalNotes) {
+    formData.set("supportAdditionalNotes", payload.supportAdditionalNotes);
+  }
+
   if (payload.leaveType) {
     formData.set("leaveType", payload.leaveType);
   }
@@ -79,8 +95,11 @@ export async function createRequest(payload: CreateRequestPayload) {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    throw new Error(err?.error ?? "Failed to create request");
+    const err = await res.json().catch(async () => {
+      const text = await res.text().catch(() => "");
+      return text ? { error: text } : null;
+    });
+    throw new Error(err?.error ?? `Failed to create request (${res.status})`);
   }
 
   return res.json();

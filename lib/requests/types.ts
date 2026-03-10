@@ -1,5 +1,12 @@
 export type RequestType = "SUPPORT" | "LEAVE" | "CLAIM";
 export type RequestStatus = "PENDING" | "PROCESSING" | "APPROVED" | "REJECTED";
+export type SupportRequestType =
+  | "RECOMMENDATION_LETTER"
+  | "EMPLOYMENT_VERIFICATION"
+  | "PROOF_OF_INCOME"
+  | "CONTRACT_COPY"
+  | "OPERATIONAL_REQUEST"
+  | "OTHER";
 export type LeaveRequestType =
   | "PAID_VACATION_LEAVE"
   | "SICK_LEAVE"
@@ -31,6 +38,10 @@ export type RequestRow = {
   status: RequestStatus;
   createdAt: string;
 
+  supportRequestType?: SupportRequestType | null;
+  supportRequestTypeOther?: string | null;
+  expectedCompletionDate?: string | null;
+  supportAdditionalNotes?: string | null;
   leaveType?: LeaveRequestType | null;
   claimPurpose?: ClaimPurpose | null;
   claimPurposeOther?: string | null;
@@ -60,6 +71,10 @@ export type CreateRequestPayload = {
   title: string;
   description: string | null;
 
+  supportRequestType?: SupportRequestType | null;
+  supportRequestTypeOther?: string | null;
+  expectedCompletionDate?: string | null;
+  supportAdditionalNotes?: string | null;
   leaveType?: LeaveRequestType | null;
   claimPurpose?: ClaimPurpose | null;
   claimPurposeOther?: string | null;
@@ -96,6 +111,10 @@ export type AdminRequestRow = {
   type: RequestType
   status: RequestStatus
   createdAt: string
+  supportRequestType?: SupportRequestType | null
+  supportRequestTypeOther?: string | null
+  expectedCompletionDate?: string | null
+  supportAdditionalNotes?: string | null
   leaveType?: LeaveRequestType | null
   claimPurpose?: ClaimPurpose | null
   claimPurposeOther?: string | null

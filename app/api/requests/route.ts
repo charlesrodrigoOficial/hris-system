@@ -10,6 +10,7 @@ import type {
   LeaveRequestType,
   RequestAttachmentType,
   RequestType,
+  SupportRequestType,
 } from "@/lib/requests/types";
 
 export const runtime = "nodejs";
@@ -45,12 +46,9 @@ async function saveAttachment(params: {
 function isSupportedUpload(file: File | null) {
   if (!file) return true;
 
-  return [
-    "application/pdf",
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-  ].includes(file.type);
+  return ["application/pdf", "image/png", "image/jpeg", "image/webp"].includes(
+    file.type,
+  );
 }
 
 export async function GET() {
@@ -86,154 +84,189 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
+  try {
+    const session = await auth();
 
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const formData = await req.formData();
-  const type = String(formData.get("type") || "") as RequestType;
-  const title = String(formData.get("title") || "");
-  const description = String(formData.get("description") || "");
-  const leaveType = String(formData.get("leaveType") || "") as
-    | LeaveRequestType
-    | "";
-  const claimPurpose = String(formData.get("claimPurpose") || "") as
-    | ClaimPurpose
-    | "";
-  const claimPurposeOther = String(formData.get("claimPurposeOther") || "");
-  const managerEmployeeId = String(formData.get("managerEmployeeId") || "");
-  const startDate = String(formData.get("startDate") || "");
-  const endDate = String(formData.get("endDate") || "");
-  const expenseDate = String(formData.get("expenseDate") || "");
-  const amount = String(formData.get("amount") || "");
-  const currency = String(formData.get("currency") || "");
-  const bankName = String(formData.get("bankName") || "");
-  const accountNumber = String(formData.get("accountNumber") || "");
-  const ibanSwift = String(formData.get("ibanSwift") || "");
-  const receiptDocumentEntry = formData.get("receiptDocument");
-  const supportingDocumentEntry = formData.get("supportingDocument");
-  const receiptDocument =
-    receiptDocumentEntry instanceof File && receiptDocumentEntry.size > 0
-      ? receiptDocumentEntry
-      : null;
-  const supportingDocument =
-    supportingDocumentEntry instanceof File && supportingDocumentEntry.size > 0
-      ? supportingDocumentEntry
-      : null;
+    const formData = await req.formData();
+    const type = String(formData.get("type") || "") as RequestType;
+    const title = String(formData.get("title") || "");
+    const description = String(formData.get("description") || "");
+    const supportRequestType = String(
+      formData.get("supportRequestType") || "",
+    ) as SupportRequestType | "";
+    const supportRequestTypeOther = String(
+      formData.get("supportRequestTypeOther") || "",
+    );
+    const expectedCompletionDate = String(
+      formData.get("expectedCompletionDate") || "",
+    );
+    const supportAdditionalNotes = String(
+      formData.get("supportAdditionalNotes") || "",
+    );
+    const leaveType = String(formData.get("leaveType") || "") as
+      | LeaveRequestType
+      | "";
+    const claimPurpose = String(formData.get("claimPurpose") || "") as
+      | ClaimPurpose
+      | "";
+    const claimPurposeOther = String(formData.get("claimPurposeOther") || "");
+    const managerEmployeeId = String(formData.get("managerEmployeeId") || "");
+    const startDate = String(formData.get("startDate") || "");
+    const endDate = String(formData.get("endDate") || "");
+    const expenseDate = String(formData.get("expenseDate") || "");
+    const amount = String(formData.get("amount") || "");
+    const currency = String(formData.get("currency") || "");
+    const bankName = String(formData.get("bankName") || "");
+    const accountNumber = String(formData.get("accountNumber") || "");
+    const ibanSwift = String(formData.get("ibanSwift") || "");
+    const receiptDocumentEntry = formData.get("receiptDocument");
+    const supportingDocumentEntry = formData.get("supportingDocument");
+    const receiptDocument =
+      receiptDocumentEntry instanceof File && receiptDocumentEntry.size > 0
+        ? receiptDocumentEntry
+        : null;
+    const supportingDocument =
+      supportingDocumentEntry instanceof File &&
+      supportingDocumentEntry.size > 0
+        ? supportingDocumentEntry
+        : null;
 
-  const error = validateRequest({
-    type,
-    title,
-    description,
-    leaveType,
-    claimPurpose,
-    claimPurposeOther,
-    managerEmployeeId,
-    startDate,
-    endDate,
-    expenseDate,
-    amount,
-    bankName,
-    accountNumber,
-    ibanSwift,
-    receiptDocument,
-    supportingDocument,
-  });
-
-  if (error) {
-    return NextResponse.json({ error }, { status: 400 });
-  }
-
-  if (managerEmployeeId) {
-    const manager = await prisma.employee.findUnique({
-      where: { id: managerEmployeeId },
-      select: { id: true },
+    const error = validateRequest({
+      type,
+      title,
+      description,
+      supportRequestType,
+      supportRequestTypeOther,
+      expectedCompletionDate,
+      supportAdditionalNotes,
+      leaveType,
+      claimPurpose,
+      claimPurposeOther,
+      managerEmployeeId,
+      startDate,
+      endDate,
+      expenseDate,
+      amount,
+      bankName,
+      accountNumber,
+      ibanSwift,
+      receiptDocument,
+      supportingDocument,
     });
 
-    if (!manager) {
+    if (error) {
+      return NextResponse.json({ error }, { status: 400 });
+    }
+
+    if (managerEmployeeId) {
+      const manager = await prisma.employee.findUnique({
+        where: { id: managerEmployeeId },
+        select: { id: true },
+      });
+
+      if (!manager) {
+        return NextResponse.json(
+          { error: "Selected manager does not exist." },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (
+      !isSupportedUpload(receiptDocument) ||
+      !isSupportedUpload(supportingDocument)
+    ) {
       return NextResponse.json(
-        { error: "Selected manager does not exist." },
+        { error: "Uploaded files must be PDF or image files." },
         { status: 400 },
       );
     }
-  }
 
-  if (!isSupportedUpload(receiptDocument) || !isSupportedUpload(supportingDocument)) {
-    return NextResponse.json(
-      { error: "Uploaded files must be PDF or image files." },
-      { status: 400 },
-    );
-  }
+    if (
+      (receiptDocument && receiptDocument.size > 5 * 1024 * 1024) ||
+      (supportingDocument && supportingDocument.size > 5 * 1024 * 1024)
+    ) {
+      return NextResponse.json(
+        { error: "Each uploaded file must be 5MB or smaller." },
+        { status: 400 },
+      );
+    }
 
-  if (
-    (receiptDocument && receiptDocument.size > 5 * 1024 * 1024) ||
-    (supportingDocument && supportingDocument.size > 5 * 1024 * 1024)
-  ) {
-    return NextResponse.json(
-      { error: "Each uploaded file must be 5MB or smaller." },
-      { status: 400 },
-    );
-  }
-
-  const payload = buildPayload({
-    type,
-    title,
-    description,
-    leaveType,
-    claimPurpose,
-    claimPurposeOther,
-    managerEmployeeId,
-    startDate,
-    endDate,
-    expenseDate,
-    amount,
-    currency,
-    bankName,
-    accountNumber,
-    ibanSwift,
-    receiptDocument,
-    supportingDocument,
-  });
-
-  const created = await prisma.request.create({
-    data: {
-      type: payload.type,
-      title: payload.title,
-      description: payload.description ?? null,
-      status: "PENDING",
-      userId: session.user.id,
-      leaveType: payload.leaveType ?? null,
-      claimPurpose: payload.claimPurpose ?? null,
-      claimPurposeOther: payload.claimPurposeOther ?? null,
-      startDate: payload.startDate ?? null,
-      endDate: payload.endDate ?? null,
-      expenseDate: payload.expenseDate ?? null,
-      managerEmployeeId: payload.managerEmployeeId ?? null,
-      bankName: payload.bankName ?? null,
-      accountNumber: payload.accountNumber ?? null,
-      ibanSwift: payload.ibanSwift ?? null,
-      amount: payload.amount ?? null,
-      currency: payload.currency ?? null,
-    },
-  });
-
-  if (receiptDocument) {
-    await saveAttachment({
-      requestId: created.id,
-      file: receiptDocument,
-      attachmentType: "CLAIM_RECEIPT",
+    const payload = buildPayload({
+      type,
+      title,
+      description,
+      supportRequestType,
+      supportRequestTypeOther,
+      expectedCompletionDate,
+      supportAdditionalNotes,
+      leaveType,
+      claimPurpose,
+      claimPurposeOther,
+      managerEmployeeId,
+      startDate,
+      endDate,
+      expenseDate,
+      amount,
+      currency,
+      bankName,
+      accountNumber,
+      ibanSwift,
+      receiptDocument,
+      supportingDocument,
     });
-  }
 
-  if (supportingDocument) {
-    await saveAttachment({
-      requestId: created.id,
-      file: supportingDocument,
-      attachmentType: "MANAGER_APPROVAL",
+    const created = await prisma.request.create({
+      data: {
+        type: payload.type,
+        title: payload.title,
+        description: payload.description ?? null,
+        status: "PENDING",
+        userId: session.user.id,
+        supportRequestType: payload.supportRequestType ?? null,
+        supportRequestTypeOther: payload.supportRequestTypeOther ?? null,
+        expectedCompletionDate: payload.expectedCompletionDate ?? null,
+        supportAdditionalNotes: payload.supportAdditionalNotes ?? null,
+        leaveType: payload.leaveType ?? null,
+        claimPurpose: payload.claimPurpose ?? null,
+        claimPurposeOther: payload.claimPurposeOther ?? null,
+        startDate: payload.startDate ?? null,
+        endDate: payload.endDate ?? null,
+        expenseDate: payload.expenseDate ?? null,
+        managerEmployeeId: payload.managerEmployeeId ?? null,
+        bankName: payload.bankName ?? null,
+        accountNumber: payload.accountNumber ?? null,
+        ibanSwift: payload.ibanSwift ?? null,
+        amount: payload.amount ?? null,
+        currency: payload.currency ?? null,
+      },
     });
-  }
 
-  return NextResponse.json(created);
+    if (receiptDocument) {
+      await saveAttachment({
+        requestId: created.id,
+        file: receiptDocument,
+        attachmentType: "CLAIM_RECEIPT",
+      });
+    }
+
+    if (supportingDocument) {
+      await saveAttachment({
+        requestId: created.id,
+        file: supportingDocument,
+        attachmentType: "MANAGER_APPROVAL",
+      });
+    }
+
+    return NextResponse.json(created);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create request";
+
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

@@ -21,7 +21,6 @@ export default async function EmployeeData() {
       user: { select: { role: true, email: true, name: true } }, // role comes from User
       department: { select: { id: true, departmentName: true } },
       branch: { select: { id: true, branchName: true } },
-      position: { select: { id: true, name: true } },
       shift: { select: { id: true, name: true } },
     },
   });

@@ -3,6 +3,7 @@ import type {
   CreateRequestPayload,
   LeaveRequestType,
   RequestStatus,
+  SupportRequestType,
   RequestType,
 } from "./types";
 
@@ -37,6 +38,21 @@ export function typeLabel(t: RequestType) {
   if (t === "CLAIM") return "Claim / Reimbursement";
   return "Support Request";
 }
+
+export const SUPPORT_REQUEST_OPTIONS: Array<{
+  value: SupportRequestType;
+  label: string;
+}> = [
+  { value: "RECOMMENDATION_LETTER", label: "Recommendation Letter" },
+  { value: "EMPLOYMENT_VERIFICATION", label: "Employment Verification" },
+  { value: "PROOF_OF_INCOME", label: "Proof of Income" },
+  { value: "CONTRACT_COPY", label: "Contract Copy" },
+  {
+    value: "OPERATIONAL_REQUEST",
+    label: "Operational Request (equipment, software access, etc)",
+  },
+  { value: "OTHER", label: "Other" },
+];
 
 export const LEAVE_TYPE_OPTIONS: Array<{
   value: LeaveRequestType;
@@ -89,14 +105,33 @@ export function claimPurposeLabel(value: ClaimPurpose) {
   );
 }
 
+export function supportRequestLabel(value: SupportRequestType) {
+  return (
+    SUPPORT_REQUEST_OPTIONS.find((option) => option.value === value)?.label ??
+    "Support Request"
+  );
+}
+
 function toDateOnlyIso(value: string) {
-  return new Date(`${value}T00:00:00.000Z`).toISOString();
+  const trimmed = value.trim();
+  const datePart = trimmed.includes("T") ? trimmed.slice(0, 10) : trimmed;
+  const normalized = new Date(`${datePart}T00:00:00.000Z`);
+
+  if (Number.isNaN(normalized.getTime())) {
+    throw new Error(`Invalid date value: ${value}`);
+  }
+
+  return normalized.toISOString();
 }
 
 export function validateRequest(input: {
   type: RequestType;
   title: string;
   description: string;
+  supportRequestType?: SupportRequestType | "";
+  supportRequestTypeOther?: string;
+  expectedCompletionDate?: string;
+  supportAdditionalNotes?: string;
   leaveType?: LeaveRequestType | "";
   claimPurpose?: ClaimPurpose | "";
   claimPurposeOther?: string;
@@ -115,6 +150,9 @@ export function validateRequest(input: {
     type,
     title,
     description,
+    supportRequestType,
+    supportRequestTypeOther,
+    expectedCompletionDate,
     leaveType,
     claimPurpose,
     claimPurposeOther,
@@ -130,12 +168,19 @@ export function validateRequest(input: {
     supportingDocument,
   } = input;
 
-  if (!title.trim() && type === "SUPPORT") {
-    return "Title is required for Support requests.";
-  }
-
-  if (type === "SUPPORT" && !description.trim()) {
-    return "Please add a message/description.";
+  if (type === "SUPPORT") {
+    if (!supportRequestType) {
+      return "Please select the type of request.";
+    }
+    if (supportRequestType === "OTHER" && !supportRequestTypeOther?.trim()) {
+      return "Please specify the support request type.";
+    }
+    if (!description.trim()) {
+      return "Please add the purpose of the request.";
+    }
+    if (!expectedCompletionDate) {
+      return "Please select the expected completion date.";
+    }
   }
 
   if (type === "LEAVE") {
@@ -180,6 +225,10 @@ export function buildPayload(input: {
   type: RequestType;
   title: string;
   description: string;
+  supportRequestType?: SupportRequestType | "";
+  supportRequestTypeOther?: string;
+  expectedCompletionDate?: string;
+  supportAdditionalNotes?: string;
   leaveType?: LeaveRequestType | "";
   claimPurpose?: ClaimPurpose | "";
   claimPurposeOther?: string;
@@ -199,6 +248,10 @@ export function buildPayload(input: {
     type,
     title,
     description,
+    supportRequestType,
+    supportRequestTypeOther,
+    expectedCompletionDate,
+    supportAdditionalNotes,
     leaveType,
     claimPurpose,
     claimPurposeOther,
@@ -219,6 +272,12 @@ export function buildPayload(input: {
     type,
     title: title.trim(),
     description: description.trim() || null,
+    supportRequestType: supportRequestType || null,
+    supportRequestTypeOther: supportRequestTypeOther?.trim() || null,
+    expectedCompletionDate: expectedCompletionDate
+      ? toDateOnlyIso(expectedCompletionDate)
+      : null,
+    supportAdditionalNotes: supportAdditionalNotes?.trim() || null,
     leaveType: leaveType || null,
     claimPurpose: claimPurpose || null,
     claimPurposeOther: claimPurposeOther?.trim() || null,
@@ -229,6 +288,16 @@ export function buildPayload(input: {
 
   if (!payload.title) {
     payload.title = typeLabel(type);
+  }
+
+  if (type === "SUPPORT") {
+    payload.title =
+      supportRequestType === "OTHER"
+        ? supportRequestTypeOther?.trim() || "Other Support Request"
+        : supportRequestType
+          ? supportRequestLabel(supportRequestType)
+          : payload.title;
+    payload.description = description.trim() || null;
   }
 
   if (type === "LEAVE") {

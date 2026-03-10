@@ -1,18 +1,11 @@
 import { prisma } from "@/db/prisma";
 import { notFound } from "next/navigation";
 import { updateEmployeeProfile } from "@/lib/actions/employee-profile.actions";
-import {  Country, Gender, Department } from "@prisma/client";
+import { Gender, PositionTitle } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import DepartmentSelect from "./department-select";
 
 export default async function EditEmployeePage({
@@ -31,6 +24,7 @@ export default async function EditEmployeePage({
       phoneNo: true,
       nationalId: true,
       gender: true,
+      position: true,
       address: true,
       departmentId: true,
       department: { select: { id: true, departmentName: true } },
@@ -42,11 +36,10 @@ export default async function EditEmployeePage({
 
   if (!employee) return notFound();
 
-   const departments = await prisma.department.findMany({
+  const departments = await prisma.department.findMany({
     orderBy: { departmentName: "asc" },
     select: { id: true, departmentName: true },
   });
-
 
   return (
     <div className="space-y-6">
@@ -68,6 +61,14 @@ export default async function EditEmployeePage({
             Department:{" "}
             <span className="text-foreground">
               {employee.department?.departmentName ?? "Not assigned"}
+            </span>
+          </div>
+          <div>
+            Position:{" "}
+            <span className="text-foreground">
+              {employee.position
+                ? formatEnumLabel(employee.position)
+                : "Not assigned"}
             </span>
           </div>
           <div>
@@ -116,18 +117,34 @@ export default async function EditEmployeePage({
             {/* Gender enum */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Gender</label>
-              <Select name="gender" defaultValue={employee.gender ?? ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(Gender).map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {formatEnumLabel(g)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                name="gender"
+                defaultValue={employee.gender ?? ""}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+              >
+                <option value="">Select gender</option>
+                {Object.values(Gender).map((gender) => (
+                  <option key={gender} value={gender}>
+                    {formatEnumLabel(gender)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Position</label>
+              <select
+                name="position"
+                defaultValue={employee.position ?? ""}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+              >
+                <option value="">Select position</option>
+                {Object.values(PositionTitle).map((position) => (
+                  <option key={position} value={position}>
+                    {formatEnumLabel(position)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">

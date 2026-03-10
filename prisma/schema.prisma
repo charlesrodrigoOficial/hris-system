@@ -7,6 +7,16 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum SupportRequestType {
+  RECOMMENDATION_LETTER
+  EMPLOYMENT_VERIFICATION
+  PROOF_OF_INCOME
+  CONTRACT_COPY
+  OPERATIONAL_REQUEST
+  OTHER
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -77,6 +87,14 @@ enum EmploymentType {
   PART_TIME
   CONTRACTOR
   INTERN
+}
+
+enum PositionTitle {
+  FRONTEND_INTERN
+  BACKEND_INTERN
+  JUNIOR_SE
+  SENIOR_SE
+  MANAGER
 }
 
 enum ReviewStatus {
@@ -213,8 +231,7 @@ model Employee {
   departmentManager Department? @relation("DepartmentManager")
   managedRequests   Request[]   @relation("RequestManager")
 
-  positionId String?   @db.Uuid
-  position   Position? @relation(fields: [positionId], references: [id])
+  position PositionTitle?
 
   shiftId String? @db.Uuid
   shift   Shift?  @relation(fields: [shiftId], references: [id])
@@ -299,25 +316,14 @@ model Branch {
 }
 
 model Department {
-  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  departmentName String     @unique
-  empCount       Int        @default(0)
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  departmentName String @unique
+  empCount       Int    @default(0)
 
-  depManagerId   String?    @unique @db.Uuid
-  depManager     Employee?  @relation("DepartmentManager", fields: [depManagerId], references: [id])
+  depManagerId String?   @unique @db.Uuid
+  depManager   Employee? @relation("DepartmentManager", fields: [depManagerId], references: [id])
 
-  employees      Employee[] @relation("DepartmentEmployees")
-
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-}
-
-model Position {
-  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String  @unique
-  description String?
-
-  employees Employee[]
+  employees Employee[] @relation("DepartmentEmployees")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -345,12 +351,16 @@ model Request {
   status      RequestStatus @default(PENDING)
 
   // Optional structured fields
+  supportRequestType   SupportRequestType? // support
+  supportRequestTypeOther String?
+  expectedCompletionDate DateTime?         // support
+  supportAdditionalNotes String?
   leaveType         LeaveRequestType? // leave
-  startDate         DateTime?         // leave
-  endDate           DateTime?         // leave
-  claimPurpose      ClaimPurpose?     // claim
+  startDate         DateTime? // leave
+  endDate           DateTime? // leave
+  claimPurpose      ClaimPurpose? // claim
   claimPurposeOther String?
-  expenseDate       DateTime?         // claim
+  expenseDate       DateTime? // claim
   managerEmployeeId String?           @db.Uuid
   managerEmployee   Employee?         @relation("RequestManager", fields: [managerEmployeeId], references: [id], onDelete: SetNull)
   bankName          String?
@@ -368,6 +378,7 @@ model Request {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([supportRequestType])
   @@index([leaveType])
   @@index([claimPurpose])
   @@index([managerEmployeeId])
@@ -378,10 +389,10 @@ model Attachment {
   requestId String  @db.Uuid
   request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  fileName String
-  fileUrl  String
-  fileType String?
-  fileSize Int?
+  fileName       String
+  fileUrl        String
+  fileType       String?
+  fileSize       Int?
   attachmentType RequestAttachmentType @default(GENERAL)
 
   createdAt DateTime @default(now())
@@ -416,17 +427,17 @@ model Notification {
 }
 
 model FeedPost {
-  id        String       @id @default(uuid()) @db.Uuid
-  type      FeedPostType @default(SHOUTOUT)
+  id   String       @id @default(uuid()) @db.Uuid
+  type FeedPostType @default(SHOUTOUT)
 
-  content   String
+  content String
 
   // Poll fields
   pollQuestion String?
   pollOptions  Json?
 
-  authorId  String @db.Uuid
-  author    User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String @db.Uuid
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

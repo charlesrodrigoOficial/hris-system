@@ -3,7 +3,7 @@
 import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Country, Gender } from "@prisma/client";
+import { Gender, PositionTitle } from "@prisma/client";
 
 function safeJsonParse(v: string) {
   try {
@@ -16,8 +16,8 @@ function safeJsonParse(v: string) {
 export async function updateEmployeeProfile(formData: FormData) {
   const id = String(formData.get("id") || "");
 
-  const countryRaw = String(formData.get("country") || "");
   const genderRaw = String(formData.get("gender") || "");
+  const positionRaw = String(formData.get("position") || "");
 
   const nationalId = String(formData.get("nationalId") || "").trim() || null;
   const phoneNo = String(formData.get("phoneNo") || "").trim() || null;
@@ -26,8 +26,8 @@ export async function updateEmployeeProfile(formData: FormData) {
   const address = addressText ? safeJsonParse(addressText) : null;
 
   // enums (allow empty => null)
-  const country = countryRaw ? (countryRaw as Country) : null;
   const gender = genderRaw ? (genderRaw as Gender) : null;
+  const position = positionRaw ? (positionRaw as PositionTitle) : null;
 
   const departmentId = String(formData.get("departmentId") || "");
   if (!departmentId) throw new Error("Department is required");
@@ -35,10 +35,10 @@ export async function updateEmployeeProfile(formData: FormData) {
   await prisma.employee.update({
     where: { id },
     data: {
-      country,
       nationalId,
       phoneNo,
       gender,
+      position,
       address,
       department: { connect: { id: departmentId } }, 
     },

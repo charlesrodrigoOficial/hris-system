@@ -10,7 +10,7 @@ export default async function RequestsPage() {
     redirect("/sign-in");
   }
 
-  const [user, employee] = await Promise.all([
+  const [user, employee, departmentsWithManagers] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -24,64 +24,56 @@ export default async function RequestsPage() {
         fullName: true,
         email: true,
         currency: true,
-        departmentId: true,
-        position: {
-          select: {
-            name: true,
-          },
+        position: true,
+      },
+    }),
+    prisma.department.findMany({
+      where: {
+        depManagerId: {
+          not: null,
         },
-        department: {
+      },
+      orderBy: {
+        departmentName: "asc",
+      },
+      select: {
+        departmentName: true,
+        depManager: {
           select: {
-            depManager: {
-              select: {
-                id: true,
-                fullName: true,
-              },
-            },
+            id: true,
+            fullName: true,
           },
         },
       },
     }),
   ]);
 
-  const departmentManagers = employee?.departmentId
-    ? await prisma.employee.findMany({
-        where: {
-          departmentId: employee.departmentId,
-          user: {
-            role: "MANAGER",
-          },
-        },
-        orderBy: {
-          fullName: "asc",
-        },
-        select: {
-          id: true,
-          fullName: true,
-        },
-      })
-    : [];
-
-  const managerMap = new Map<string, string>();
-
-  if (employee?.department?.depManager) {
-    managerMap.set(
-      employee.department.depManager.id,
-      employee.department.depManager.fullName,
-    );
-  }
-
-  for (const manager of departmentManagers) {
-    managerMap.set(manager.id, manager.fullName);
-  }
-
   const requester = {
     fullName: employee?.fullName ?? user?.name ?? "Employee",
     email: employee?.email ?? user?.email ?? "",
-    position: employee?.position?.name ?? "Not assigned",
+    position: employee?.position
+      ? formatEnumLabel(employee.position)
+      : "Not assigned",
     currency: employee?.currency ?? "GBP",
-    managers: Array.from(managerMap, ([id, name]) => ({ id, name })),
+    managers: departmentsWithManagers.flatMap((department) =>
+      department.depManager
+        ? [
+            {
+              id: department.depManager.id,
+              name: `${department.depManager.fullName} (${department.departmentName})`,
+            },
+          ]
+        : [],
+    ),
   };
 
   return <RequestsPageClient requester={requester} />;
+}
+
+function formatEnumLabel(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

@@ -15,6 +15,7 @@ import type {
   ClaimPurpose,
   LeaveRequestType,
   RequestFormContext,
+  SupportRequestType,
   RequestType,
 } from "@/lib/requests/types";
 import RequestFormFields from "./requests-form-fields";
@@ -25,6 +26,14 @@ type Props = {
   setOpen: (open: boolean) => void;
   type: RequestType;
   setType: (value: RequestType) => void;
+  supportRequestType: SupportRequestType | "";
+  setSupportRequestType: (value: SupportRequestType | "") => void;
+  supportRequestTypeOther: string;
+  setSupportRequestTypeOther: (value: string) => void;
+  expectedCompletionDate: string;
+  setExpectedCompletionDate: (value: string) => void;
+  supportAdditionalNotes: string;
+  setSupportAdditionalNotes: (value: string) => void;
   leaveType: LeaveRequestType | "";
   setLeaveType: (value: LeaveRequestType | "") => void;
   claimPurpose: ClaimPurpose | "";
@@ -70,6 +79,14 @@ export default function CreateRequestDialog(props: Props) {
     setOpen,
     type,
     setType,
+    supportRequestType,
+    setSupportRequestType,
+    supportRequestTypeOther,
+    setSupportRequestTypeOther,
+    expectedCompletionDate,
+    setExpectedCompletionDate,
+    supportAdditionalNotes,
+    setSupportAdditionalNotes,
     leaveType,
     setLeaveType,
     claimPurpose,
@@ -134,6 +151,14 @@ export default function CreateRequestDialog(props: Props) {
           requester={requester}
           type={type}
           setType={setType}
+          supportRequestType={supportRequestType}
+          setSupportRequestType={setSupportRequestType}
+          supportRequestTypeOther={supportRequestTypeOther}
+          setSupportRequestTypeOther={setSupportRequestTypeOther}
+          expectedCompletionDate={expectedCompletionDate}
+          setExpectedCompletionDate={setExpectedCompletionDate}
+          supportAdditionalNotes={supportAdditionalNotes}
+          setSupportAdditionalNotes={setSupportAdditionalNotes}
           leaveType={leaveType}
           setLeaveType={setLeaveType}
           claimPurpose={claimPurpose}
