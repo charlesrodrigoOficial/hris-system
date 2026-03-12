@@ -16,7 +16,7 @@ function Msg({ state }: { state: { success: boolean; message: string } }) {
   if (!state?.message) return null;
   return (
     <div
-      className={`text-sm ${state.success ? "text-green-600" : "text-destructive"}`}
+      className={`text-xs ${state.success ? "text-green-700" : "text-red-600"}`}
     >
       {state.message}
     </div>
@@ -52,21 +52,24 @@ export default function ShoutoutComposer({
   const [options, setOptions] = useState<string[]>(["", ""]);
 
   return (
-    <div className="space-y-3 rounded-xl border bg-white p-4">
+    <div className="space-y-3 rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 p-4 shadow-lg">
       {/* Shoutout */}
       <form action={action} className="flex items-center gap-3">
         <input type="hidden" name="type" value="SHOUTOUT" />
-        <Input name="content" placeholder="Post a Shoutout" />
-        <Button type="submit">Post</Button>
+        <Input name="content" placeholder="Post a Shoutout" className="text-xs" />
+        <Button type="submit" className="text-xs">Post</Button>
       </form>
       <Msg state={state} />
 
       {/* Actions row */}
-      <div className="flex items-center justify-between border-t pt-3">
+      <div className="flex items-center justify-between border-t border-sky-200/70 pt-3">
         {/* Kudos */}
         <Dialog open={kudosOpen} onOpenChange={setKudosOpen}>
           <DialogTrigger asChild>
-            <Button variant="ghost" className="gap-2">
+            <Button
+              variant="ghost"
+              className="gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+            >
               🏆 Give Kudos
             </Button>
           </DialogTrigger>
@@ -85,8 +88,8 @@ export default function ShoutoutComposer({
               className="space-y-3"
             >
               <input type="hidden" name="type" value="KUDOS" />
-              <Input name="content" placeholder="Write kudos message..." />
-              <Button type="submit" className="w-full">
+              <Input name="content" placeholder="Write kudos message..." className="text-xs" />
+              <Button type="submit" className="w-full text-xs">
                 Send Kudos
               </Button>
               <Msg state={kudosState} />
@@ -97,7 +100,10 @@ export default function ShoutoutComposer({
         {/* Poll */}
         <Dialog open={pollOpen} onOpenChange={setPollOpen}>
           <DialogTrigger asChild>
-            <Button variant="ghost" className="gap-2">
+            <Button
+              variant="ghost"
+              className="gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+            >
               📊 Create a poll
             </Button>
           </DialogTrigger>
@@ -127,14 +133,16 @@ export default function ShoutoutComposer({
               <Input
                 name="content"
                 placeholder="Optional intro (e.g. Team poll!)"
+                className="text-xs"
               />
-              <Input name="pollQuestion" placeholder="Poll question" />
+              <Input name="pollQuestion" placeholder="Poll question" className="text-xs" />
 
               <div className="space-y-2">
                 {options.map((v, idx) => (
                   <Input
                     key={idx}
                     placeholder={`Option ${idx + 1}`}
+                    className="text-xs"
                     value={v}
                     onChange={(e) => {
                       const copy = [...options];
@@ -146,13 +154,14 @@ export default function ShoutoutComposer({
                 <Button
                   type="button"
                   variant="outline"
+                  className="text-xs"
                   onClick={() => setOptions((p) => [...p, ""])}
                 >
                   + Add option
                 </Button>
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full text-xs">
                 Post Poll
               </Button>
               <Msg state={pollState} />

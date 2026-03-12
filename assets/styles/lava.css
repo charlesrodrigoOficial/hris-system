@@ -82,7 +82,6 @@
 .lava-ripple,
 .shooting-star,
 .asteroid-field,
-.asteroid-hero,
 .asteroid-fragment {
   position: absolute;
   inset: 0;
@@ -175,29 +174,6 @@
   filter: blur(0.25px) drop-shadow(0 0 3px rgba(255, 255, 255, 0.1));
   opacity: 0.5;
   animation: asteroid-field-drift 38s linear infinite;
-}
-
-.asteroid-hero {
-  inset: auto;
-  top: 16%;
-  right: 14%;
-  width: 128px;
-  height: 168px;
-  border-radius: 46% 54% 52% 48% / 36% 42% 58% 64%;
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.28), transparent 18%),
-    radial-gradient(circle at 44% 40%, rgba(255, 255, 255, 0.1), transparent 14%),
-    radial-gradient(circle at 64% 58%, rgba(15, 23, 42, 0.52), transparent 30%),
-    radial-gradient(circle at 54% 66%, rgba(2, 6, 23, 0.62), transparent 34%),
-    linear-gradient(155deg, rgba(245, 245, 244, 0.96) 0%, rgba(168, 162, 158, 0.92) 34%, rgba(87, 83, 78, 0.96) 68%, rgba(41, 37, 36, 0.98) 100%);
-  box-shadow:
-    inset -22px -18px 28px rgba(2, 6, 23, 0.34),
-    inset 12px 10px 18px rgba(255, 255, 255, 0.12),
-    0 28px 40px rgba(2, 6, 23, 0.28);
-  filter: drop-shadow(0 14px 18px rgba(2, 6, 23, 0.22));
-  opacity: 0.94;
-  transform: rotate(18deg);
-  animation: asteroid-hero-float 18s ease-in-out infinite;
 }
 
 .asteroid-fragment {
@@ -314,18 +290,6 @@
   100% {
     transform: translate3d(1120px, 280px, 0) rotate(13deg) scale(1.06);
     opacity: 0;
-  }
-}
-
-@keyframes asteroid-hero-float {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(18deg) scale(0.96);
-  }
-  50% {
-    transform: translate3d(-18px, 10px, 0) rotate(11deg) scale(1);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) rotate(18deg) scale(0.96);
   }
 }
 

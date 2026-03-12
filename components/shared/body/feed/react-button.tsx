@@ -33,7 +33,11 @@ export default function ReactButton({
         <Button
           type="button"
           variant="ghost"
-          className={myReactionType ? "gap-2 text-blue-700" : "gap-2"}
+          className={
+            myReactionType
+              ? "gap-2 text-xs text-sky-700 hover:bg-sky-100 hover:text-sky-800"
+              : "gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+          }
           disabled={pending}
         >
           <span className="text-base leading-none">

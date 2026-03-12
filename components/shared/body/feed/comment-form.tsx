@@ -15,12 +15,12 @@ export default function CommentForm({ postId }: { postId: string }) {
     <div className="space-y-2">
       <form action={action} className="flex gap-2">
         <input type="hidden" name="postId" value={postId} />
-        <Input name="content" placeholder="Write a comment..." />
-        <Button type="submit">Send</Button>
+        <Input name="content" placeholder="Write a comment..." className="text-xs" />
+        <Button type="submit" className="text-xs">Send</Button>
       </form>
       {!!state.message && (
         <p
-          className={`text-sm ${state.success ? "text-green-600" : "text-destructive"}`}
+          className={`text-xs ${state.success ? "text-green-700" : "text-red-600"}`}
         >
           {state.message}
         </p>

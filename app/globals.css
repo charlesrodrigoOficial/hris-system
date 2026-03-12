@@ -57,6 +57,18 @@
   .h3-bold {
     @apply font-bold text-xl lg:text-2xl;
   }
+
+  .dashboard-gradient-card {
+    @apply rounded-2xl border border-sky-200/70 bg-gradient-to-br from-sky-100 via-blue-50 to-white text-slate-900 shadow-lg;
+  }
+
+  .dashboard-gradient-soft {
+    @apply border border-sky-200/60 bg-white/70 backdrop-blur-sm;
+  }
+
+  .dashboard-gradient-muted {
+    @apply border border-sky-100 bg-white/85;
+  }
 }
 
 @layer base {

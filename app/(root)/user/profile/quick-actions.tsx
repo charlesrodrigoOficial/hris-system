@@ -44,7 +44,7 @@ export function QuickActions({ className, role }: QuickActionsProps) {
   return (
     <Card
       className={cn(
-        "rounded-2xl  border-slate-200 bg-white/70 p-4 shadow-sm backdrop-blur hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:shadow",
+        "rounded-2xl border border-sky-200/70 bg-gradient-to-r from-blue-950 via-blue-700 to-slate-200 p-4 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl",
         className,
       )}
     >
@@ -54,8 +54,8 @@ export function QuickActions({ className, role }: QuickActionsProps) {
           <Sparkles className="h-4 w-4" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-900">Quick Actions</p>
-          <p className="text-xs text-slate-500">Jump into common tasks</p>
+          <p className="text-sm font-semibold text-slate-200">Quick Actions</p>
+          <p className="text-xs text-slate-200">Jump into common tasks</p>
         </div>
       </div>
 
@@ -68,15 +68,15 @@ export function QuickActions({ className, role }: QuickActionsProps) {
             variant="outline"
             className="
               group h-11 flex-col items-center justify-center gap-1
-              rounded-xl border-slate-200 bg-white/70
+              rounded-xl border border-sky-200 bg-white/75
               text-xs font-medium text-slate-800
               transition
-              hover:-translate-y-1 hover:border-blue-200
-              hover:bg-blue-50/70 hover:shadow
+              hover:-translate-y-1 hover:border-sky-300
+              hover:bg-white hover:shadow
             "
           >
             <Link href={href}>
-              <Icon className="h-4 w-4 text-slate-600 group-hover:text-blue-700" />
+              <Icon className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
               {title}
             </Link>
           </Button>
@@ -98,15 +98,15 @@ export function QuickActionsCompact({ className, role }: QuickActionsProps) {
           variant="outline"
           className="
             group h-11 flex-col items-center justify-center gap-1
-            rounded-xl border-slate-200 bg-white/70
+            rounded-xl border border-sky-200 bg-white/75
             text-xs font-medium text-slate-800
             transition
-            hover:-translate-y-1 hover:border-blue-200
-            hover:bg-blue-50/70 hover:shadow
+            hover:-translate-y-1 hover:border-sky-300
+            hover:bg-white hover:shadow
           "
         >
           <Link href={href} aria-label={title} title={title}>
-            <Icon className="h-4 w-4 text-slate-600 group-hover:text-blue-700" />
+            <Icon className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
             {title}
           </Link>
         </Button>

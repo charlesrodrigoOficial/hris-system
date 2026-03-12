@@ -46,7 +46,7 @@ function DeleteCommentButton({ commentId }: { commentId: string }) {
       type="button"
       variant="ghost"
       size="sm"
-      className="h-auto px-2 py-1 text-xs text-destructive hover:text-destructive"
+      className="h-auto px-2 py-1 text-xs text-red-600 hover:bg-sky-100 hover:text-red-700"
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
@@ -67,24 +67,26 @@ export function FeedPostCard({
   canModerate: boolean;
 }) {
   return (
-    <Card className="rounded-2xl shadow-sm border-b-8">
+    <Card className="overflow-hidden rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 shadow-lg">
       <CardHeader className="flex flex-row items-start justify-between gap-3 p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarFallback>{post.authorName?.[0] ?? "U"}</AvatarFallback>
+            <AvatarFallback className="bg-white/15 text-slate-950">
+              {post.authorName?.[0] ?? "U"}
+            </AvatarFallback>
           </Avatar>
 
           <div className="leading-tight">
             <div className="font-medium">
               {post.authorName}
               {post.authorRole ? (
-                <span className="text-muted-foreground">
+                <span className="text-slate-800 ml-1 text-xs font-normal">
                   {" "}
                   • {post.authorRole}
                 </span>
               ) : null}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-slate-800">
               {post.createdAtLabel}
             </div>
           </div>
@@ -93,21 +95,21 @@ export function FeedPostCard({
         {canModerate ? <PostMenu postId={post.id} /> : null}
       </CardHeader>
 
-      <CardContent className="px-4 pb-4 text-sm text-foreground/90">
+      <CardContent className="px-4 pb-4 text-xs text-slate-700">
         {post.body}
-        <span className="ml-2 text-muted-foreground underline cursor-pointer">
+        <span className="ml-2 cursor-pointer text-slate-500 underline">
           
         </span>
       </CardContent>
 
-      <CardFooter className="block border-t p-3">
+      <CardFooter className="block border-t border-sky-200/70 p-3">
         <div className="flex items-center justify-between gap-2">
           <ReactButton
             postId={post.id}
             count={post.reactionsCount}
             myReactionType={post.myReactionType}
           />
-          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="inline-flex items-center gap-2 text-xs text-slate-500">
             <MessageSquare className="h-4 w-4" />
             {post.comments.length} Comments
           </div>
@@ -118,7 +120,7 @@ export function FeedPostCard({
             {post.reactionSummary.map((reaction) => (
               <div
                 key={reaction.type}
-                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-white/80 px-2.5 py-1 text-xs text-slate-700"
               >
                 <span>{reaction.emoji}</span>
                 <span>{reaction.count}</span>
@@ -131,7 +133,7 @@ export function FeedPostCard({
           {post.comments.map((comment) => (
             <div
               key={comment.id}
-              className="rounded-xl bg-slate-50 px-3 py-2 text-sm"
+              className="dashboard-gradient-soft rounded-xl px-3 py-2 text-xs"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -142,7 +144,7 @@ export function FeedPostCard({
                   <DeleteCommentButton commentId={comment.id} />
                 ) : null}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-slate-500">
                 {comment.createdAtLabel}
               </p>
             </div>

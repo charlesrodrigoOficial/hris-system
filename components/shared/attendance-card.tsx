@@ -134,9 +134,9 @@ export function AttendanceCard() {
   }, [attendance]);
 
   return (
-    <Card className="w-full bg-gradient-to-r border-b-8 border-b-slate-300 from-slate-900 p-3 via-blue-950 to-blue-700 text-white shadow-xl rounded-2xl">
+    <Card className="w-full rounded-2xl border border-sky-200/70 bg-gradient-to-r from-blue-950 via-blue-800 to-slate-200 p-3 text-slate-900 shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base">Attendance</CardTitle>
+        <CardTitle className="text-base text-slate-200">Attendance</CardTitle>
 
         {attendance?.status ? (
           <Badge variant={statusVariant(attendance.status)}>
@@ -147,23 +147,23 @@ export function AttendanceCard() {
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 text-xs">
         {error ? (
-          <div className="rounded-md  border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-red-700">
             {error}
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-md border p-3">
-            <div className="text-white">Check in</div>
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="dashboard-gradient-soft rounded-md p-3">
+            <div className="text-slate-700">Check in</div>
             <div className="mt-1 font-medium">
               {formatTime(attendance?.checkIn ?? null)}
             </div>
           </div>
 
-          <div className="rounded-md border p-3">
-            <div className="text-white ">Check out</div>
+          <div className="dashboard-gradient-soft rounded-md p-3">
+            <div className="text-slate-700">Check out</div>
             <div className="mt-1 font-medium">
               {formatTime(attendance?.checkOut ?? null)}
             </div>
@@ -173,7 +173,7 @@ export function AttendanceCard() {
         {/* Work mode selector shown only before check-in */}
         {state === "NO_RECORD" && (
           <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">Work mode</div>
+            <div className="text-xs text-slate-600">Work mode</div>
             <RadioGroup
               value={workMode}
               onValueChange={(v) => setWorkMode(v as WorkMode)}
@@ -181,11 +181,11 @@ export function AttendanceCard() {
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="OFFICE" id="office" />
-                <Label htmlFor="office">Office</Label>
+                <Label htmlFor="office" className="text-xs">Office</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="REMOTE" id="remote" />
-                <Label htmlFor="remote">Remote</Label>
+                <Label htmlFor="remote" className="text-xs">Remote</Label>
               </div>
             </RadioGroup>
           </div>
@@ -193,16 +193,16 @@ export function AttendanceCard() {
 
         <div className="flex items-center gap-2">
           {loading ? (
-            <Button disabled className="w-full">
+            <Button disabled className="w-full text-xs">
               Loading…
             </Button>
           ) : state === "BLOCKED" ? (
-            <Button disabled className="w-full">
+            <Button disabled className="w-full text-xs">
               Attendance blocked ({statusLabel(attendance!.status)})
             </Button>
           ) : state === "NO_RECORD" ? (
             <Button
-              className="w-full"
+              className="w-full text-xs"
               onClick={checkIn}
               disabled={actionLoading !== null}
             >
@@ -210,7 +210,7 @@ export function AttendanceCard() {
             </Button>
           ) : state === "CHECKED_IN" ? (
             <Button
-              className="w-full"
+              className="w-full text-xs"
               variant="destructive"
               onClick={checkOut}
               disabled={actionLoading !== null}
@@ -219,7 +219,7 @@ export function AttendanceCard() {
             </Button>
           ) : (
             <Button
-              className="w-full bg-blue-600"
+              className="w-full bg-blue-600 text-xs"
               variant="blue"
               onClick={loadToday}
             >

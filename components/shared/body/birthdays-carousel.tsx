@@ -26,35 +26,37 @@ type Props = {
 
 export function BirthdaysCarousel({ users = [], title = "Birthdays" }: Props) {
   return (
-    <Card className="rounded-2xl shadow-sm border-b-8">
-      <CardHeader className="p-4 font-medium">{title}</CardHeader>
+    <Card className="rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 shadow-lg">
+      <CardHeader className="p-4 font-medium text-slate-700">{title}</CardHeader>
 
       <CardContent className="pb-4">
         <div className="flex gap-4 overflow-x-auto pr-2">
           {users.length === 0 ? (
-            <div className="text-sm text-muted-foreground px-1">
+            <div className="px-1 text-xs text-slate-500">
               No birthdays coming up.
             </div>
           ) : (
             users.map((u) => (
               <div
                 key={u.id}
-                className="min-w-[220px] rounded-xl border bg-muted/30 p-4"
+                className="dashboard-gradient-soft min-w-[220px] rounded-xl p-4"
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarFallback>{u.name?.[0] ?? "U"}</AvatarFallback>
+                    <AvatarFallback className="bg-sky-100 text-slate-700">
+                      {u.name?.[0] ?? "U"}
+                    </AvatarFallback>
                   </Avatar>
 
                   <div>
                     <div className="font-medium">{u.name}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-slate-500">
                       {u.subtitle ?? "Happy Birthday!"}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-lg bg-background/60 p-3 text-center text-sm">
+                <div className="dashboard-gradient-muted mt-3 rounded-lg p-3 text-center text-xs text-slate-700">
                   🎉 Happy Birthday!
                 </div>
               </div>

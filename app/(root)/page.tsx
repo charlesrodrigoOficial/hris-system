@@ -25,7 +25,7 @@ const Homepage = async () => {
       {/* push attendance down */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN */}
-        <div className="lg:col-span-8 space-y-1">
+        <div className="lg:col-span-8 space-y-4">
           <ShoutoutComposer canCreate={canPostToFeed} />
 
           <ScrollArea className="h-[200px] pr-3">

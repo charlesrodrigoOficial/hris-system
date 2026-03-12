@@ -74,7 +74,6 @@ export default function NameCardClient({
           <div className="lava-ripple" />
           <div className="shooting-star" />
           <div className="asteroid-field" />
-          <div className="asteroid-hero" />
           <div className="asteroid-fragment fragment-1" />
           <div className="asteroid-fragment fragment-2" />
         </div>
