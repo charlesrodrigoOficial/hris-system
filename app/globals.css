@@ -9,6 +9,32 @@
     @apply max-w-7xl lg:mx-auto p-5 md:px-10 w-full;
   }
 
+  @keyframes feed-menu-dance {
+    0%,
+    100% {
+      transform: rotate(0deg) scale(1);
+    }
+    20% {
+      transform: rotate(10deg) scale(1.06);
+    }
+    40% {
+      transform: rotate(-10deg) scale(0.96);
+    }
+    60% {
+      transform: rotate(8deg) scale(1.04);
+    }
+    80% {
+      transform: rotate(-8deg) scale(0.98);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .feed-menu-trigger:hover .feed-menu-icon {
+      animation: feed-menu-dance 1.1s ease-in-out infinite;
+      transform-origin: center;
+    }
+  }
+
   .flex-start {
     @apply flex justify-start items-center;
   }

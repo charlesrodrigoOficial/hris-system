@@ -96,7 +96,7 @@ export function FeedPostCard({
       <CardContent className="px-4 pb-4 text-sm text-foreground/90">
         {post.body}
         <span className="ml-2 text-muted-foreground underline cursor-pointer">
-          See more...
+          
         </span>
       </CardContent>
 

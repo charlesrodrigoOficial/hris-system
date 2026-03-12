@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import Logo from "./logo";
 
 export default function NameCardClient({
@@ -72,6 +71,12 @@ export default function NameCardClient({
         <div className="lava-container">
           <div className="lava" />
           <div className="lava-blur" />
+          <div className="lava-ripple" />
+          <div className="shooting-star" />
+          <div className="asteroid-field" />
+          <div className="asteroid-hero" />
+          <div className="asteroid-fragment fragment-1" />
+          <div className="asteroid-fragment fragment-2" />
         </div>
 
         <div className="tilt-highlight pointer-events-none absolute inset-0" />

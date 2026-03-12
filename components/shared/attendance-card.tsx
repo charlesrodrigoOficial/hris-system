@@ -134,7 +134,7 @@ export function AttendanceCard() {
   }, [attendance]);
 
   return (
-    <Card className="w-full bg-gradient-to-r border-b-8 border-b-slate-300 from-blue-950 p-3 via-blue-600 to-blue-400 text-white shadow-xl rounded-2xl">
+    <Card className="w-full bg-gradient-to-r border-b-8 border-b-slate-300 from-slate-900 p-3 via-blue-950 to-blue-700 text-white shadow-xl rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Attendance</CardTitle>
 

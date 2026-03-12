@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical } from "lucide-react";
+import { X } from "lucide-react";
 import { useTransition } from "react";
 import { deletePost } from "@/lib/actions/feed.actions";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,11 @@ export default function PostMenu({ postId }: { postId: string }) {
 
   return (
     <Button
+      aria-label="Delete post"
       type="button"
       variant="ghost"
       size="icon"
+      className="feed-menu-trigger"
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
@@ -20,7 +22,7 @@ export default function PostMenu({ postId }: { postId: string }) {
         })
       }
     >
-      <MoreVertical className="h-4 w-4" />
+      <X className="feed-menu-icon h-4 w-4" />
     </Button>
   );
 }
