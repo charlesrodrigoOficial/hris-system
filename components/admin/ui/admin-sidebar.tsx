@@ -17,7 +17,7 @@ export default function Sidebar() {
 
   return (
     <div className="px-4">
-      <p className="text-base font-semibold text-muted-foreground mb-3">
+      <p className="mb-3 text-center text-base font-semibold text-muted-foreground">
         Admin Dashboard
       </p>
 

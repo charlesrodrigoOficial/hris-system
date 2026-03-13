@@ -54,7 +54,7 @@ export default function NameCardClient({
         ref={cardRef}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
-        className="tilt-card relative overflow-hidden flex-1 rounded-xl p-10 text-white shadow-lg"
+        className="tilt-card relative flex-1 overflow-hidden rounded-xl p-10 text-white"
       >
         <div className="relative z-10 pr-[290px]">
           <p className="text-lg uppercase tracking-wide opacity-90">HI {name}</p>
