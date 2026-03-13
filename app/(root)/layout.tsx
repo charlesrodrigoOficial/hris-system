@@ -16,9 +16,9 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b">
+      <div className="shrink-0 border-b">
         <div className="container mx-auto">
           <div className="flex items-center h-16 px-4">
             <div className="ml-auto items-center flex space-x-4">
@@ -34,14 +34,18 @@ export default async function RootLayout({
       </div>
 
       {/* Body */}
-      <div className="flex-1">
-        <div className="container mx-auto flex gap-6">
+      <div className="min-h-0 flex-1">
+        <div className="flex h-full w-full gap-6 px-4 md:px-6">
           {/* Sidebar */}
-          <aside className={`hidden md:block ${APP_SIDEBAR_WIDTH_CLASS} border-r py-5`}>
+          <aside
+            className={`hidden h-full shrink-0 overflow-y-auto border-r py-5 md:block ${APP_SIDEBAR_WIDTH_CLASS}`}
+          >
             <UserSidebar role={session?.user?.role} />
           </aside>
           {/* Page content */}
-          <main className="flex-1 py-5">{children}</main>
+          <main className="scrollbar-hidden min-h-0 w-full flex-1 overflow-y-auto py-5 pr-2">
+            {children}
+          </main>
         </div>
       </div>
     </div>
