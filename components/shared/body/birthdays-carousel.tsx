@@ -26,8 +26,8 @@ type Props = {
 
 export function BirthdaysCarousel({ users = [], title = "Birthdays" }: Props) {
   return (
-    <Card className="rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 shadow-lg">
-      <CardHeader className="p-4 font-medium text-slate-700">{title}</CardHeader>
+    <Card className="rounded-2xl border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 shadow-lg">
+      <CardHeader className="p-4 font-medium text-black">{title}</CardHeader>
 
       <CardContent className="pb-4">
         <div className="flex gap-4 overflow-x-auto pr-2">

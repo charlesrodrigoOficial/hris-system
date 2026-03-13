@@ -52,7 +52,7 @@ export default function ShoutoutComposer({
   const [options, setOptions] = useState<string[]>(["", ""]);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 p-4 shadow-lg">
+    <div className="space-y-3 rounded-2xl border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 p-4 text-slate-950 shadow-lg">
       {/* Shoutout */}
       <form action={action} className="flex items-center gap-3">
         <input type="hidden" name="type" value="SHOUTOUT" />
@@ -62,13 +62,13 @@ export default function ShoutoutComposer({
       <Msg state={state} />
 
       {/* Actions row */}
-      <div className="flex items-center justify-between border-t border-sky-200/70 pt-3">
+      <div className="flex items-center justify-between border-t border-slate-300/70 pt-3">
         {/* Kudos */}
         <Dialog open={kudosOpen} onOpenChange={setKudosOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
-              className="gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+              className="gap-2 text-xs text-slate-900 hover:bg-slate-200 hover:text-black"
             >
               🏆 Give Kudos
             </Button>
@@ -102,7 +102,7 @@ export default function ShoutoutComposer({
           <DialogTrigger asChild>
             <Button
               variant="ghost"
-              className="gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+              className="gap-2 text-xs text-slate-900 hover:bg-slate-200 hover:text-black"
             >
               📊 Create a poll
             </Button>

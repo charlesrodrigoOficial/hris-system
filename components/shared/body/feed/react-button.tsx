@@ -35,8 +35,8 @@ export default function ReactButton({
           variant="ghost"
           className={
             myReactionType
-              ? "gap-2 text-xs text-sky-700 hover:bg-sky-100 hover:text-sky-800"
-              : "gap-2 text-xs text-slate-700 hover:bg-sky-100 hover:text-slate-900"
+              ? "gap-2 text-xs text-slate-900 hover:bg-slate-200 hover:text-black"
+              : "gap-2 text-xs text-slate-700 hover:bg-slate-200 hover:text-black"
           }
           disabled={pending}
         >

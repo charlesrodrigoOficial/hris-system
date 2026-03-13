@@ -14,7 +14,7 @@ export default function PostMenu({ postId }: { postId: string }) {
       type="button"
       variant="ghost"
       size="icon"
-      className="feed-menu-trigger text-slate-600 hover:bg-sky-100 hover:text-slate-900"
+      className="feed-menu-trigger text-slate-700 hover:bg-slate-200 hover:text-black"
       disabled={pending}
       onClick={() =>
         startTransition(async () => {

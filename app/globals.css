@@ -63,11 +63,11 @@
   }
 
   .dashboard-gradient-soft {
-    @apply border border-sky-200/60 bg-white/70 backdrop-blur-sm;
+    @apply border border-slate-300/70 bg-white/75 backdrop-blur-sm;
   }
 
   .dashboard-gradient-muted {
-    @apply border border-sky-100 bg-white/85;
+    @apply border border-slate-300/70 bg-white/85;
   }
 }
 

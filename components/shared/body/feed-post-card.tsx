@@ -67,11 +67,11 @@ export function FeedPostCard({
   canModerate: boolean;
 }) {
   return (
-    <Card className="overflow-hidden rounded-2xl border border-sky-200/70 bg-gradient-to-b from-blue-300 via-sky-100 to-slate-200 shadow-lg">
+    <Card className="overflow-hidden rounded-2xl border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 shadow-lg">
       <CardHeader className="flex flex-row items-start justify-between gap-3 p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-white/15 text-slate-950">
+            <AvatarFallback className="bg-slate-100 text-slate-900">
               {post.authorName?.[0] ?? "U"}
             </AvatarFallback>
           </Avatar>
@@ -80,7 +80,7 @@ export function FeedPostCard({
             <div className="font-medium">
               {post.authorName}
               {post.authorRole ? (
-                <span className="text-slate-800 ml-1 text-xs font-normal">
+                <span className="ml-1 text-xs font-normal text-slate-800">
                   {" "}
                   • {post.authorRole}
                 </span>
@@ -102,7 +102,7 @@ export function FeedPostCard({
         </span>
       </CardContent>
 
-      <CardFooter className="block border-t border-sky-200/70 p-3">
+      <CardFooter className="block border-t border-slate-300/70 p-3">
         <div className="flex items-center justify-between gap-2">
           <ReactButton
             postId={post.id}
@@ -120,7 +120,7 @@ export function FeedPostCard({
             {post.reactionSummary.map((reaction) => (
               <div
                 key={reaction.type}
-                className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-white/80 px-2.5 py-1 text-xs text-slate-700"
+                className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white/80 px-2.5 py-1 text-xs text-slate-700"
               >
                 <span>{reaction.emoji}</span>
                 <span>{reaction.count}</span>
