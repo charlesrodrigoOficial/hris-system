@@ -1,0 +1,52 @@
+"use client";
+
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { BookOpen, Sparkles } from "lucide-react";
+
+type EssentialsCardProps = {
+  className?: string;
+};
+
+export function EssentialsCard({ className }: EssentialsCardProps) {
+  return (
+    <Card
+      className={cn(
+        "rounded-2xl border border-sky-200/70 bg-gradient-to-r from-blue-950 via-blue-700 to-slate-200 p-4 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl",
+        className,
+      )}
+    >
+      <div className="mb-4 flex items-center gap-2">
+        <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-400 text-white">
+          <Sparkles className="h-4 w-4" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-200">Essentials</p>
+          <p className="text-xs text-slate-200">Important shortcuts</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        <Button
+          asChild
+          variant="outline"
+          className="
+            group h-11 flex-col items-center justify-center gap-1
+            rounded-xl border border-sky-200 bg-white/75
+            text-xs font-medium text-slate-800
+            transition
+            hover:-translate-y-1 hover:border-sky-300
+            hover:bg-white hover:shadow
+          "
+        >
+          <Link href="/user/essentials">
+            <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
+            Inteluropedia
+          </Link>
+        </Button>
+      </div>
+    </Card>
+  );
+}

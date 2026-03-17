@@ -4,8 +4,33 @@ import { UserRole } from "@prisma/client";
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "";
 export const APP_DESCRIPTION =
   process.env.NEXT_PUBLIC_APP_DESCRIPTION || "Modern e-commerce platform";
-export const SERVER_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+
+function withProtocol(url?: string | null) {
+  if (!url) return undefined;
+  return url.startsWith("http://") || url.startsWith("https://")
+    ? url
+    : `https://${url}`;
+}
+
+export function getBaseUrl() {
+  const configuredUrl =
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_SERVER_URL;
+  const vercelUrl = withProtocol(
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_BRANCH_URL ||
+      process.env.VERCEL_URL,
+  );
+
+  if (process.env.NODE_ENV === "production" && vercelUrl) {
+    return vercelUrl;
+  }
+
+  return withProtocol(configuredUrl) || vercelUrl || "http://localhost:3000";
+}
+
+export const SERVER_URL = getBaseUrl();
 export const LATEST_PRODUCTS_LIMIT =
   Number(process.env.LATEST_PRODUCTS_LIMIT) || 4;
 

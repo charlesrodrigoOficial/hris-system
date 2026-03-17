@@ -12,6 +12,7 @@ import { APP_NAME } from "@/lib/constants";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import SignUpForm from "./sign-up-form";
+import { normalizeRelativeCallbackUrl } from "@/lib/auth/redirects";
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -23,11 +24,12 @@ const SignUpPage = async (props: {
   }>;
 }) => {
   const { callbackUrl } = await props.searchParams;
+  const redirectTo = normalizeRelativeCallbackUrl(callbackUrl);
 
   const session = await auth();
 
   if (session) {
-    return redirect(callbackUrl || "/");
+    return redirect(redirectTo);
   }
 
   return (

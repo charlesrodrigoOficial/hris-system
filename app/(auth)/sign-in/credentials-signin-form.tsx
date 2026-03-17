@@ -9,6 +9,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signInWithCredentials } from "@/lib/actions/user.actions";
 import { useSearchParams } from "next/navigation";
+import { normalizeRelativeCallbackUrl } from "@/lib/auth/redirects";
 
 /*sign in button component */
 const SignInButton = () => {
@@ -27,7 +28,9 @@ const CredentialsSignInForm = () => {
   });
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = normalizeRelativeCallbackUrl(
+    searchParams.get("callbackUrl"),
+  );
 
   return (
     <form action={action}>

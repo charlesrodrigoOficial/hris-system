@@ -11,6 +11,8 @@ import { auth } from "@/auth";
 import { QuickActions } from "./user/profile/quick-actions";
 import { canCreateFeedPost, canManageFeed } from "@/lib/auth/roles";
 import { getUpcomingBirthdays } from "@/lib/user/get-upcoming-birthdays";
+import { EssentialsCard } from "./user/profile/essentials";
+
 
 const Homepage = async () => {
   const session = await auth();
@@ -47,6 +49,7 @@ const Homepage = async () => {
         <div className="lg:col-span-4 space-y-6">
           <AttendanceCard />
           <QuickActions className="mt-3" role={session?.user?.role} />
+          <EssentialsCard />
         </div>
         
       </div>

@@ -13,6 +13,7 @@ import { APP_NAME } from "@/lib/constants";
 import CredentialsSignInForm from "./credentials-signin-form";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { normalizeRelativeCallbackUrl } from "@/lib/auth/redirects";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -24,6 +25,7 @@ const SignInPage = async (props: {
   }>;
 }) => {
   const { callbackUrl } = await props.searchParams;
+  const redirectTo = normalizeRelativeCallbackUrl(callbackUrl);
 
   let session = null;
   try {
@@ -33,7 +35,7 @@ const SignInPage = async (props: {
   }
 
   if (session) {
-    return redirect(callbackUrl || "/");
+    return redirect(redirectTo);
   }
 
   return (

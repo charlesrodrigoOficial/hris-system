@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
-  CalendarCheck,
   CircleHelp,
   Clock3,
   FileText,
@@ -30,11 +29,6 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
 
   return [
     { title: "Overview", href: "/", icon: LayoutDashboard },
-    {
-      title: "Attendance",
-      href: canOpenAttendanceAdmin ? "/admin/attendance" : "/",
-      icon: CalendarCheck,
-    },
     {
       title: "Time",
       href: "/user/requests",

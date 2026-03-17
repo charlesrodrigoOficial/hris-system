@@ -19,6 +19,14 @@ import { _success } from "zod/v4/core";
 import { PAGE_SIZE } from "../constants";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { normalizeRelativeCallbackUrl } from "../auth/redirects";
+
+function getRedirectTo(formData: FormData) {
+  const callbackUrl = formData.get("callbackUrl");
+  return normalizeRelativeCallbackUrl(
+    typeof callbackUrl === "string" ? callbackUrl : null,
+  );
+}
 
 //Sign in the user with credentials
 export async function signInWithCredentials(
@@ -30,8 +38,12 @@ export async function signInWithCredentials(
       email: formData.get("email"),
       password: formData.get("password"),
     });
+    const redirectTo = getRedirectTo(formData);
 
-    await signIn("credentials", user);
+    await signIn("credentials", {
+      ...user,
+      redirectTo,
+    });
 
     return { success: true, message: "Signed in success" };
   } catch (error) {
@@ -58,6 +70,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     });
 
     const plainPassword = user.password;
+    const redirectTo = getRedirectTo(formData);
 
     user.password = hashSync(user.password, 10);
 
@@ -72,6 +85,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     await signIn("credentials", {
       email: user.email,
       password: plainPassword,
+      redirectTo,
     });
 
     return { success: true, message: "User registered  successfully" };

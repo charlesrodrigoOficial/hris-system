@@ -6,12 +6,41 @@ import { compareSync } from "bcrypt-ts-edge";
 // import { cookies } from "next/headers";
 // import { authConfig } from "./auth.config";
 import { UserRole } from "@prisma/client";
+import { getBaseUrl } from "@/lib/constants";
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN ?? "intelura.com";
 const ALLOWED_ROLES = new Set<UserRole>([UserRole.ADMIN, UserRole.HR]);
+const AUTH_BASE_URL = getBaseUrl();
+
+function getSafeRedirectUrl(url: string, baseUrl: string) {
+  const effectiveBaseUrl =
+    process.env.NODE_ENV === "production" ? AUTH_BASE_URL : baseUrl;
+
+  if (url.startsWith("/")) {
+    return `${effectiveBaseUrl}${url}`;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    const parsedBaseUrl = new URL(effectiveBaseUrl);
+
+    if (parsedUrl.origin === parsedBaseUrl.origin) {
+      return url;
+    }
+
+    if (process.env.NODE_ENV === "production" && parsedUrl.hostname === "localhost") {
+      return `${effectiveBaseUrl}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    }
+  } catch {
+    return effectiveBaseUrl;
+  }
+
+  return effectiveBaseUrl;
+}
 
 export const config = {
   secret: process.env.AUTH_SECRET,
+  trustHost: true,
 
   pages: {
     signIn: "/sign-in",
@@ -62,6 +91,10 @@ export const config = {
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }: any) {
+      return getSafeRedirectUrl(url, baseUrl);
+    },
+
     //Gate access here
     async signIn({ user }: any) {
       const email = (user?.email ?? "").toLowerCase();

@@ -70,6 +70,42 @@
     @apply border border-slate-300/70 bg-white/85;
   }
 
+  .essentials-card {
+    @apply rounded-2xl border border-sky-200/70 bg-gradient-to-r from-blue-950 via-blue-700 to-slate-200 p-4 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  .essentials-card__header {
+    @apply mb-4 flex items-center gap-2;
+  }
+
+  .essentials-card__icon-wrap {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-400 text-white;
+  }
+
+  .essentials-card__title {
+    @apply text-sm font-semibold text-slate-200;
+  }
+
+  .essentials-card__subtitle {
+    @apply text-xs text-slate-200;
+  }
+
+  .essentials-card__actions {
+    @apply grid grid-cols-1 gap-3;
+  }
+
+  .essentials-card__button {
+    @apply group h-11 flex-col items-center justify-center gap-1 rounded-xl border border-sky-200 bg-white/75 text-xs font-medium text-slate-800 transition hover:-translate-y-1 hover:border-sky-300 hover:bg-white hover:shadow;
+  }
+
+  .essentials-card__button-icon {
+    @apply h-4 w-4 text-slate-500 transition-colors;
+  }
+
+  .essentials-card__button:hover .essentials-card__button-icon {
+    @apply text-sky-700;
+  }
+
   .scrollbar-hidden {
     -ms-overflow-style: none;
     scrollbar-width: none;
