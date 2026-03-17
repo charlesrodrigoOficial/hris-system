@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  BookOpen,
+  Briefcase,
   Building2,
   FileText,
   FolderOpen,
-  Receipt,
+  GraduationCap,
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
@@ -20,94 +22,161 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  mapAttachmentToDocumentItem,
+  mapCompanyDocumentToItem,
+  mapEmployeeDocumentToItem,
   type DocumentItem,
 } from "./docUtils";
 
-export default async function UserDocumentPage() {
+type DocumentView = "my" | "company";
+
+export default async function UserDocumentPage(props: {
+  searchParams: Promise<{
+    view?: string;
+  }>;
+}) {
   const session = await auth();
 
   if (!session?.user?.id) {
     redirect("/sign-in");
   }
 
-  const myAttachments = await prisma.attachment.findMany({
-    where: {
-      request: {
+  const { view } = await props.searchParams;
+  const activeView: DocumentView = view === "company" ? "company" : "my";
+
+  const [myDocumentRecords, companyDocumentRecords] = await Promise.all([
+    prisma.employeeDocument.findMany({
+      where: {
         userId: session.user.id,
       },
-    },
-    select: {
-      id: true,
-      fileName: true,
-      fileUrl: true,
-      attachmentType: true,
-      createdAt: true,
-      request: {
-        select: {
-          title: true,
-          user: {
-            select: {
-              name: true,
-            },
-          },
-        },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        fileName: true,
+        fileUrl: true,
+        sourceLabel: true,
+        uploadedBy: true,
+        createdAt: true,
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.companyDocument.findMany({
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        fileName: true,
+        fileUrl: true,
+        sourceLabel: true,
+        uploadedBy: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ]);
 
-  const myDocuments = myAttachments.map((attachment) =>
-    mapAttachmentToDocumentItem(attachment, "MY_DOCUMENT"),
-  );
-  const companyDocuments: DocumentItem[] = [];
+  const myDocuments = myDocumentRecords.map(mapEmployeeDocumentToItem);
+  const companyDocuments = companyDocumentRecords.map(mapCompanyDocumentToItem);
 
-  const stats = [
+  const myStats = [
     {
-      title: "My documents",
-      value: myDocuments.length,
-      description: "Files attached to your requests.",
-      icon: FileText,
+      title: "Education",
+      value: countByCategory(myDocumentRecords, "EDUCATION"),
+      description: "Degrees, certificates, and academic records.",
+      icon: GraduationCap,
     },
     {
-      title: "Claim receipts",
-      value: myDocuments.filter(
-        (document) => document.attachmentType === "CLAIM_RECEIPT",
-      ).length,
-      description: "Receipts and payment proof for claims.",
-      icon: Receipt,
+      title: "Employment",
+      value: countByCategory(myDocumentRecords, "EMPLOYMENT"),
+      description: "Contracts, employment records, and role documents.",
+      icon: Briefcase,
     },
     {
-      title: "Approvals",
-      value: myDocuments.filter(
-        (document) => document.attachmentType === "MANAGER_APPROVAL",
-      ).length,
-      description: "Manager approvals and supporting files.",
+      title: "Work Eligibility",
+      value: countByCategory(myDocumentRecords, "WORK_ELIGIBILITY"),
+      description: "Right-to-work and identity verification files.",
       icon: ShieldCheck,
     },
     {
-      title: "Company docs",
-      value: companyDocuments.length,
-      description: "Shared HR files when available.",
+      title: "Personal Docs",
+      value: countByCategory(myDocumentRecords, "PERSONAL"),
+      description: "Uploaded personal files kept on your employee record.",
+      icon: FileText,
+    },
+  ];
+
+  const companyStats = [
+    {
+      title: "Employment Letters",
+      value: countByCategory(companyDocumentRecords, "EMPLOYMENT_LETTER"),
+      description: "Shared HR letters and official templates.",
+      icon: Briefcase,
+    },
+    {
+      title: "Contracts",
+      value: countByCategory(companyDocumentRecords, "CONTRACT"),
+      description: "Shared contract documents and supporting files.",
+      icon: FileText,
+    },
+    {
+      title: "Handbook",
+      value: countByCategory(companyDocumentRecords, "HANDBOOK"),
+      description: "Employee handbook and reference material.",
+      icon: BookOpen,
+    },
+    {
+      title: "Policies & Guides",
+      value:
+        countByCategory(companyDocumentRecords, "HR_POLICY") +
+        countByCategory(companyDocumentRecords, "GUIDE"),
+      description: "HR policies, guides, and process walkthroughs.",
       icon: Building2,
     },
   ];
 
+  const stats = activeView === "company" ? companyStats : myStats;
+  const activeSection =
+    activeView === "company"
+      ? {
+          title: "Company Documents",
+          description:
+            "HR-shared files such as employment letters, contracts, handbook material, policies, and guides.",
+          documents: companyDocuments,
+          emptyMessage:
+            "No company documents have been uploaded by HR yet.",
+        }
+      : {
+          title: "My Documents",
+          description:
+            "Documents requested during onboarding or stored on your employee record, including education, employment, work eligibility, and personal files.",
+          documents: myDocuments,
+          emptyMessage:
+            "No onboarding or employee-related documents are available yet.",
+        };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Review the files attached to your requests in one place. Shared
-            company documents will appear here once that flow is connected.
-          </p>
-        </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          Browse your onboarding and employee files in My Docs, or open Company
+          Docs to review HR-shared letters, contracts, policies, and guides.
+        </p>
+      </div>
 
-        <Button asChild>
-          <Link href="/user/requests">Upload through a request</Link>
+      <div className="flex flex-wrap gap-3">
+        <Button asChild variant={activeView === "my" ? "default" : "outline"}>
+          <Link href="/user/documents?view=my">My Docs</Link>
+        </Button>
+        <Button
+          asChild
+          variant={activeView === "company" ? "default" : "outline"}
+        >
+          <Link href="/user/documents?view=company">Company Docs</Link>
         </Button>
       </div>
 
@@ -118,22 +187,21 @@ export default async function UserDocumentPage() {
       </div>
 
       <DocumentSection
-        title="My Documents"
-        description="Personal files submitted with leave, claim, or support requests."
-        documents={myDocuments}
-        emptyMessage="No personal documents found yet. Upload a file through a request to see it here."
-        emptyActionHref="/user/requests"
-        emptyActionLabel="Open requests"
-      />
-
-      <DocumentSection
-        title="Company Documents"
-        description="Shared HR policies, letters, or templates will appear here when the shared-documents flow is added."
-        documents={companyDocuments}
-        emptyMessage="No shared company documents are available yet."
+        title={activeSection.title}
+        description={activeSection.description}
+        documents={activeSection.documents}
+        emptyMessage={activeSection.emptyMessage}
       />
     </div>
   );
+}
+
+function countByCategory<
+  T extends {
+    category: string;
+  },
+>(documents: T[], category: T["category"]) {
+  return documents.filter((document) => document.category === category).length;
 }
 
 function SummaryCard({
@@ -169,15 +237,11 @@ function DocumentSection({
   description,
   documents,
   emptyMessage,
-  emptyActionHref,
-  emptyActionLabel,
 }: {
   title: string;
   description: string;
   documents: DocumentItem[];
   emptyMessage: string;
-  emptyActionHref?: string;
-  emptyActionLabel?: string;
 }) {
   return (
     <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
@@ -207,14 +271,14 @@ function DocumentSection({
                       {document.name}
                     </p>
                     <p className="truncate text-sm text-muted-foreground">
-                      Linked to {document.sourceLabel}
+                      Source: {document.sourceLabel}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant="outline" className="bg-white/70">
-                    {document.attachmentLabel}
+                    {document.categoryLabel}
                   </Badge>
                   <span>Added by {document.uploadedBy}</span>
                   <span>{document.uploadedAt}</span>
@@ -232,12 +296,6 @@ function DocumentSection({
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
             <FolderOpen className="mb-3 h-8 w-8 text-slate-400" />
             <p className="font-medium text-slate-700">{emptyMessage}</p>
-
-            {emptyActionHref && emptyActionLabel ? (
-              <Button asChild variant="outline" className="mt-4">
-                <Link href={emptyActionHref}>{emptyActionLabel}</Link>
-              </Button>
-            ) : null}
           </div>
         )}
       </CardContent>

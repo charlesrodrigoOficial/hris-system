@@ -1,11 +1,25 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum EmployeeDocumentCategory {
+  EDUCATION
+  EMPLOYMENT
+  WORK_ELIGIBILITY
+  PERSONAL
+}
+
+enum CompanyDocumentCategory {
+  EMPLOYMENT_LETTER
+  CONTRACT
+  HANDBOOK
+  HR_POLICY
+  GUIDE
 }
 
 enum SupportRequestType {
@@ -131,40 +145,78 @@ enum AttendanceStatus {
   PUBLIC_HOLIDAY
 }
 
-model User {
-  id                     String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                   String?     @default("No NAME")
-  email                  String      @unique(map: "user_email_idx")
-  emailVerified          DateTime?   @db.Timestamp(6)
-  image                  String?
-  password               String?     //for Hash password we can use bcrypt
-  role                   UserRole    @default(USER)
-  mfaEnabled             Boolean     @default(false)
-  permissions            String[]    @default([])
-  dateOfBirth            DateTime?   @db.Date
+model EmployeeDocument {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  about                  String?     @db.Text
+  title       String
+  category    EmployeeDocumentCategory
+  fileName    String
+  fileUrl     String
+  fileType    String?
+  fileSize    Int?
+  sourceLabel String? // "Onboarding", "HR Upload", "Employee Upload"
+  uploadedBy  String? // optional display label
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@index([userId])
+  @@index([category])
+}
+
+model CompanyDocument {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  title       String
+  category    CompanyDocumentCategory
+  fileName    String
+  fileUrl     String
+  fileType    String?
+  fileSize    Int?
+  sourceLabel String?
+  uploadedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String?   @default("No NAME")
+  email         String    @unique(map: "user_email_idx")
+  emailVerified DateTime? @db.Timestamp(6)
+  image         String?
+  password      String? //for Hash password we can use bcrypt
+  role          UserRole  @default(USER)
+  mfaEnabled    Boolean   @default(false)
+  permissions   String[]  @default([])
+  dateOfBirth   DateTime? @db.Date
+
+  about                  String? @db.Text
   linkedIn               String?
-  hobbies                String?     @db.Text
-  superpowers            String?     @db.Text
-  mostFascinatingTrip    String?     @db.Text
+  hobbies                String? @db.Text
+  superpowers            String? @db.Text
+  mostFascinatingTrip    String? @db.Text
   dreamTravelDestination String?
 
-  employee               Employee?
-  country                Country?
+  employee Employee?
+  country  Country?
 
-  sessions               Session[]
-  account                Account[]
-  attendances            Attendance[]
-  requests               Request[]
-  requestActivity        RequestActivity[]
-  notifications          Notification[]
-  feedPost               FeedPost[]
-  feedReaction           FeedReaction[]
-  feedComments           FeedComment[]
+  sessions          Session[]
+  account           Account[]
+  attendances       Attendance[]
+  requests          Request[]
+  requestActivity   RequestActivity[]
+  notifications     Notification[]
+  feedPost          FeedPost[]
+  feedReaction      FeedReaction[]
+  feedComments      FeedComment[]
+  employeeDocuments EmployeeDocument[]
 
-  createdAt              DateTime    @default(now()) @db.Timestamp(6)
-  updatedAt              DateTime    @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -367,23 +419,23 @@ model Request {
   status      RequestStatus @default(PENDING)
 
   // Optional structured fields
-  supportRequestType   SupportRequestType? // support
+  supportRequestType      SupportRequestType? // support
   supportRequestTypeOther String?
-  expectedCompletionDate DateTime?         // support
-  supportAdditionalNotes String?
-  leaveType         LeaveRequestType? // leave
-  startDate         DateTime? // leave
-  endDate           DateTime? // leave
-  claimPurpose      ClaimPurpose? // claim
-  claimPurposeOther String?
-  expenseDate       DateTime? // claim
-  managerEmployeeId String?           @db.Uuid
-  managerEmployee   Employee?         @relation("RequestManager", fields: [managerEmployeeId], references: [id], onDelete: SetNull)
-  bankName          String?
-  accountNumber     String?
-  ibanSwift         String?
-  amount            Decimal?          @db.Decimal(10, 2) // claim
-  currency          String? // claim e.g. "GBP"
+  expectedCompletionDate  DateTime? // support
+  supportAdditionalNotes  String?
+  leaveType               LeaveRequestType? // leave
+  startDate               DateTime? // leave
+  endDate                 DateTime? // leave
+  claimPurpose            ClaimPurpose? // claim
+  claimPurposeOther       String?
+  expenseDate             DateTime? // claim
+  managerEmployeeId       String?             @db.Uuid
+  managerEmployee         Employee?           @relation("RequestManager", fields: [managerEmployeeId], references: [id], onDelete: SetNull)
+  bankName                String?
+  accountNumber           String?
+  ibanSwift               String?
+  amount                  Decimal?            @db.Decimal(10, 2) // claim
+  currency                String? // claim e.g. "GBP"
 
   userId String @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
