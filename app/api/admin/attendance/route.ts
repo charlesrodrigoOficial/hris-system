@@ -54,9 +54,9 @@ export async function GET(req: Request) {
   if (role === "MANAGER") {
     const me = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { employee: { select: { departmentId: true } } },
+      select: { departmentId: true },
     });
-    managerDeptId = me?.employee?.departmentId ?? null;
+    managerDeptId = me?.departmentId ?? null;
     if (!managerDeptId) {
       return NextResponse.json(
         { error: "Manager department not set" },
@@ -78,7 +78,7 @@ export async function GET(req: Request) {
           }
         : {}),
       ...(role === "MANAGER"
-        ? { employee: { departmentId: managerDeptId } }
+        ? { departmentId: managerDeptId }
         : {}),
     },
   };
@@ -96,12 +96,8 @@ export async function GET(req: Request) {
             name: true,
             email: true,
             role: true,
-            employee: {
-              select: {
-                departmentId: true,
-                employmentType: true, //add this
-              },
-            },
+            departmentId: true,
+            employmentType: true,
           },
         },
       },

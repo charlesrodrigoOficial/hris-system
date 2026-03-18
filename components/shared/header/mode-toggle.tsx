@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { SunIcon, MoonIcon, SunMoon } from "lucide-react";
+import { SunIcon, MoonIcon, SunMoon} from "lucide-react";
 
 const ModeToggle = () => {
   const [mounted, setMounted] = useState(false);
@@ -28,13 +28,16 @@ const ModeToggle = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="focus-visible:ring-0 focus-visible:ring-offset-0">
+        <Button
+          variant="ghost"
+          className="focus-visible:ring-0 focus-visible:ring-offset-0"
+        >
           {theme === "system" ? (
-            <SunMoon/>
+            <SunMoon />
           ) : theme === "dark" ? (
-            <MoonIcon/>
+            <MoonIcon />
           ) : (
-            <SunIcon/>
+            <SunIcon />
           )}
         </Button>
       </DropdownMenuTrigger>

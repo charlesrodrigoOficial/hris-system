@@ -22,6 +22,7 @@ import RequestFormFields from "./requests-form-fields";
 
 type Props = {
   requester: RequestFormContext;
+  allowedTypes?: RequestType[];
   open: boolean;
   setOpen: (open: boolean) => void;
   type: RequestType;
@@ -75,6 +76,7 @@ type Props = {
 export default function CreateRequestDialog(props: Props) {
   const {
     requester,
+    allowedTypes,
     open,
     setOpen,
     type,
@@ -135,20 +137,29 @@ export default function CreateRequestDialog(props: Props) {
     >
       <DialogTrigger asChild>
         <Button variant="blueGradiant" className="rounded-xl text-white">
-          Create Request
+          {allowedTypes?.length === 1 && allowedTypes[0] === "LEAVE"
+            ? "Create Leave"
+            : "Create Request"}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl sm:max-w-[720px]">
         <DialogHeader>
-          <DialogTitle>Create a request</DialogTitle>
+          <DialogTitle>
+            {allowedTypes?.length === 1 && allowedTypes[0] === "LEAVE"
+              ? "Create a leave request"
+              : "Create a request"}
+          </DialogTitle>
           <DialogDescription>
-            Choose a request type and provide the details.
+            {allowedTypes?.length === 1 && allowedTypes[0] === "LEAVE"
+              ? "Provide your leave details."
+              : "Choose a request type and provide the details."}
           </DialogDescription>
         </DialogHeader>
 
         <RequestFormFields
           requester={requester}
+          allowedTypes={allowedTypes}
           type={type}
           setType={setType}
           supportRequestType={supportRequestType}

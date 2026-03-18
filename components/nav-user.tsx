@@ -1,5 +1,6 @@
 "use client"
 
+import { signOutUser } from "@/lib/actions/user.actions"
 import {
   BellIcon,
   CreditCardIcon,
@@ -98,9 +99,16 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon />
-              Log out
+            <DropdownMenuItem className="p-0">
+              <form action={signOutUser} className="w-full">
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-2 px-2 py-1.5 text-sm"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  <span>Log out</span>
+                </button>
+              </form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

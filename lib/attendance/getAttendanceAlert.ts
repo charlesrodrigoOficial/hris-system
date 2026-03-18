@@ -2,11 +2,11 @@ import { prisma } from "@/db/prisma";
 import { AttendanceStatus } from "@prisma/client";
 
 export type AttendanceAlertRow = {
-  id: string; // userId
+  id: string;
   name: string;
   role: string;
   country: string;
-  lastActivity: string; // YYYY-MM-DD or "Never"
+  lastActivity: string;
   daysMissing: number;
 };
 
@@ -17,8 +17,8 @@ function startOfDayLocal(d: Date) {
 }
 
 export async function getAttendanceAlerts(options?: {
-  windowDays?: number; // look back period
-  minMissingDays?: number; // show only if missing >=
+  windowDays?: number;
+  minMissingDays?: number;
 }) {
   const windowDays = options?.windowDays ?? 7;
   const minMissingDays = options?.minMissingDays ?? 2;
@@ -27,42 +27,35 @@ export async function getAttendanceAlerts(options?: {
   const from = new Date(today);
   from.setDate(from.getDate() - windowDays);
 
-  const employees = await prisma.employee.findMany({
-    where: { isActive: true },
+  const employees = await prisma.user.findMany({
+    where: { isActive: true, role: "EMPLOYEE" },
     select: {
+      id: true,
       fullName: true,
+      name: true,
+      role: true,
       country: true,
-      user: {
+      attendances: {
+        where: {
+          OR: [
+            { checkIn: { not: null } },
+            {
+              status: {
+                in: [AttendanceStatus.PRESENT, AttendanceStatus.HALF_DAY],
+              },
+            },
+          ],
+        },
+        orderBy: { date: "desc" },
+        take: 1,
+        select: { date: true },
+      },
+      _count: {
         select: {
-          id: true,
-          role: true,
-
-          // ✅ last activity = latest day they were PRESENT/HALF_DAY (or had checkIn)
           attendances: {
             where: {
-              OR: [
-                { checkIn: { not: null } },
-                {
-                  status: {
-                    in: [AttendanceStatus.PRESENT, AttendanceStatus.HALF_DAY],
-                  },
-                },
-              ],
-            },
-            orderBy: { date: "desc" },
-            take: 1,
-            select: { date: true },
-          },
-
-          // ✅ count missing days = ABSENT in lookback window
-          _count: {
-            select: {
-              attendances: {
-                where: {
-                  date: { gte: from, lt: today },
-                  status: AttendanceStatus.ABSENT,
-                },
-              },
+              date: { gte: from, lt: today },
+              status: AttendanceStatus.ABSENT,
             },
           },
         },
@@ -71,20 +64,18 @@ export async function getAttendanceAlerts(options?: {
   });
 
   const alerts: AttendanceAlertRow[] = employees
-    .map((e) => {
-      const last = e.user.attendances[0]?.date ?? null;
-      const missing = e.user._count.attendances ?? 0;
+    .map((employee) => {
+      const last = employee.attendances[0]?.date ?? null;
+      const missing = employee._count.attendances ?? 0;
 
       if (missing < minMissingDays) return null;
 
       return {
-        id: e.user.id,
-        name: e.fullName,
-        role: e.user.role,
-        country: e.country ?? "—",
-        lastActivity: last
-          ? new Date(last).toISOString().slice(0, 10)
-          : "Never",
+        id: employee.id,
+        name: employee.fullName ?? employee.name ?? "Employee",
+        role: employee.role,
+        country: employee.country ?? "-",
+        lastActivity: last ? new Date(last).toISOString().slice(0, 10) : "Never",
         daysMissing: missing,
       };
     })

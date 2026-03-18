@@ -28,6 +28,7 @@ import type {
 
 type Props = {
   requester: RequestFormContext;
+  allowedTypes?: RequestType[];
   type: RequestType;
   setType: (value: RequestType) => void;
   supportRequestType: SupportRequestType | "";
@@ -97,6 +98,7 @@ function RequesterSnapshot({ requester }: { requester: RequestFormContext }) {
 
 export default function RequestFormFields({
   requester,
+  allowedTypes = ["SUPPORT", "LEAVE", "CLAIM"],
   type,
   setType,
   supportRequestType,
@@ -140,21 +142,43 @@ export default function RequestFormFields({
   setSupportingDocument,
   error,
 }: Props) {
+  const showTypePicker = allowedTypes.length > 1;
+
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Request Type</p>
-        <Select value={type} onValueChange={(value) => setType(value as RequestType)}>
-          <SelectTrigger className="rounded-xl">
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="SUPPORT">Support</SelectItem>
-            <SelectItem value="LEAVE">Leave</SelectItem>
-            <SelectItem value="CLAIM">Claim / Reimbursement</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {showTypePicker ? (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Request Type</p>
+          <Select
+            value={type}
+            onValueChange={(value) => setType(value as RequestType)}
+          >
+            <SelectTrigger className="rounded-xl">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              {allowedTypes.includes("SUPPORT") && (
+                <SelectItem value="SUPPORT">Support</SelectItem>
+              )}
+              {allowedTypes.includes("LEAVE") && (
+                <SelectItem value="LEAVE">Leave</SelectItem>
+              )}
+              {allowedTypes.includes("CLAIM") && (
+                <SelectItem value="CLAIM">Claim / Reimbursement</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Request Type</p>
+          <Input
+            className="rounded-xl"
+            value={type === "LEAVE" ? "Leave" : type}
+            readOnly
+          />
+        </div>
+      )}
 
       {type === "SUPPORT" && (
         <div className="space-y-4 rounded-2xl border p-4">

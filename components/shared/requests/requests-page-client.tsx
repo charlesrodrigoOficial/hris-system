@@ -18,15 +18,22 @@ import RequestList from "./request-list";
 
 type Props = {
   requester: RequestFormContext;
+  initialType?: RequestType;
+  allowedTypes?: RequestType[];
 };
 
-export default function RequestsPageClient({ requester }: Props) {
+export default function RequestsPageClient({
+  requester,
+  initialType = "SUPPORT",
+  allowedTypes = ["SUPPORT", "LEAVE", "CLAIM"],
+}: Props) {
+  const defaultType = allowedTypes[0] ?? initialType;
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<RequestRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
 
-  const [type, setType] = React.useState<RequestType>("SUPPORT");
+  const [type, setType] = React.useState<RequestType>(defaultType);
   const [supportRequestType, setSupportRequestType] = React.useState<
     SupportRequestType | ""
   >("");
@@ -77,8 +84,14 @@ export default function RequestsPageClient({ requester }: Props) {
     load();
   }, []);
 
+  React.useEffect(() => {
+    if (!allowedTypes.includes(type)) {
+      setType(defaultType);
+    }
+  }, [allowedTypes, defaultType, type]);
+
   function resetForm() {
-    setType("SUPPORT");
+    setType(defaultType);
     setSupportRequestType("");
     setSupportRequestTypeOther("");
     setExpectedCompletionDate("");
@@ -176,12 +189,19 @@ export default function RequestsPageClient({ requester }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">My Requests</h1>
           <p className="text-sm text-muted-foreground">
-            Submit leave, claims, or support requests and track their status.
+            {allowedTypes.length === 1 && allowedTypes[0] === "LEAVE"
+              ? "Submit leave requests and track their status."
+              : allowedTypes.length === 2 &&
+                  allowedTypes.includes("SUPPORT") &&
+                  allowedTypes.includes("CLAIM")
+                ? "Submit support requests or claims and track their status."
+              : "Submit leave, claims, or support requests and track their status."}
           </p>
         </div>
 
         <CreateRequestDialog
           requester={requester}
+          allowedTypes={allowedTypes}
           open={open}
           setOpen={setOpen}
           type={type}

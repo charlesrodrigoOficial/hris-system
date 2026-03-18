@@ -56,7 +56,7 @@ export async function signInWithCredentials(
 
 //sign user out
 export async function signOutUser() {
-  await signOut();
+  await signOut({ redirectTo: "/sign-in" });
 }
 
 //Sign up User
@@ -115,7 +115,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     }
 
     const parsed = updateProfileSchema.parse({
-      name: formData.get("name"),
+      name: formData.get("name") ?? "",
       email: formData.get("email"),
       about: formData.get("about"),
       linkedIn: formData.get("linkedIn"),
@@ -138,7 +138,6 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
         id: currentUser.id,
       },
       data: {
-        name: parsed.name,
         about: emptyToNull(parsed.about),
         linkedIn: emptyToNull(parsed.linkedIn),
         hobbies: emptyToNull(parsed.hobbies),
@@ -154,6 +153,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     revalidatePath("/");
     revalidatePath("/user/profile");
     revalidatePath("/user/profile/edit");
+    revalidatePath(`/admin/users/${currentUser.id}`);
 
     return {
       success: true,
@@ -166,6 +166,41 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
 
 function emptyToNull(value?: string) {
   return value && value.trim().length > 0 ? value.trim() : null;
+}
+
+function formatDisplayName(
+  firstName?: string | null,
+  lastName?: string | null,
+  fallback?: string | null,
+) {
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+  return fullName || fallback || null;
+}
+
+function toDateOnly(value?: string) {
+  return value ? new Date(`${value}T00:00:00.000Z`) : undefined;
+}
+
+function hasEmployeeProfileValues(user: z.infer<typeof updateUserSchema>) {
+  return Boolean(
+    emptyToNull(user.accountName) ||
+      emptyToNull(user.accountNumber) ||
+      emptyToNull(user.swiftCode) ||
+      emptyToNull(user.iban) ||
+      emptyToNull(user.sortCode) ||
+      emptyToNull(user.workEligibility) ||
+      emptyToNull(user.position) ||
+      user.departmentId ||
+      user.employmentType ||
+      emptyToNull(user.originalCompany) ||
+      user.startDate ||
+      emptyToNull(user.officeLocation) ||
+      emptyToNull(user.onboardingLocation) ||
+      emptyToNull(user.onboardingTravel) ||
+      emptyToNull(user.orgLevel) ||
+      user.managerId ||
+      user.secondLevelManagerId,
+  );
 }
 
 //Get all Users
@@ -228,20 +263,97 @@ export async function deleteUser(id: string) {
 //Update a user
 export async function updateUser(user: z.infer<typeof updateUserSchema>) {
   try {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, name: true },
+    });
+
+    if (!existingUser) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    const firstName = emptyToNull(user.firstName);
+    const lastName = emptyToNull(user.lastName);
+    const about = emptyToNull(user.about);
+    const linkedIn = emptyToNull(user.linkedIn);
+    const hobbies = emptyToNull(user.hobbies);
+    const superpowers = emptyToNull(user.superpowers);
+    const mostFascinatingTrip = emptyToNull(user.mostFascinatingTrip);
+    const dreamTravelDestination = emptyToNull(user.dreamTravelDestination);
+    const address = emptyToNull(user.address);
+    const postCode = emptyToNull(user.postCode);
+    const displayName =
+      formatDisplayName(firstName, lastName, existingUser.name) ??
+      user.email.split("@")[0];
+
+    if (user.managerId && user.managerId === user.id) {
+      return {
+        success: false,
+        message: "Manager cannot be the same user",
+      };
+    }
+
+    if (user.secondLevelManagerId && user.secondLevelManagerId === user.id) {
+      return {
+        success: false,
+        message: "Second level manager cannot be the same user",
+      };
+    }
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        name: user.name,
-        role: user.role, //must be a enum role
+        name: displayName,
+        fullName: displayName,
+        firstName,
+        lastName,
+        email: user.email,
+        role: user.role,
+        about,
+        linkedIn,
+        hobbies,
+        superpowers,
+        mostFascinatingTrip,
+        dreamTravelDestination,
+        dateOfBirth: user.dateOfBirth
+          ? new Date(`${user.dateOfBirth}T00:00:00.000Z`)
+          : null,
         country: user.country ?? null,
+        address,
+        postCode,
+        accountName: emptyToNull(user.accountName),
+        accountNumber: emptyToNull(user.accountNumber),
+        swiftCode: emptyToNull(user.swiftCode),
+        iban: emptyToNull(user.iban),
+        sortCode: emptyToNull(user.sortCode),
+        workEligibility: emptyToNull(user.workEligibility),
+        position: emptyToNull(user.position),
+        departmentId: user.departmentId || null,
+        employmentType: user.employmentType ?? null,
+        originalCompany: emptyToNull(user.originalCompany),
+        ...(user.startDate ? { hireDate: toDateOnly(user.startDate) } : {}),
+        officeLocation: emptyToNull(user.officeLocation),
+        onboardingLocation: emptyToNull(user.onboardingLocation),
+        onboardingTravel: emptyToNull(user.onboardingTravel),
+        orgLevel: emptyToNull(user.orgLevel),
+        managerId: user.managerId || null,
+        secondLevelManagerId: user.secondLevelManagerId || null,
       },
     });
 
     revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${user.id}`);
+    revalidatePath("/admin/employees");
+    revalidatePath("/admin/employees/employees-with-role");
+    revalidatePath("/user/profile");
+    revalidatePath("/user/profile/edit");
 
     return {
       success: true,
-      message: "User update successfully",
+      message: "User updated successfully",
     };
   } catch (error) {
     return {

@@ -44,10 +44,11 @@ export default async function ScorecardPage() {
     redirect("/sign-in");
   }
 
-  const employee = await prisma.employee.findUnique({
-    where: { userId: session.user.id },
+  const employee = await prisma.user.findUnique({
+    where: { id: session.user.id },
     select: {
       fullName: true,
+      name: true,
       performanceReviews: {
         orderBy: { month: "desc" },
         take: 6,
@@ -69,7 +70,7 @@ export default async function ScorecardPage() {
           <CardTitle>Score Card</CardTitle>
           <CardDescription>
             Recent performance review history for{" "}
-            {employee?.fullName ?? session.user.name ?? "Employee"}.
+            {employee?.fullName ?? employee?.name ?? session.user.name ?? "Employee"}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

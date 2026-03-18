@@ -13,24 +13,18 @@ export async function getUsersWithEmployeeRole() {
     select: {
       id: true,
       name: true,
+      fullName: true,
       email: true,
       role: true,
       createdAt: true,
-      employee: {
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          phoneNo: true,
-          employmentType: true,
-          isActive: true,
-          contractEndDate: true,
-          department: { select: { departmentName: true } },
-          branch: { select: { branchName: true } },
-          position: true,
-          shift: { select: { name: true } },
-        },
-      },
+      phoneNo: true,
+      employmentType: true,
+      isActive: true,
+      contractEndDate: true,
+      department: { select: { departmentName: true } },
+      branch: { select: { branchName: true } },
+      position: true,
+      shift: { select: { name: true } },
     },
   });
 
@@ -61,36 +55,31 @@ export async function ensureEmployeeAndRedirect(formData: FormData) {
     select: { id: true },
   });
 
-  const employee = await prisma.employee.upsert({
-    where: { userId: user.id },
-    update: {
-      fullName: user.name ?? "",
-      email: user.email ?? "",
-    },
-    create: {
-      userId: user.id,
-      email: user.email,
-      fullName: safeFullName(user.name, user.email),
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      fullName: user.name ?? safeFullName(user.name, user.email),
       departmentId: defaultDept.id,
       isActive: true,
+      employmentType: "FULL_TIME",
     },
-    select: { id: true },
   });
 
-  redirect(`/admin/employees/${employee.id}/edit`);
+  redirect(`/admin/employees/${user.id}/edit`);
 }
 
 export async function toggleEmployeeStatus(formData: FormData) {
   const userId = String(formData.get("userId"));
 
-  const employee = await prisma.employee.findUnique({
-    where: { userId },
-    select: { id: true, isActive: true },
+  const employee = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, isActive: true, role: true },
   });
 
   if (!employee) return;
+  if (employee.role !== "EMPLOYEE") return;
 
-  await prisma.employee.update({
+  await prisma.user.update({
     where: { id: employee.id },
     data: { isActive: !employee.isActive },
   });

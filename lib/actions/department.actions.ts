@@ -48,7 +48,7 @@ export async function updateDepartment(formData: FormData) {
   }
 
   if (depManagerId) {
-    const manager = await prisma.employee.findUnique({
+    const manager = await prisma.user.findUnique({
       where: { id: depManagerId },
     });
 
@@ -70,7 +70,7 @@ export async function updateDepartment(formData: FormData) {
 }
 
 export async function deleteDepartment(id: string) {
-  const employeeCount = await prisma.employee.count({
+  const employeeCount = await prisma.user.count({
     where: { departmentId: id },
   });
 

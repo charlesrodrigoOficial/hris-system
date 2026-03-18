@@ -1,51 +1,88 @@
 "use client";
 
+import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  type CarouselApi,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { updateUser } from "@/lib/actions/user.actions";
-import { USER_ROLES } from "@/lib/constants";
 import { updateUserSchema } from "@/lib/validators";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UserRole, Country } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { ControllerRenderProps, useForm } from "react-hook-form";
-import { z } from "zod";
+import { BankingDetailsCard } from "./cards/banking-details-card";
+import {
+  type ManagerOption,
+  type Option,
+  type UpdateUserFormValues,
+} from "./cards/card-shared";
+import { EmploymentDetailsCard } from "./cards/employment-details-card";
+import { PersonalDetailsCard } from "./cards/personal-details-card";
+import { ProfileDetailsCard } from "./cards/profile-details-card";
+
+const sectionTitles = [
+  "Personal Details",
+  "Profile Details",
+  "Banking Details",
+  "Employment Details",
+] as const;
 
 const UpdateUserForm = ({
   user,
+  departments,
+  managers,
 }: {
-  user: z.infer<typeof updateUserSchema>;
+  user: UpdateUserFormValues & { employeeId?: string | null };
+  departments: Option[];
+  managers: ManagerOption[];
 }) => {
   const router = useRouter();
   const { toast } = useToast();
+  const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
+  const [activeIndex, setActiveIndex] = React.useState(0);
 
-  const form = useForm<z.infer<typeof updateUserSchema>>({
+  const form = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema),
     defaultValues: user,
   });
 
-  const onSubmit = async (values: z.infer<typeof updateUserSchema>) => {
+  const startDate = useWatch({
+    control: form.control,
+    name: "startDate",
+  });
+
+  const availableManagers = user.employeeId
+    ? managers.filter((manager) => manager.id !== user.employeeId)
+    : managers;
+
+  React.useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+
+    const updateActiveIndex = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+
+    updateActiveIndex();
+    carouselApi.on("select", updateActiveIndex);
+    carouselApi.on("reInit", updateActiveIndex);
+
+    return () => {
+      carouselApi.off("select", updateActiveIndex);
+      carouselApi.off("reInit", updateActiveIndex);
+    };
+  }, [carouselApi]);
+
+  const onSubmit = async (values: UpdateUserFormValues) => {
     try {
-      const res = await updateUser({
-        ...values,
-        id: user.id,
-      });
+      const res = await updateUser(values);
 
       if (!res.success) {
         return toast({
@@ -53,10 +90,11 @@ const UpdateUserForm = ({
           description: res.message,
         });
       }
-      form.reset();
-      router.push("/admin/users");
 
-      return;
+      toast({
+        description: res.message,
+      });
+      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -67,141 +105,92 @@ const UpdateUserForm = ({
 
   return (
     <Form {...form}>
-      <form method="POST" onSubmit={form.handleSubmit(onSubmit)}>
-        {/* Email */}
-        <div>
-          <FormField
-            control={form.control}
-            name="email"
-            render={({
-              field,
-            }: {
-              field: ControllerRenderProps<
-                z.infer<typeof updateUserSchema>,
-                "email"
-              >;
-            }) => (
-              <FormItem className="w-full">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    disabled={true}
-                    placeholder="Enter user email"
-                    {...field}
-                    value={field.value ?? ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        {/* Name */}
-        <div>
-          <FormField
-            control={form.control}
-            name="name"
-            render={({
-              field,
-            }: {
-              field: ControllerRenderProps<
-                z.infer<typeof updateUserSchema>,
-                "name"
-              >;
-            }) => (
-              <FormItem className="w-full">
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter username"
-                    {...field}
-                    value={field.value ?? ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        {/* Role */}
-        <div>
-          <FormField
-            control={form.control}
-            name="role"
-            render={({
-              field,
-            }: {
-              field: ControllerRenderProps<
-                z.infer<typeof updateUserSchema>,
-                "role"
-              >;
-            }) => (
-              <FormItem className="w-full">
-                <FormLabel>Role</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value as UserRole)}
-                  value={field.value}
+      <form
+        method="POST"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
+        <div className="space-y-4">
+          <div className="space-y-3 rounded-2xl border bg-muted/30 p-3">
+            <div className="flex flex-wrap gap-2">
+              {sectionTitles.map((title, index) => (
+                <Button
+                  key={title}
+                  type="button"
+                  size="sm"
+                  variant={activeIndex === index ? "default" : "outline"}
+                  onClick={() => carouselApi?.scrollTo(index)}
                 >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {USER_ROLES.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role.charAt(0) + role.slice(1).toLowerCase()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Country</FormLabel>
+                  {title}
+                </Button>
+              ))}
+            </div>
 
-                <Select
-                  onValueChange={(value) =>
-                    field.onChange(value === "NONE" ? null : (value as Country))
-                  }
-                  value={field.value ?? "NONE"}
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Card {activeIndex + 1} of {sectionTitles.length}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => carouselApi?.scrollPrev()}
+                  disabled={!carouselApi?.canScrollPrev()}
                 >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a country" />
-                    </SelectTrigger>
-                  </FormControl>
+                  <ChevronLeft />
+                  <span className="sr-only">Previous card</span>
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => carouselApi?.scrollNext()}
+                  disabled={!carouselApi?.canScrollNext()}
+                >
+                  <ChevronRight />
+                  <span className="sr-only">Next card</span>
+                </Button>
+              </div>
+            </div>
+          </div>
 
-                  <SelectContent>
-                    {/* Allow clearing */}
-                    <SelectItem value="NONE">None</SelectItem>
+          <Carousel
+            className="w-full"
+            opts={{ align: "start", loop: false }}
+            setApi={setCarouselApi}
+          >
+            <CarouselContent className="items-start">
+              <CarouselItem>
+                <PersonalDetailsCard form={form} />
+              </CarouselItem>
+              <CarouselItem>
+                <ProfileDetailsCard form={form} />
+              </CarouselItem>
 
-                    {Object.values(Country).map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c.replaceAll("_", " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <CarouselItem>
+                <BankingDetailsCard form={form} />
+              </CarouselItem>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <CarouselItem>
+                <EmploymentDetailsCard
+                  form={form}
+                  departments={departments}
+                  managers={availableManagers}
+                  startDate={startDate}
+                />
+              </CarouselItem>
+            </CarouselContent>
+          </Carousel>
         </div>
-        <div className="flex-between mt-4">
+
+        <div className="flex justify-end">
           <Button
             type="submit"
-            className="w-full"
             disabled={form.formState.isSubmitting}
+            className="min-w-40"
           >
-            {form.formState.isSubmitting ? "Submitting ..." : "Update User"}
+            {form.formState.isSubmitting ? "Saving..." : "Save changes"}
           </Button>
         </div>
       </form>
@@ -210,5 +199,3 @@ const UpdateUserForm = ({
 };
 
 export default UpdateUserForm;
-
-//line 58 and 81, made it null

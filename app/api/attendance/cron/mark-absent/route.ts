@@ -64,7 +64,7 @@ export async function GET(req: Request) {
     where: { role: "EMPLOYEE" },
     select: {
       id: true,
-      employee: { select: { employmentType: true } },
+      employmentType: true,
     },
   });
 
@@ -100,7 +100,7 @@ export async function GET(req: Request) {
     const worked = hoursBetween(new Date(row.checkIn), new Date(row.checkOut));
     const workedRounded = Math.round(worked * 100) / 100;
 
-    const required = requiredHoursByType(e.employee?.employmentType);
+    const required = requiredHoursByType(e.employmentType);
     const status = workedRounded >= required ? "PRESENT" : "HALF_DAY";
 
     tx.push(

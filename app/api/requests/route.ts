@@ -163,7 +163,7 @@ export async function POST(req: Request) {
     }
 
     if (managerEmployeeId) {
-      const manager = await prisma.employee.findUnique({
+      const manager = await prisma.user.findUnique({
         where: { id: managerEmployeeId },
         select: { id: true },
       });

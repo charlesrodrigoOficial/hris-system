@@ -13,9 +13,9 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* Header */}
-      <div className="border-b">
+      <div className="z-20 flex-none border-b bg-background">
         <div className="container mx-auto">
           <div className="flex items-center h-16 px-4">
             <Link href="/" className="w-22">
@@ -42,15 +42,17 @@ export default function AdminLayout({
       </div>
 
       {/* Body */}
-      <div className="flex-1">
-        <div className="container mx-auto flex gap-6">
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="container mx-auto flex h-full gap-6 overflow-hidden">
           {/* Sidebar */}
-          <aside className="hidden w-56 md:block border-r py-6">
+          <aside className="hidden h-full w-56 shrink-0 border-r py-6 md:block">
             <Sidebar />
           </aside>
 
           {/* Page content */}
-          <main className="flex-1 py-6">{children}</main>
+          <main className="min-w-0 flex-1 overflow-y-auto py-6 pr-1">
+            {children}
+          </main>
         </div>
       </div>
     </div>

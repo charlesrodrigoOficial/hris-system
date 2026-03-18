@@ -1,10 +1,8 @@
-import { prisma } from "@/db/prisma"; // change if your prisma client is elsewhere
-
+import { prisma } from "@/db/prisma";
 import HeadcountChart from "@/components/admin/employees/headcount-chart";
 import ReviewStatusList from "@/components/admin/employees/review-status-list";
 import LastDayList from "@/components/admin/employees/last-day-list";
 import EmployeeTable from "@/components/admin/employees/employee-table";
-
 
 function firstDayOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -14,65 +12,88 @@ export default async function EmployeeData() {
   const today = new Date();
   const month = firstDayOfMonth(today);
 
-  // 1) Employee table (list)
-  const employees = await prisma.employee.findMany({
+  const employees = await prisma.user.findMany({
+    where: { role: "EMPLOYEE" },
     orderBy: { createdAt: "desc" },
     include: {
-      user: { select: { role: true, email: true, name: true } }, // role comes from User
       department: { select: { id: true, departmentName: true } },
       branch: { select: { id: true, branchName: true } },
       shift: { select: { id: true, name: true } },
     },
   });
 
-  // 2) Headcount chart (active employees grouped by department + employmentType)
-const headcountByType = await prisma.employee.groupBy({
-  by: ["employmentType"],
-  where: { isActive: true },
-  _count: { _all: true },
-})
+  const usersByRole = await prisma.user.groupBy({
+    by: ["role"],
+    _count: { _all: true },
+    orderBy: { role: "asc" },
+  });
 
-  const headcountData = headcountByType.map((r) => ({
-  employmentType: r.employmentType,
-  count: r._count._all,
-}))
+  const headcountData = usersByRole.map((row) => ({
+    role: row.role,
+    count: row._count._all,
+  }));
 
-  // 3) Performance review status (this month)
   const reviewsThisMonth = await prisma.performanceReview.findMany({
-    where: { month },
+    where: {
+      month,
+      employeeId: { in: employees.map((employee) => employee.id) },
+    },
     orderBy: { updatedAt: "desc" },
     select: {
+      employeeId: true,
       status: true,
       month: true,
-      employee: {
-        select: {
-          fullName: true,
-          employmentType: true,
-          user: { select: { role: true } },
-        },
-      },
     },
   });
 
-  // 4) Employee last day list (contract end)
-  const lastDays = await prisma.employee.findMany({
-    where: { contractEndDate: { not: null } },
-    orderBy: { contractEndDate: "asc" },
-    select: {
-      fullName: true,
-      employmentType: true,
-      contractEndDate: true,
-      user: { select: { role: true } },
-    },
-    take: 50,
+  const reviewsByEmployeeId = new Map(
+    reviewsThisMonth.map((review) => [review.employeeId, review]),
+  );
+
+  const lastDayRows = employees
+    .filter((employee) => employee.contractEndDate)
+    .sort((left, right) => {
+      const leftTime = new Date(left.contractEndDate ?? 0).getTime();
+      const rightTime = new Date(right.contractEndDate ?? 0).getTime();
+      return leftTime - rightTime;
+    })
+    .slice(0, 50)
+    .map((employee) => ({
+      fullName: employee.fullName ?? employee.name ?? "Unnamed",
+      employmentType: employee.employmentType ?? "FULL_TIME",
+      contractEndDate: employee.contractEndDate,
+      user: { role: employee.role },
+    }));
+
+  const employeeRows = employees.map((employee) => ({
+    ...employee,
+    userId: employee.id,
+    fullName: employee.fullName ?? employee.name ?? "Unnamed",
+    employmentType: employee.employmentType ?? "FULL_TIME",
+    user: { name: employee.name, email: employee.email, role: employee.role },
+  }));
+
+  const reviewRows = employees.map((employee) => {
+    const review = reviewsByEmployeeId.get(employee.id);
+
+    return {
+      status: review?.status ?? "WAITING_FOR_REVIEW",
+      month: review?.month ?? month,
+      employeeId: employee.id,
+      employee: {
+        fullName: employee.fullName ?? employee.name ?? "Unnamed",
+        employmentType: employee.employmentType ?? "FULL_TIME",
+        user: { role: employee.role },
+      },
+    };
   });
 
   return (
     <div className="space-y-6">
       <HeadcountChart data={headcountData} />
-      <ReviewStatusList month={month} reviews={reviewsThisMonth} />
-      <LastDayList items={lastDays} />
-      <EmployeeTable employees={employees} /> 
+      <ReviewStatusList month={month} reviews={reviewRows} />
+      <LastDayList items={lastDayRows} />
+      <EmployeeTable employees={employeeRows} />
     </div>
   );
 }

@@ -18,6 +18,8 @@ export default async function DepartmentsPage() {
       depManager: {
         select: {
           fullName: true,
+          name: true,
+          email: true,
         },
       },
     },
@@ -52,7 +54,11 @@ export default async function DepartmentsPage() {
                   {new Date(item.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {item.depManager?.fullName ?? "No manager assigned"}
+                  {item.depManager
+                    ? item.depManager.fullName ??
+                      item.depManager.name ??
+                      item.depManager.email
+                    : "No manager assigned"}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
                   <Link href={`/admin/departments/${item.id}/edit`}>

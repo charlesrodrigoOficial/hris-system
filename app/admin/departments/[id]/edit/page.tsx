@@ -24,11 +24,17 @@ export default async function EditDepartmentPage({
 
   if (!department) return notFound();
 
-  const employees = await prisma.employee.findMany({
+  const employees = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ["EMPLOYEE", "MANAGER", "HR", "ADMIN"],
+      },
+    },
     orderBy: { fullName: "asc" },
     select: {
       id: true,
       fullName: true,
+      name: true,
       email: true,
     },
   });
@@ -61,7 +67,8 @@ export default async function EditDepartmentPage({
               <option value="">No manager assigned</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
-                  {employee.fullName} {employee.email ? `- ${employee.email}` : ""}
+                  {employee.fullName ?? employee.name ?? employee.email}{" "}
+                  {employee.email ? `- ${employee.email}` : ""}
                 </option>
               ))}
             </select>

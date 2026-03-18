@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canManageAttendance } from "@/lib/auth/roles";
+import { isAdmin } from "@/lib/requests/helpers";
 
 type SidebarItem = {
   title: string;
@@ -25,13 +26,13 @@ type SidebarItem = {
 };
 
 function getSidebarItems(role?: string | null): SidebarItem[] {
-  const canOpenAttendanceAdmin = canManageAttendance(role);
+  const canSeeOrg = isAdmin(role);
 
   return [
     { title: "Overview", href: "/", icon: LayoutDashboard },
     {
       title: "Time",
-      href: "/user/requests",
+      href: "/user/requests?mode=leave",
       icon: Clock3,
     },
     {
@@ -44,11 +45,15 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
       href: "/user/scorecard",
       icon: Star,
     },
-    {
-      title: "Org",
-      href: canOpenAttendanceAdmin ? "/admin/employees" : undefined,
-      icon: Building2,
-    },
+    ...(canSeeOrg
+      ? [
+          {
+            title: "Org",
+            href: "/admin/employees",
+            icon: Building2,
+          },
+        ]
+      : []),
     {
       title: "Payroll",
       href: "/user/profile",
@@ -56,7 +61,7 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
     },
     {
       title: "Support",
-      href: "/user/requests",
+      href: "/user/requests?mode=support",
       icon: MessageSquareText,
     },
     {
@@ -109,7 +114,7 @@ export default function Sidebar({ role }: { role?: string | null }) {
             "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition",
             isActivePath(pathname, overviewItem.href)
               ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow",
           )}
         >
           <OverviewIcon className="h-4 w-4 shrink-0" />
@@ -126,7 +131,7 @@ export default function Sidebar({ role }: { role?: string | null }) {
                 ? active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
-                : "cursor-not-allowed border border-dashed border-slate-200 bg-slate-50 text-slate-400"
+                : "cursor-not-allowed border border-dashed border-slate-200 bg-slate-50 text-slate-400",
             );
 
             return (

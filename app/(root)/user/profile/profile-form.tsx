@@ -1,33 +1,40 @@
 "use client";
 
+import * as React from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  type CarouselApi,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import { updateProfile } from "@/lib/actions/user.actions";
+import { BankingDetailsCard } from "./cards/banking-details-card";
+import { type ProfileUserData } from "./cards/card-shared";
+import { EmploymentDetailsCard } from "./cards/employment-details-card";
+import { PersonalDetailsCard } from "./cards/personal-details-card";
+import { ProfileDetailsCard } from "./cards/profile-details-card";
 
 type ProfileFormProps = {
-  user: {
-    name: string;
-    email: string;
-    about: string | null;
-    linkedIn: string | null;
-    hobbies: string | null;
-    superpowers: string | null;
-    mostFascinatingTrip: string | null;
-    dreamTravelDestination: string | null;
-    dateOfBirth: Date | null;
-  };
+  user: ProfileUserData;
 };
+
+const sectionTitles = [
+  "Profile Details",
+  "Personal Details",
+  "Banking Details",
+  "Employment Details",
+] as const;
 
 function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? "Saving..." : "Save Profile"}
+      {pending ? "Saving..." : "Save Profile Details"}
     </Button>
   );
 }
@@ -37,96 +44,104 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     success: false,
     message: "",
   });
+  const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
+  const [activeIndex, setActiveIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+
+    const updateActiveIndex = () => {
+      setActiveIndex(carouselApi.selectedScrollSnap());
+    };
+
+    updateActiveIndex();
+    carouselApi.on("select", updateActiveIndex);
+    carouselApi.on("reInit", updateActiveIndex);
+
+    return () => {
+      carouselApi.off("select", updateActiveIndex);
+      carouselApi.off("reInit", updateActiveIndex);
+    };
+  }, [carouselApi]);
 
   return (
     <form action={action} className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" defaultValue={user.name} required />
+      <input
+        type="hidden"
+        name="name"
+        value={`${user.firstName} ${user.lastName}`.trim()}
+      />
+      <input type="hidden" name="email" value={user.email} />
+
+      <div className="space-y-4">
+        <div className="space-y-3 rounded-2xl border bg-muted/30 p-3">
+          <div className="flex flex-wrap gap-2">
+            {sectionTitles.map((title, index) => (
+              <Button
+                key={title}
+                type="button"
+                size="sm"
+                variant={activeIndex === index ? "default" : "outline"}
+                onClick={() => carouselApi?.scrollTo(index)}
+              >
+                {title}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>
+              Card {activeIndex + 1} of {sectionTitles.length}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                onClick={() => carouselApi?.scrollPrev()}
+                disabled={!carouselApi?.canScrollPrev()}
+              >
+                <ChevronLeft />
+                <span className="sr-only">Previous card</span>
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                onClick={() => carouselApi?.scrollNext()}
+                disabled={!carouselApi?.canScrollNext()}
+              >
+                <ChevronRight />
+                <span className="sr-only">Next card</span>
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            defaultValue={user.email}
-            readOnly
-          />
-        </div>
+        <Carousel
+          className="w-full"
+          opts={{ align: "start", loop: false }}
+          setApi={setCarouselApi}
+        >
+          <CarouselContent className="items-start">
+            <CarouselItem>
+              <ProfileDetailsCard user={user} />
+            </CarouselItem>
+            <CarouselItem>
+              <PersonalDetailsCard user={user} />
+            </CarouselItem>
 
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="about">About</Label>
-          <Textarea
-            id="about"
-            name="about"
-            defaultValue={user.about ?? ""}
-            placeholder="Write a short introduction about yourself"
-          />
-        </div>
+            <CarouselItem>
+              <BankingDetailsCard user={user} />
+            </CarouselItem>
 
-        <div className="space-y-2">
-          <Label htmlFor="linkedIn">LinkedIn</Label>
-          <Input
-            id="linkedIn"
-            name="linkedIn"
-            type="url"
-            defaultValue={user.linkedIn ?? ""}
-            placeholder="https://linkedin.com/in/your-profile"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">Date of Birth</Label>
-          <Input
-            id="dateOfBirth"
-            name="dateOfBirth"
-            type="date"
-            defaultValue={user.dateOfBirth?.toISOString().slice(0, 10) ?? ""}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="hobbies">Hobbies</Label>
-          <Textarea
-            id="hobbies"
-            name="hobbies"
-            defaultValue={user.hobbies ?? ""}
-            placeholder="Reading, football, photography..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="superpowers">Superpowers</Label>
-          <Textarea
-            id="superpowers"
-            name="superpowers"
-            defaultValue={user.superpowers ?? ""}
-            placeholder="What are you exceptionally good at?"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="mostFascinatingTrip">Most Fascinating Trip</Label>
-          <Textarea
-            id="mostFascinatingTrip"
-            name="mostFascinatingTrip"
-            defaultValue={user.mostFascinatingTrip ?? ""}
-            placeholder="Tell us about a memorable trip"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dreamTravelDestination">Dream Travel Destination</Label>
-          <Input
-            id="dreamTravelDestination"
-            name="dreamTravelDestination"
-            defaultValue={user.dreamTravelDestination ?? ""}
-            placeholder="Japan, Iceland, New Zealand..."
-          />
-        </div>
+            <CarouselItem>
+              <EmploymentDetailsCard user={user} />
+            </CarouselItem>
+          </CarouselContent>
+        </Carousel>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

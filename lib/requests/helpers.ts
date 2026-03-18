@@ -98,6 +98,10 @@ export function leaveTypeLabel(value: LeaveRequestType) {
   );
 }
 
+export function isAdmin(role?: string | null) {
+  return role === "ADMIN";
+}
+
 export function claimPurposeLabel(value: ClaimPurpose) {
   return (
     CLAIM_PURPOSE_OPTIONS.find((option) => option.value === value)?.label ??

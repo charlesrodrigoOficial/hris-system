@@ -8,28 +8,87 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from "recharts"
 
 type Props = {
   data: {
-    employmentType: string
+    role: string
     count: number
   }[]
 }
 
+type ChartRow = {
+  name: string
+  value: number
+}
+
+type AvatarLabelProps = {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  value?: number
+  payload?: ChartRow
+}
+
+function AvatarLabel({ x, y, width, height, value, payload }: AvatarLabelProps) {
+  if (
+    value === undefined ||
+    value <= 0 ||
+    x === undefined ||
+    y === undefined ||
+    width === undefined ||
+    height === undefined ||
+    !payload
+  ) {
+    return null
+  }
+
+  if (height < 28) {
+    return null
+  }
+
+  const cx = x + width / 2
+  const cy = y + Math.min(24, Math.max(height / 2, 18))
+
+  return (
+    <g>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={16}
+        fill="#f1f5f9"
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+      <circle cx={cx} cy={cy - 4.5} r={4.5} fill="#475569" />
+      <path
+        d={`
+          M ${cx - 8} ${cy + 8}
+          a 8 6.5 0 1 1 16 0
+          Z
+        `}
+        fill="#475569"
+      />
+    </g>
+  )
+}
+
 export default function HeadcountChart({ data }: Props) {
-  const formattedData = [
-    { name: "Full Time", value: data.find(d => d.employmentType === "FULL_TIME")?.count ?? 0 },
-    { name: "Part Time", value: data.find(d => d.employmentType === "PART_TIME")?.count ?? 0 },
-    { name: "Contractor", value: data.find(d => d.employmentType === "CONTRACTOR")?.count ?? 0 },
-    { name: "Intern", value: data.find(d => d.employmentType === "INTERN")?.count ?? 0 },
-  ]
+  const formattedData = data.map((item) => ({
+    name: item.role.replaceAll("_", " "),
+    value: item.count,
+  }))
 
   const barGradients = [
-    { id: "headcount-full-time", start: "#2563eb", end: "#60a5fa" },
-    { id: "headcount-part-time", start: "#0891b2", end: "#67e8f9" },
-    { id: "headcount-contractor", start: "#7c3aed", end: "#c4b5fd" },
-    { id: "headcount-intern", start: "#d97706", end: "#fcd34d" },
+    { id: "headcount-role-1", start: "#2563eb", end: "#60a5fa" },
+    { id: "headcount-role-2", start: "#0891b2", end: "#67e8f9" },
+    { id: "headcount-role-3", start: "#7c3aed", end: "#c4b5fd" },
+    { id: "headcount-role-4", start: "#d97706", end: "#fcd34d" },
+    { id: "headcount-role-5", start: "#16a34a", end: "#86efac" },
+    { id: "headcount-role-6", start: "#db2777", end: "#f9a8d4" },
+    { id: "headcount-role-7", start: "#ea580c", end: "#fdba74" },
   ]
 
   return (
@@ -84,6 +143,7 @@ export default function HeadcountChart({ data }: Props) {
             animationDuration={1100}
             animationEasing="ease-out"
           >
+            <LabelList dataKey="value" content={<AvatarLabel />} />
             {formattedData.map((entry, index) => (
               <Cell
                 key={entry.name}

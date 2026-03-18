@@ -81,8 +81,8 @@ export async function POST(req: Request) {
   }
 
   // Get employment type to apply policy
-  const employee = await prisma.employee.findUnique({
-    where: { userId },
+  const employee = await prisma.user.findUnique({
+    where: { id: userId },
     select: { employmentType: true },
   });
 
