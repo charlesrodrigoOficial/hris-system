@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type {
   ClaimPurpose,
@@ -20,13 +26,22 @@ type Props = {
   requester: RequestFormContext;
   initialType?: RequestType;
   allowedTypes?: RequestType[];
+  timeOffSummary?: {
+    annualAllowanceDays: number;
+    approvedDays: number;
+    pendingDays: number;
+    remainingDays: number;
+    recordCount: number;
+  } | null;
 };
 
 export default function RequestsPageClient({
   requester,
   initialType = "SUPPORT",
   allowedTypes = ["SUPPORT", "LEAVE", "CLAIM"],
+  timeOffSummary = null,
 }: Props) {
+  const leaveOnly = allowedTypes.length === 1 && allowedTypes[0] === "LEAVE";
   const defaultType = allowedTypes[0] ?? initialType;
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<RequestRow[]>([]);
@@ -71,7 +86,7 @@ export default function RequestsPageClient({
     setError(null);
     try {
       const data = await fetchRequests();
-      setRows(data);
+      setRows(leaveOnly ? data.filter((row) => row.type === "LEAVE") : data);
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong");
       setRows([]);
@@ -187,10 +202,12 @@ export default function RequestsPageClient({
     <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold">My Requests</h1>
+          <h1 className="text-2xl font-semibold">
+            {leaveOnly ? "Time Off" : "My Requests"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {allowedTypes.length === 1 && allowedTypes[0] === "LEAVE"
-              ? "Submit leave requests and track their status."
+            {leaveOnly
+              ? "Track your time off records, review leave balance, and apply for leave."
               : allowedTypes.length === 2 &&
                   allowedTypes.includes("SUPPORT") &&
                   allowedTypes.includes("CLAIM")
@@ -253,10 +270,56 @@ export default function RequestsPageClient({
         />
       </div>
 
+      {leaveOnly && timeOffSummary ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>Leave Balance</CardDescription>
+              <CardTitle className="text-3xl">
+                {timeOffSummary.remainingDays} days
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {timeOffSummary.approvedDays} used from{" "}
+              {timeOffSummary.annualAllowanceDays} yearly allowance.
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>Time Off Record</CardDescription>
+              <CardTitle className="text-3xl">
+                {timeOffSummary.recordCount}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {timeOffSummary.approvedDays} approved days and{" "}
+              {timeOffSummary.pendingDays} pending days.
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>Apply for Off Time</CardDescription>
+              <CardTitle className="text-2xl">Need a day away?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="blueGradiant"
+                className="w-full rounded-xl text-white"
+                onClick={() => setOpen(true)}
+              >
+                Apply for Time Off
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <CardTitle>Recent Requests</CardTitle>
+            <CardTitle>{leaveOnly ? "Time Off Records" : "Recent Requests"}</CardTitle>
             <Button
               variant="blueGradiant"
               className="rounded-xl text-white"

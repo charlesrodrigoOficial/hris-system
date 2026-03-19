@@ -13,7 +13,11 @@ export default async function RequestsPage(props: {
     redirect("/sign-in");
   }
 
-  const [user, departmentsWithManagers] = await Promise.all([
+  const mode = searchParams.mode;
+  const leaveOnly = mode === "leave";
+  const supportOnly = mode === "support";
+
+  const [user, departmentsWithManagers, leaveRequests] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -45,6 +49,19 @@ export default async function RequestsPage(props: {
         },
       },
     }),
+    leaveOnly
+      ? prisma.request.findMany({
+          where: {
+            userId: session.user.id,
+            type: "LEAVE",
+          },
+          select: {
+            status: true,
+            startDate: true,
+            endDate: true,
+          },
+        })
+      : Promise.resolve([]),
   ]);
 
   const requester = {
@@ -66,14 +83,36 @@ export default async function RequestsPage(props: {
     ),
   };
 
-  const mode = searchParams.mode;
-  const leaveOnly = mode === "leave";
-  const supportOnly = mode === "support";
+  const annualAllowanceDays = 24;
+  const approvedDays = leaveRequests
+    .filter((request) => request.status === "APPROVED")
+    .reduce((sum, request) => {
+      return sum + countWeekdaysInclusive(request.startDate, request.endDate);
+    }, 0);
+  const pendingDays = leaveRequests
+    .filter(
+      (request) =>
+        request.status === "PENDING" || request.status === "PROCESSING",
+    )
+    .reduce((sum, request) => {
+      return sum + countWeekdaysInclusive(request.startDate, request.endDate);
+    }, 0);
+
+  const timeOffSummary = leaveOnly
+    ? {
+        annualAllowanceDays,
+        approvedDays,
+        pendingDays,
+        remainingDays: Math.max(annualAllowanceDays - approvedDays, 0),
+        recordCount: leaveRequests.length,
+      }
+    : null;
 
   return (
     <RequestsPageClient
       requester={requester}
       initialType={leaveOnly ? "LEAVE" : "SUPPORT"}
+      timeOffSummary={timeOffSummary}
       allowedTypes={
         leaveOnly
           ? ["LEAVE"]
@@ -94,4 +133,32 @@ function formatEnumLabel(value: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function countWeekdaysInclusive(
+  startDate: Date | null,
+  endDate: Date | null,
+) {
+  if (!startDate || !endDate) return 0;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  start.setUTCHours(0, 0, 0, 0);
+  end.setUTCHours(0, 0, 0, 0);
+
+  if (end < start) return 0;
+
+  let count = 0;
+  const current = new Date(start);
+
+  while (current <= end) {
+    const day = current.getUTCDay();
+    if (day !== 0 && day !== 6) {
+      count += 1;
+    }
+
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return count;
 }
