@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
-import { AttendanceButton } from "@/components/shared/attendance-button";
+import AttendanceUserClient from "./attendance-user-client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SalaryAndPaydayCard } from "./your-salary";
@@ -103,6 +103,10 @@ const Profile = async () => {
   return (
     <SessionProvider session={session}>
       <div className="space-y-6 ">
+        <div className="flex justify-end">
+          <AttendanceUserClient />
+        </div>
+
         {/* Rest of dashboard */}
         <div className="grid grid-cols- gap-6 lg:grid-cols-12">
           {/* ✅ Intelurapedia (right - ABOVE salary) */}

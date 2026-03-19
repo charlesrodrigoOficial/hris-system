@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  CalendarCheck,
   CircleHelp,
   Clock3,
   FileText,
@@ -15,6 +16,7 @@ import {
   Star,
   type LucideIcon,
 } from "lucide-react";
+import AttendanceUserClient from "@/app/(root)/user/profile/attendance-user-client";
 import { cn } from "@/lib/utils";
 import { canManageAttendance } from "@/lib/auth/roles";
 import { isAdmin } from "@/lib/requests/helpers";
@@ -30,6 +32,7 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
 
   return [
     { title: "Overview", href: "/", icon: LayoutDashboard },
+    { title: "Attendance", icon: CalendarCheck },
     {
       title: "Time",
       href: "/user/requests?mode=leave",
@@ -123,11 +126,12 @@ export default function Sidebar({ role }: { role?: string | null }) {
 
         <div className="space-y-3 pt-3">
           {secondaryItems.map((item) => {
+            const isAttendanceItem = item.title === "Attendance";
             const active = isActivePath(pathname, item.href);
             const Icon = item.icon;
             const cardClassName = cn(
               "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition",
-              item.href
+              item.href || isAttendanceItem
                 ? active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
@@ -136,7 +140,20 @@ export default function Sidebar({ role }: { role?: string | null }) {
 
             return (
               <div key={item.title}>
-                {item.href ? (
+                {isAttendanceItem ? (
+                  <AttendanceUserClient
+                    renderTrigger={(openDialog) => (
+                      <button
+                        type="button"
+                        className={cn(cardClassName, "w-full")}
+                        onClick={openDialog}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{item.title}</span>
+                      </button>
+                    )}
+                  />
+                ) : item.href ? (
                   <Link href={item.href} className={cardClassName}>
                     <Icon className="h-4 w-4 shrink-0" />
                     <span>{item.title}</span>

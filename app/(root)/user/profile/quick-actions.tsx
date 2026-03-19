@@ -27,7 +27,7 @@ type QuickActionsProps = {
 
 function getQuickActions(role?: string | null) {
   const attendanceAction = canManageAttendance(role)
-    ? { title: "Attendance", href: "/admin/attendance", Icon: Table2 }
+    ? { title: "Attendance", href: "/#attendance", Icon: Table2 }
     : { title: "Score Card", href: "/user/scorecard", Icon: ClipboardList };
 
   return [

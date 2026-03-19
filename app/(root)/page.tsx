@@ -47,7 +47,9 @@ const Homepage = async () => {
 
         {/* RIGHT COLUMN */}
         <div className="lg:col-span-4 space-y-6">
-          <AttendanceCard />
+          <div id="attendance">
+            <AttendanceCard />
+          </div>
           <QuickActions className="mt-3" role={session?.user?.role} />
           <EssentialsCard />
         </div>
