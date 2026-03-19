@@ -164,7 +164,10 @@ export default function AttendanceUserClient({
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                      <td
+                        colSpan={6}
+                        className="p-6 text-center text-muted-foreground"
+                      >
                         <span className="inline-flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Loading attendance...
@@ -173,14 +176,19 @@ export default function AttendanceUserClient({
                     </tr>
                   ) : items.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                      <td
+                        colSpan={6}
+                        className="p-6 text-center text-muted-foreground"
+                      >
                         No attendance records found.
                       </td>
                     </tr>
                   ) : (
                     items.map((item) => (
                       <tr key={item.id} className="border-t">
-                        <td className="p-3 font-medium">{formatDate(item.date)}</td>
+                        <td className="p-3 font-medium">
+                          {formatDate(item.date)}
+                        </td>
                         <td className="p-3">{formatTime(item.checkIn)}</td>
                         <td className="p-3">{formatTime(item.checkOut)}</td>
                         <td className="p-3">{item.workingHours ?? "-"}</td>
@@ -198,7 +206,11 @@ export default function AttendanceUserClient({
             </div>
 
             <div className="flex justify-end">
-              <Button type="button" variant="outline" onClick={() => void loadAttendance()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void loadAttendance()}
+              >
                 Refresh
               </Button>
             </div>
