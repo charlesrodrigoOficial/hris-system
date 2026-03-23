@@ -42,7 +42,10 @@ const Homepage = async () => {
             </div>
           </ScrollArea>
 
-          <BirthdaysCarousel users={birthdayUsers} />
+          <BirthdaysCarousel
+            users={birthdayUsers}
+            currentUserId={session?.user?.id}
+          />
         </div>
 
         {/* RIGHT COLUMN */}

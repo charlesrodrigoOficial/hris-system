@@ -245,6 +245,8 @@ model User {
   requests          Request[]
   requestActivity   RequestActivity[]
   notifications     Notification[]
+  birthdayWishesReceived BirthdayWish[] @relation("BirthdayWishRecipient")
+  birthdayWishesSent     BirthdayWish[] @relation("BirthdayWishSender")
   feedPost          FeedPost[]
   feedReaction      FeedReaction[]
   feedComments      FeedComment[]
@@ -480,6 +482,23 @@ model Notification {
   isRead  Boolean @default(false)
 
   createdAt DateTime @default(now())
+}
+
+model BirthdayWish {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  birthdayUserId String @db.Uuid
+  birthdayUser   User   @relation("BirthdayWishRecipient", fields: [birthdayUserId], references: [id], onDelete: Cascade)
+
+  wishedById String @db.Uuid
+  wishedBy   User   @relation("BirthdayWishSender", fields: [wishedById], references: [id], onDelete: Cascade)
+
+  wishDate  DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([birthdayUserId, wishedById, wishDate])
+  @@index([wishDate])
+  @@index([wishedById])
 }
 
 model FeedPost {

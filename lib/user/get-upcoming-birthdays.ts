@@ -1,11 +1,56 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/db/prisma";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
+type BirthdayWishSummary = {
+  userId: string;
+  name: string | null;
+  image: string | null;
+};
+
+type BirthdayWishDelegate = {
+  findMany: (args: {
+    where: {
+      OR: {
+        birthdayUserId: string;
+        wishDate: Date;
+      }[];
+    };
+    select: {
+      birthdayUserId: true;
+      wishDate: true;
+      wishedBy: {
+        select: {
+          id: true;
+          name: true;
+          image: true;
+        };
+      };
+    };
+    orderBy: {
+      createdAt: "asc";
+    };
+  }) => Promise<
+    {
+      birthdayUserId: string;
+      wishDate: Date;
+      wishedBy: {
+        id: string;
+        name: string | null;
+        image: string | null;
+      };
+    }[]
+  >;
+};
+
 type UpcomingBirthday = {
   id: string;
   name: string;
+  image?: string | null;
   subtitle: string;
+  wishDate: Date;
+  wishes: BirthdayWishSummary[];
   daysUntilBirthday: number;
 };
 
@@ -19,6 +64,12 @@ function getNextBirthday(dateOfBirth: Date, now: Date) {
   const month = dateOfBirth.getUTCMonth();
   const day = dateOfBirth.getUTCDate();
   const today = startOfUtcDay(now);
+  const isBirthdayMonth = today.getUTCMonth() === month;
+
+  // Keep birthdays visible for the whole birthday month, even after the day passes.
+  if (isBirthdayMonth) {
+    return new Date(Date.UTC(today.getUTCFullYear(), month, day));
+  }
 
   let nextBirthday = new Date(Date.UTC(today.getUTCFullYear(), month, day));
 
@@ -53,6 +104,13 @@ function isUpcomingBirthday(
   return user !== null;
 }
 
+function isMissingBirthdayWishTable(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2021"
+  );
+}
+
 export async function getUpcomingBirthdays(limit = 10) {
   const now = new Date();
   const today = startOfUtcDay(now);
@@ -66,12 +124,13 @@ export async function getUpcomingBirthdays(limit = 10) {
     select: {
       id: true,
       name: true,
+      image: true,
       dateOfBirth: true,
     },
   });
 
-  return users
-    .map((user) => {
+  const upcomingBirthdays = users
+    .map((user): UpcomingBirthday | null => {
       const dateOfBirth = user.dateOfBirth;
       if (!dateOfBirth) {
         return null;
@@ -85,11 +144,16 @@ export async function getUpcomingBirthdays(limit = 10) {
       return {
         id: user.id,
         name: user.name?.trim() || "Employee",
+        image: user.image,
         subtitle: formatBirthdaySubtitle(daysUntilBirthday, nextBirthday),
+        wishDate: nextBirthday,
+        wishes: [],
         daysUntilBirthday,
       };
     })
-    .filter(isUpcomingBirthday)
+    .filter(isUpcomingBirthday);
+
+  const visibleBirthdays = upcomingBirthdays
     .sort((a, b) => {
       if (a.daysUntilBirthday !== b.daysUntilBirthday) {
         return a.daysUntilBirthday - b.daysUntilBirthday;
@@ -97,10 +161,91 @@ export async function getUpcomingBirthdays(limit = 10) {
 
       return a.name.localeCompare(b.name);
     })
-    .slice(0, limit)
-    .map(({ id, name, subtitle }) => ({
+    .slice(0, limit);
+
+  if (visibleBirthdays.length === 0) {
+    return [];
+  }
+
+  const birthdayWishModel = (
+    prisma as typeof prisma & { birthdayWish?: BirthdayWishDelegate }
+  ).birthdayWish;
+
+  if (!birthdayWishModel) {
+    return visibleBirthdays.map(({ id, name, image, subtitle, wishDate }) => ({
       id,
       name,
+      image,
       subtitle,
+      wishDate: wishDate.toISOString().slice(0, 10),
+      wishes: [],
     }));
+  }
+
+  let wishes: {
+    birthdayUserId: string;
+    wishDate: Date;
+    wishedBy: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  }[] = [];
+
+  try {
+    wishes = await birthdayWishModel.findMany({
+      where: {
+        OR: visibleBirthdays.map(({ id, wishDate }) => ({
+          birthdayUserId: id,
+          wishDate,
+        })),
+      },
+      select: {
+        birthdayUserId: true,
+        wishDate: true,
+        wishedBy: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+  } catch (error) {
+    if (!isMissingBirthdayWishTable(error)) {
+      throw error;
+    }
+  }
+
+  const wishesByKey = new Map<string, BirthdayWishSummary[]>();
+
+  for (const wish of wishes) {
+    const wishKey = `${wish.birthdayUserId}:${wish.wishDate.toISOString().slice(0, 10)}`;
+    const existing = wishesByKey.get(wishKey) ?? [];
+
+    existing.push({
+      userId: wish.wishedBy.id,
+      name: wish.wishedBy.name,
+      image: wish.wishedBy.image,
+    });
+
+    wishesByKey.set(wishKey, existing);
+  }
+
+  return visibleBirthdays.map(({ id, name, image, subtitle, wishDate }) => {
+    const wishKey = `${id}:${wishDate.toISOString().slice(0, 10)}`;
+
+    return {
+      id,
+      name,
+      image,
+      subtitle,
+      wishDate: wishDate.toISOString().slice(0, 10),
+      wishes: wishesByKey.get(wishKey) ?? [],
+    };
+  });
 }
