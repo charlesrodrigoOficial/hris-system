@@ -37,7 +37,7 @@ function statusBadgeVariant(status: string) {
   }
 }
 
-export default async function ScorecardPage() {
+export default async function ReviewsPage() {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -67,7 +67,7 @@ export default async function ScorecardPage() {
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
       <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
         <CardHeader>
-          <CardTitle>Score Card</CardTitle>
+          <CardTitle>Reviews</CardTitle>
           <CardDescription>
             Recent performance review history for{" "}
             {employee?.fullName ?? employee?.name ?? session.user.name ?? "Employee"}.

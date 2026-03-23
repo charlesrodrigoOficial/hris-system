@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 type AttendanceStatus =
   | "PRESENT"
@@ -38,10 +39,49 @@ type AttendanceUserClientProps = {
   renderTrigger?: (openDialog: () => void) => React.ReactNode;
 };
 
+function getDateOnly(value: string) {
+  return value.slice(0, 10);
+}
+
+function getMonthValue(value: string) {
+  return getDateOnly(value).slice(0, 7);
+}
+
+function getCurrentMonthValue() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function getMonthBounds(value: string) {
+  const [year, month] = value.split("-").map(Number);
+
+  if (!year || !month) {
+    return { min: "", max: "" };
+  }
+
+  const lastDay = new Date(year, month, 0).getDate();
+
+  return {
+    min: `${value}-01`,
+    max: `${value}-${String(lastDay).padStart(2, "0")}`,
+  };
+}
+
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
+  return new Date(`${getDateOnly(value)}T12:00:00`).toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    },
+  );
+}
+
+function formatMonthLabel(value: string) {
+  if (!value) return "Selected month";
+
+  return new Date(`${value}-01T12:00:00`).toLocaleDateString("en-GB", {
+    month: "long",
     year: "numeric",
   });
 }
@@ -53,6 +93,16 @@ function formatTime(value: string | null) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function toHoursNumber(value: string | number | null) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatHours(value: string | number | null) {
+  if (value == null) return "-";
+  return `${toHoursNumber(value).toFixed(1)}h`;
 }
 
 function statusVariant(
@@ -72,6 +122,24 @@ function statusLabel(status: AttendanceStatus) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
+function SummaryTile({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div className="rounded-xl border bg-muted/30 px-4 py-3">
+      <div className="text-sm text-muted-foreground">{label}</div>
+      <div className="mt-1 text-2xl font-semibold">{value}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
+    </div>
+  );
+}
+
 export default function AttendanceUserClient({
   renderTrigger,
 }: AttendanceUserClientProps) {
@@ -80,28 +148,33 @@ export default function AttendanceUserClient({
   const [loading, setLoading] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = React.useState(getCurrentMonthValue);
+  const [selectedDate, setSelectedDate] = React.useState("");
 
   async function loadAttendance() {
     setLoading(true);
     setError(null);
 
-    const res = await fetch("/api/attendance/history", {
-      cache: "no-store",
-    });
+    try {
+      const res = await fetch("/api/attendance/history", {
+        cache: "no-store",
+      });
+      const data = await res.json();
 
-    const data = await res.json();
+      if (!res.ok) {
+        setItems([]);
+        setError(data?.error ?? "Failed to load attendance history");
+        return;
+      }
 
-    if (!res.ok) {
+      setItems(data.items ?? []);
+    } catch {
       setItems([]);
-      setError(data?.error ?? "Failed to load attendance history");
+      setError("Failed to load attendance history");
+    } finally {
       setLoading(false);
       setLoaded(true);
-      return;
     }
-
-    setItems(data.items ?? []);
-    setLoading(false);
-    setLoaded(true);
   }
 
   React.useEffect(() => {
@@ -111,6 +184,51 @@ export default function AttendanceUserClient({
     void loadAttendance();
   }, [open, loaded]);
 
+  React.useEffect(() => {
+    if (!selectedDate) return;
+    if (selectedDate.startsWith(selectedMonth)) return;
+
+    setSelectedDate("");
+  }, [selectedDate, selectedMonth]);
+
+  const monthItems = React.useMemo(
+    () => items.filter((item) => getMonthValue(item.date) === selectedMonth),
+    [items, selectedMonth],
+  );
+
+  const visibleItems = React.useMemo(() => {
+    if (!selectedDate) return monthItems;
+
+    return monthItems.filter((item) => getDateOnly(item.date) === selectedDate);
+  }, [monthItems, selectedDate]);
+
+  const summary = React.useMemo(() => {
+    const presentCount = monthItems.filter(
+      (item) => item.status === "PRESENT",
+    ).length;
+    const absentCount = monthItems.filter(
+      (item) => item.status === "ABSENT",
+    ).length;
+    const totalWorkingHours = monthItems.reduce(
+      (sum, item) => sum + toHoursNumber(item.workingHours),
+      0,
+    );
+    const workedDays = monthItems.filter(
+      (item) => toHoursNumber(item.workingHours) > 0,
+    ).length;
+
+    return {
+      presentCount,
+      absentCount,
+      totalWorkingHours,
+      averageWorkingHours: workedDays > 0 ? totalWorkingHours / workedDays : 0,
+    };
+  }, [monthItems]);
+
+  const selectedMonthLabel = formatMonthLabel(selectedMonth);
+  const selectedDateLabel = selectedDate ? formatDate(selectedDate) : "All days";
+  const monthBounds = getMonthBounds(selectedMonth);
+
   return (
     <>
       {renderTrigger ? (
@@ -119,7 +237,7 @@ export default function AttendanceUserClient({
         <Button
           type="button"
           size="lg"
-          className="gap-2 font-semibold bg-white hover:bg-blue-900 hover:text-white"
+          className="gap-2 bg-white font-semibold hover:bg-blue-900 hover:text-white"
           onClick={() => setOpen(true)}
         >
           <CalendarCheck className="h-4 w-4" />
@@ -132,14 +250,79 @@ export default function AttendanceUserClient({
           <DialogHeader>
             <DialogTitle>Your Attendance History</DialogTitle>
             <DialogDescription>
-              View all attendance records pulled from the database.
+              Review monthly attendance totals and inspect a specific day when
+              needed.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm">
-              <span className="text-muted-foreground">Total records</span>
-              <span className="font-semibold">{items.length}</span>
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+              <Input
+                type="month"
+                value={selectedMonth}
+                onChange={(event) =>
+                  setSelectedMonth(event.target.value || getCurrentMonthValue())
+                }
+                aria-label="Select month"
+              />
+
+              <Input
+                type="date"
+                value={selectedDate}
+                min={monthBounds.min}
+                max={monthBounds.max}
+                onChange={(event) => setSelectedDate(event.target.value)}
+                aria-label="Select date"
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSelectedDate("")}
+                disabled={!selectedDate}
+              >
+                Clear date
+              </Button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryTile
+                label="Total present"
+                value={String(summary.presentCount)}
+                hint={selectedMonthLabel}
+              />
+              <SummaryTile
+                label="Total absent"
+                value={String(summary.absentCount)}
+                hint={selectedMonthLabel}
+              />
+              <SummaryTile
+                label="Working hours"
+                value={`${summary.totalWorkingHours.toFixed(1)}h`}
+                hint={selectedMonthLabel}
+              />
+              <SummaryTile
+                label="Average per day"
+                value={`${summary.averageWorkingHours.toFixed(1)}h`}
+                hint="Based on days with logged hours"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="text-muted-foreground">Viewing records for</div>
+                <div className="font-semibold">
+                  {selectedMonthLabel}
+                  {selectedDate ? ` - ${selectedDateLabel}` : ""}
+                </div>
+              </div>
+
+              <div className="md:text-right">
+                <div className="text-muted-foreground">Records shown</div>
+                <div className="font-semibold">
+                  {visibleItems.length} of {monthItems.length} this month
+                </div>
+              </div>
             </div>
 
             {error ? (
@@ -174,24 +357,24 @@ export default function AttendanceUserClient({
                         </span>
                       </td>
                     </tr>
-                  ) : items.length === 0 ? (
+                  ) : visibleItems.length === 0 ? (
                     <tr>
                       <td
                         colSpan={6}
                         className="p-6 text-center text-muted-foreground"
                       >
-                        No attendance records found.
+                        No attendance records found for the selected filters.
                       </td>
                     </tr>
                   ) : (
-                    items.map((item) => (
+                    visibleItems.map((item) => (
                       <tr key={item.id} className="border-t">
                         <td className="p-3 font-medium">
                           {formatDate(item.date)}
                         </td>
                         <td className="p-3">{formatTime(item.checkIn)}</td>
                         <td className="p-3">{formatTime(item.checkOut)}</td>
-                        <td className="p-3">{item.workingHours ?? "-"}</td>
+                        <td className="p-3">{formatHours(item.workingHours)}</td>
                         <td className="p-3">{item.workMode}</td>
                         <td className="p-3">
                           <Badge variant={statusVariant(item.status)}>
