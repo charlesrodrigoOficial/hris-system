@@ -137,6 +137,21 @@ enum AttendanceStatus {
   PUBLIC_HOLIDAY
 }
 
+enum CalendarItemType {
+  EVENT
+  HOLIDAY
+  MEETING
+  PAYROLL
+  SHIFT
+  ANNOUNCEMENT
+}
+
+enum CalendarVisibility {
+  COMPANY
+  DEPARTMENT
+  PERSONAL
+}
+
 model EmployeeDocument {
   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId String @db.Uuid
@@ -155,6 +170,45 @@ model EmployeeDocument {
 
   @@index([userId])
   @@index([category])
+}
+
+model CalendarItem {
+  id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?
+  type        CalendarItemType
+  visibility  CalendarVisibility @default(COMPANY)
+
+  startDate DateTime
+  endDate   DateTime
+  allDay    Boolean  @default(true)
+
+  color   String?
+  country Country?
+
+  // personal calendar event
+  userId String? @db.Uuid
+  user   User?   @relation("CalendarUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  // department-wide calendar event
+  departmentId String?     @db.Uuid
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  // who created it
+  createdById String? @db.Uuid
+  createdBy   User?   @relation("CalendarCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([visibility])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([country])
+  @@index([userId])
+  @@index([departmentId])
+  @@index([createdById])
 }
 
 model CompanyDocument {
@@ -239,18 +293,21 @@ model User {
   shift              Shift?              @relation(fields: [shiftId], references: [id])
   performanceReviews PerformanceReview[]
 
-  sessions          Session[]
-  account           Account[]
-  attendances       Attendance[]
-  requests          Request[]
-  requestActivity   RequestActivity[]
-  notifications     Notification[]
-  birthdayWishesReceived BirthdayWish[] @relation("BirthdayWishRecipient")
-  birthdayWishesSent     BirthdayWish[] @relation("BirthdayWishSender")
-  feedPost          FeedPost[]
-  feedReaction      FeedReaction[]
-  feedComments      FeedComment[]
-  employeeDocuments EmployeeDocument[]
+  sessions               Session[]
+  account                Account[]
+  attendances            Attendance[]
+  requests               Request[]
+  requestActivity        RequestActivity[]
+  notifications          Notification[]
+  birthdayWishesReceived BirthdayWish[]     @relation("BirthdayWishRecipient")
+  birthdayWishesSent     BirthdayWish[]     @relation("BirthdayWishSender")
+  feedPost               FeedPost[]
+  feedReaction           FeedReaction[]
+  feedComments           FeedComment[]
+  employeeDocuments      EmployeeDocument[]
+
+  calendarItems        CalendarItem[] @relation("CalendarUser")
+  calendarItemsCreated CalendarItem[] @relation("CalendarCreatedBy")
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt
@@ -259,6 +316,9 @@ model User {
   @@index([branchId])
   @@index([managerId])
   @@index([secondLevelManagerId])
+  @@index([dateOfBirth])
+  @@index([country])
+  @@index([isActive])
 }
 
 model Account {
@@ -347,6 +407,7 @@ model Attendance {
   @@unique([userId, date])
   @@index([date])
   @@index([userId])
+  @@index([status, date])
 }
 
 enum WorkMode {
@@ -383,8 +444,9 @@ model Department {
 
   employees User[] @relation("DepartmentEmployees")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  calendarItems CalendarItem[]
 }
 
 model Shift {
@@ -440,6 +502,10 @@ model Request {
   @@index([leaveType])
   @@index([claimPurpose])
   @@index([managerEmployeeId])
+  @@index([userId])
+  @@index([type, status])
+  @@index([startDate])
+  @@index([endDate])
 }
 
 model Attachment {

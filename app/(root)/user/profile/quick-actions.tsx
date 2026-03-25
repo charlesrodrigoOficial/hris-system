@@ -16,7 +16,7 @@ import {
 
 const baseActions = [
   { title: "Payrolls", href: "/admin/payrolls", Icon: Wallet },
-  { title: "Calendar", href: "/admin/calendar", Icon: CalendarDays },
+  { title: "Calendar", href: "/admin/calender", Icon: CalendarDays },
   { title: "Support", href: "/user/requests", Icon: MessageSquareText },
 ];
 

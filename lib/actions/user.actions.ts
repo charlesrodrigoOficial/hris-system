@@ -38,10 +38,12 @@ export async function signInWithCredentials(
       email: formData.get("email"),
       password: formData.get("password"),
     });
+    const normalizedEmail = user.email.trim().toLowerCase();
     const redirectTo = getRedirectTo(formData);
 
     await signIn("credentials", {
       ...user,
+      email: normalizedEmail,
       redirectTo,
     });
 
@@ -70,6 +72,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     });
 
     const plainPassword = user.password;
+    const normalizedEmail = user.email.trim().toLowerCase();
     const redirectTo = getRedirectTo(formData);
 
     user.password = hashSync(user.password, 10);
@@ -77,13 +80,13 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
     await prisma.user.create({
       data: {
         name: user.name,
-        email: user.email,
+        email: normalizedEmail,
         password: user.password,
       },
     });
 
     await signIn("credentials", {
-      email: user.email,
+      email: normalizedEmail,
       password: plainPassword,
       redirectTo,
     });
@@ -285,6 +288,7 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
     const dreamTravelDestination = emptyToNull(user.dreamTravelDestination);
     const address = emptyToNull(user.address);
     const postCode = emptyToNull(user.postCode);
+    const normalizedEmail = user.email.trim().toLowerCase();
     const displayName =
       formatDisplayName(firstName, lastName, existingUser.name) ??
       user.email.split("@")[0];
@@ -310,7 +314,7 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
         fullName: displayName,
         firstName,
         lastName,
-        email: user.email,
+        email: normalizedEmail,
         role: user.role,
         about,
         linkedIn,
@@ -389,8 +393,9 @@ export async function createUser(prevState: unknown, formData: FormData) {
     });
 
     // ✅ check duplicate email
+    const normalizedEmail = parsed.email.trim().toLowerCase();
     const exists = await prisma.user.findUnique({
-      where: { email: parsed.email },
+      where: { email: normalizedEmail },
       select: { id: true },
     });
 
@@ -405,7 +410,7 @@ export async function createUser(prevState: unknown, formData: FormData) {
     await prisma.user.create({
       data: {
         name: parsed.name,
-        email: parsed.email,
+        email: normalizedEmail,
         password: hashedPassword, // IMPORTANT: your User model must have password
         ...(parsed.role ? { role: parsed.role } : {}),
         ...(parsed.country !== undefined ? { country: parsed.country } : {}),

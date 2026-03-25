@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarDays,
   Building2,
   CalendarCheck,
   ClipboardList,
@@ -19,6 +20,7 @@ type AdminAction = {
 
 const actions: AdminAction[] = [
   { title: "User Overview", href: "/admin/employees", icon: Users },
+  { title: "Calendar", href: "/admin/calender", icon: CalendarDays },
   { title: "Attendance", href: "/admin/attendance", icon: CalendarCheck },
   { title: "Requests", href: "/admin/requests", icon: ClipboardList },
 

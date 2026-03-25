@@ -1,4 +1,6 @@
 import NextAuth from "next-auth";
+import type { NextAuthConfig } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/db/prisma";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -50,7 +52,7 @@ export const config = {
     strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as Adapter,
   providers: [
     CredentialsProvider({
       credentials: {
@@ -59,11 +61,15 @@ export const config = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+        const email = String(credentials.email).trim().toLowerCase();
 
         //Find user in database
         const user = await prisma.user.findFirst({
           where: {
-            email: credentials.email as string,
+            email: {
+              equals: email,
+              mode: "insensitive",
+            },
           },
         });
 
@@ -97,7 +103,7 @@ export const config = {
 
     //Gate access here
     async signIn({ user }: any) {
-      const email = (user?.email ?? "").toLowerCase();
+      const email = (user?.email ?? "").trim().toLowerCase();
       const role = user?.role as UserRole | undefined;
 
       const hasAllowedDomain = email.endsWith(`@${ALLOWED_DOMAIN}`);
@@ -140,6 +146,6 @@ export const config = {
       return session;
     },
   },
-};
+} satisfies NextAuthConfig;
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config);

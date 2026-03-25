@@ -8,4 +8,11 @@ declare module "next-auth" {
       dateOfBirth?: Date | null;
     } & DefaultSession["user"];
   }
+
+   interface User {
+    id: string;
+    role: UserRole;
+    departmentId?: string | null;
+    country?: Country | null;
+  }
 }
