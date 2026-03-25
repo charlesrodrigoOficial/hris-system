@@ -98,7 +98,7 @@ export default async function OverviewPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Attendance</CardTitle>
+            <CardTitle>Attendance test</CardTitle>
             <CardDescription>Today's workforce status</CardDescription>
           </CardHeader>
           <CardContent>
