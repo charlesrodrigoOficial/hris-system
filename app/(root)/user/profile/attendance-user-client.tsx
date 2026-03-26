@@ -51,6 +51,10 @@ function getCurrentMonthValue() {
   return new Date().toISOString().slice(0, 7);
 }
 
+function getCurrentDateValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function getMonthBounds(value: string) {
   const [year, month] = value.split("-").map(Number);
 
@@ -71,7 +75,7 @@ function formatDate(value: string) {
     "en-GB",
     {
       day: "2-digit",
-      month: "short",
+      month: "2-digit",
       year: "numeric",
     },
   );
@@ -148,7 +152,11 @@ export default function AttendanceUserClient({
   const [loading, setLoading] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = React.useState(getCurrentMonthValue);
+  const [selectedMonthDate, setSelectedMonthDate] =
+    React.useState(getCurrentDateValue);
+  const [selectedMonth, setSelectedMonth] = React.useState(() =>
+    getMonthValue(getCurrentDateValue()),
+  );
   const [selectedDate, setSelectedDate] = React.useState("");
 
   async function loadAttendance() {
@@ -255,20 +263,24 @@ export default function AttendanceUserClient({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-              <Input
-                type="month"
-                value={selectedMonth}
-                onChange={(event) =>
-                  setSelectedMonth(event.target.value || getCurrentMonthValue())
-                }
-                aria-label="Select month"
-              />
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                <Input
+                  type="date"
+                  value={selectedMonthDate}
+                  lang="en-GB"
+                  onChange={(event) => {
+                    const nextDate = event.target.value || getCurrentDateValue();
+                    setSelectedMonthDate(nextDate);
+                    setSelectedMonth(getMonthValue(nextDate) || getCurrentMonthValue());
+                  }}
+                  aria-label="Select month (date)"
+                />
 
               <Input
                 type="date"
                 value={selectedDate}
+                lang="en-GB"
                 min={monthBounds.min}
                 max={monthBounds.max}
                 onChange={(event) => setSelectedDate(event.target.value)}
