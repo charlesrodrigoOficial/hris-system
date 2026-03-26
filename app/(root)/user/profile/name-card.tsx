@@ -9,13 +9,14 @@ const NameCard = async () => {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, role: true },
+    select: { name: true, role: true, image: true },
   });
 
   return (
     <NameCardClient
       name={currentUser?.name ?? session.user.name ?? "Employee"}
       role={currentUser?.role ?? session.user.role ?? "USER"}
+      image={currentUser?.image ?? session.user.image ?? null}
     />
   );
 };

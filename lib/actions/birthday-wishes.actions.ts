@@ -20,6 +20,7 @@ type BirthdayWishDelegate = {
       wishedById: string;
       wishDate: Date;
     };
+    
     select: {
       id: true;
     };

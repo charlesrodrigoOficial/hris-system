@@ -57,7 +57,7 @@ export default async function EditProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
+      <Card className="rounded-lg border-slate-200 bg-white/80 shadow-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Edit Profile</CardTitle>
         </CardHeader>

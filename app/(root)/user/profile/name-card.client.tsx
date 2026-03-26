@@ -1,14 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "./logo";
 
 export default function NameCardClient({
   name,
   role,
+  image,
 }: {
   name: string;
   role: string;
+  image: string | null;
 }) {
   const cardRef = React.useRef<HTMLDivElement>(null);
 
@@ -54,10 +57,20 @@ export default function NameCardClient({
         ref={cardRef}
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
-        className="tilt-card relative flex-1 overflow-hidden rounded-xl p-10 text-white"
+        className="tilt-card relative flex-1 overflow-hidden rounded-lg p-10 text-white"
       >
         <div className="relative z-10 pr-[290px]">
-          <p className="text-lg uppercase tracking-wide opacity-90">HI {name}</p>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-11 w-11 border border-sky-200/50 shadow-sm">
+              <AvatarImage src={image ?? undefined} alt={name} />
+              <AvatarFallback className="bg-sky-500/25 text-xs text-white">
+                {name?.[0] ?? "U"}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-lg uppercase tracking-wide opacity-90">
+              HI {name}
+            </p>
+          </div>
 
           <h1 className="mt-3 text-4xl md:text-4xl font-bold leading-tight">
             Glad you&apos;re here
@@ -79,8 +92,8 @@ export default function NameCardClient({
         </div>
 
         <div className="tilt-highlight pointer-events-none absolute inset-0" />
-        <div className="tilt-rim pointer-events-none absolute inset-0 rounded-2xl" />
-        <div className="tilt-bevel pointer-events-none absolute inset-0 rounded-2xl" />
+        <div className="tilt-rim pointer-events-none absolute inset-0 rounded-lg" />
+        <div className="tilt-bevel pointer-events-none absolute inset-0 rounded-lg" />
       </div>
 
       {/* ✅ LOGO OVERLAY anchored to this wrapper */}

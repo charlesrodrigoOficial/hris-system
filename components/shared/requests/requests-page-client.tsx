@@ -272,7 +272,7 @@ export default function RequestsPageClient({
 
       {leaveOnly && timeOffSummary ? (
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardDescription>Leave Balance</CardDescription>
               <CardTitle className="text-3xl">
@@ -285,7 +285,7 @@ export default function RequestsPageClient({
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardDescription>Time Off Record</CardDescription>
               <CardTitle className="text-3xl">
@@ -298,7 +298,7 @@ export default function RequestsPageClient({
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader className="pb-2">
               <CardDescription>Apply for Off Time</CardDescription>
               <CardTitle className="text-2xl">Need a day away?</CardTitle>
@@ -316,7 +316,7 @@ export default function RequestsPageClient({
         </div>
       ) : null}
 
-      <Card className="rounded-2xl shadow-sm">
+      <Card className="rounded-lg shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <CardTitle>{leaveOnly ? "Time Off Records" : "Recent Requests"}</CardTitle>

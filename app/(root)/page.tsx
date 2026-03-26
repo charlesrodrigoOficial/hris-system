@@ -4,7 +4,6 @@ import NameCard from "./user/profile/name-card";
 import Profile from "./user/profile/page";
 import { AttendanceCard } from "@/components/shared/attendance-card";
 import { FeedPostCard } from "@/components/shared/body/feed-post-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import BirthdaysCarousel from "@/components/shared/body/birthdays-carousel";
 import { getFeedPosts } from "@/lib/feed/getFeedPoosts";
 import { auth } from "@/auth";
@@ -20,6 +19,7 @@ const Homepage = async () => {
   const birthdayUsers = await getUpcomingBirthdays(8);
   const canPostToFeed = canCreateFeedPost(session?.user?.role);
   const canModerateFeed = canManageFeed(session?.user?.role);
+  const [latestPost, ...olderPosts] = posts;
   return (
     <div className="space-y-6">
       <NameCard />
@@ -30,26 +30,28 @@ const Homepage = async () => {
         <div className="lg:col-span-8 space-y-4">
           <ShoutoutComposer canCreate={canPostToFeed} />
 
-          <ScrollArea className="h-[200px] pr-3">
-            <div className="space-y-6">
-              {posts.map((p) => (
-                <FeedPostCard
-                  key={p.id}
-                  post={p}
-                  canModerate={canModerateFeed}
-                />
-              ))}
-            </div>
-          </ScrollArea>
+          {latestPost ? (
+            <FeedPostCard
+              key={latestPost.id}
+              post={latestPost}
+              canModerate={canModerateFeed}
+            />
+          ) : null}
 
           <BirthdaysCarousel
             users={birthdayUsers}
             currentUserId={session?.user?.id}
           />
+
+          <div className="space-y-6">
+            {olderPosts.map((p) => (
+              <FeedPostCard key={p.id} post={p} canModerate={canModerateFeed} />
+            ))}
+          </div>
         </div>
 
         {/* RIGHT COLUMN */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-6 self-start lg:sticky lg:top-5">
           <div id="attendance">
             <AttendanceCard />
           </div>

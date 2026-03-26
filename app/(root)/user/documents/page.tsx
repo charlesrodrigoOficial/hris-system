@@ -216,7 +216,7 @@ function SummaryCard({
   icon: LucideIcon;
 }) {
   return (
-    <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
+    <Card className="rounded-lg border-slate-200 bg-white/80 shadow-sm">
       <CardContent className="flex items-start justify-between p-5">
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
@@ -244,7 +244,7 @@ function DocumentSection({
   emptyMessage: string;
 }) {
   return (
-    <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
+    <Card className="rounded-lg border-slate-200 bg-white/80 shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
         <div className="space-y-1.5">
           <CardTitle>{title}</CardTitle>
@@ -258,7 +258,7 @@ function DocumentSection({
           documents.map((document) => (
             <div
               key={document.id}
-              className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:flex-row md:items-center md:justify-between"
+              className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50/70 p-4 md:flex-row md:items-center md:justify-between"
             >
               <div className="min-w-0 space-y-3">
                 <div className="flex items-start gap-3">
@@ -293,7 +293,7 @@ function DocumentSection({
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
             <FolderOpen className="mb-3 h-8 w-8 text-slate-400" />
             <p className="font-medium text-slate-700">{emptyMessage}</p>
           </div>

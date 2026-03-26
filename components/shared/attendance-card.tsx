@@ -134,9 +134,11 @@ export function AttendanceCard() {
   }, [attendance]);
 
   return (
-    <Card className="w-full rounded-2xl border border-sky-200/70 bg-gradient-to-r from-blue-950 via-blue-800 to-slate-200 p-3 text-slate-900 shadow-lg">
+    <Card className="relative w-full overflow-hidden rounded-lg border border-sky-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.96),_rgba(224,242,254,0.94)_28%,_rgba(191,219,254,0.9)_62%,_rgba(147,197,253,0.92)_100%)] p-3 text-slate-900 shadow-[0_18px_44px_-30px_rgba(29,78,216,0.32)]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base text-slate-200">Attendance</CardTitle>
+        <CardTitle className="text-base font-semibold bg-gradient-to-r from-sky-700 via-blue-700 to-cyan-600 bg-clip-text text-transparent">
+          Attendance
+        </CardTitle>
 
         {attendance?.status ? (
           <Badge variant={statusVariant(attendance.status)}>

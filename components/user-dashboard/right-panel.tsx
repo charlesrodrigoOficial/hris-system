@@ -7,7 +7,7 @@ export function RightPanel() {
   return (
     <div className="space-y-6">
       {/* Profile quick card */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-lg">
         <CardContent className="p-4 space-y-2">
           <div className="text-sm font-semibold">Employee Name</div>
           <div className="text-xs text-muted-foreground">Go to my profile</div>

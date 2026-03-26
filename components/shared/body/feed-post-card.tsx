@@ -67,7 +67,7 @@ export function FeedPostCard({
   canModerate: boolean;
 }) {
   return (
-    <Card className="overflow-hidden rounded-2xl border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 shadow-lg">
+    <Card className="overflow-hidden rounded-lg border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 shadow-lg">
       <CardHeader className="flex flex-row items-start justify-between gap-3 p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">

@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button"
 
 export function HomeFeed() {
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
       {/* Post box */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-lg">
         <CardContent className="p-4 space-y-3">
           <div className="h-10 w-full rounded-lg bg-muted flex items-center px-3 text-sm text-muted-foreground">
             Post a Shoutout
@@ -19,7 +19,7 @@ export function HomeFeed() {
       </Card>
 
       {/* Example HR announcement */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-lg">
         <CardContent className="p-4 space-y-2">
           <div className="text-sm font-semibold">HR/Admin Name who post</div>
           <div className="text-xs text-muted-foreground">6 Feb 2026, 12:49</div>

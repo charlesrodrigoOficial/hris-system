@@ -34,11 +34,11 @@ export default async function RootLayout({
       </div>
 
       {/* Body */}
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 bg-gradient-to-b from-sky-50 via-slate-50 to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
         <div className="flex h-full w-full gap-6 px-4 md:px-6">
           {/* Sidebar */}
           <aside
-            className={`hidden h-full shrink-0 overflow-y-auto border-r py-5 md:block ${APP_SIDEBAR_WIDTH_CLASS}`}
+            className={`hidden h-full shrink-0 overflow-y-auto border-r bg-background py-5 md:block ${APP_SIDEBAR_WIDTH_CLASS}`}
           >
             <UserSidebar role={session?.user?.role} />
           </aside>

@@ -48,6 +48,7 @@ type UpcomingBirthday = {
   id: string;
   name: string;
   image?: string | null;
+  position?: string | null;
   subtitle: string;
   wishDate: Date;
   wishes: BirthdayWishSummary[];
@@ -125,6 +126,7 @@ export async function getUpcomingBirthdays(limit = 10) {
       id: true,
       name: true,
       image: true,
+      position: true,
       dateOfBirth: true,
     },
   });
@@ -145,6 +147,7 @@ export async function getUpcomingBirthdays(limit = 10) {
         id: user.id,
         name: user.name?.trim() || "Employee",
         image: user.image,
+        position: user.position,
         subtitle: formatBirthdaySubtitle(daysUntilBirthday, nextBirthday),
         wishDate: nextBirthday,
         wishes: [],
@@ -172,14 +175,17 @@ export async function getUpcomingBirthdays(limit = 10) {
   ).birthdayWish;
 
   if (!birthdayWishModel) {
-    return visibleBirthdays.map(({ id, name, image, subtitle, wishDate }) => ({
+    return visibleBirthdays.map(
+      ({ id, name, image, position, subtitle, wishDate }) => ({
       id,
       name,
       image,
+      position,
       subtitle,
       wishDate: wishDate.toISOString().slice(0, 10),
       wishes: [],
-    }));
+      }),
+    );
   }
 
   let wishes: {
@@ -236,13 +242,14 @@ export async function getUpcomingBirthdays(limit = 10) {
     wishesByKey.set(wishKey, existing);
   }
 
-  return visibleBirthdays.map(({ id, name, image, subtitle, wishDate }) => {
+  return visibleBirthdays.map(({ id, name, image, position, subtitle, wishDate }) => {
     const wishKey = `${id}:${wishDate.toISOString().slice(0, 10)}`;
 
     return {
       id,
       name,
       image,
+      position,
       subtitle,
       wishDate: wishDate.toISOString().slice(0, 10),
       wishes: wishesByKey.get(wishKey) ?? [],

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { CakeSlice, Gift, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ export type BirthdayUser = {
   id: string;
   name: string;
   image?: string | null;
+  position?: string | null;
   wishDate: string;
   wishes?: BirthdayWish[];
   subtitle?: string; // e.g. "Today", "Tomorrow", "6 Feb"
@@ -42,11 +43,10 @@ export function BirthdaysCarousel({
   const [errorByUserId, setErrorByUserId] = React.useState<
     Record<string, string>
   >({});
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(false);
   const [, startTransition] = React.useTransition();
-
-  function getFirstName(name: string) {
-    return name.trim().split(/\s+/)[0] || "Employee";
-  }
 
   function getWishes(user: BirthdayUser) {
     return optimisticWishes[user.id] ?? user.wishes ?? [];
@@ -69,24 +69,29 @@ export function BirthdaysCarousel({
     return Math.abs(hash);
   }
 
-  function getWishStyle(seed: string, index: number) {
-    const hash = buildSeed(`${seed}:${index}`);
-    const topSlots = [16, 44, 72];
-    const leftSlots = [20, 50, 78];
-    const lane = index % topSlots.length;
-    const column =
-      (Math.floor(index / topSlots.length) + Math.floor(hash / 13)) %
-      leftSlots.length;
-    const top = topSlots[lane] + ((hash % 8) - 4);
-    const left = leftSlots[column] + ((Math.floor(hash / 7) % 10) - 5);
-    const rotate = (Math.floor(hash / 17) % 30) - 15;
+  function getAccentBandClass(seed: string) {
+    const palette = [
+      "bg-[#6b1f3a]",
+      "bg-[#c79a7f]",
+      "bg-[#0b3a4a]",
+      "bg-[#5b3a82]",
+      "bg-[#1f5a8a]",
+      "bg-[#1f6b4a]",
+    ];
+    const index = buildSeed(seed) % palette.length;
+    return palette[index] ?? palette[0];
+  }
 
-    return {
-      top: `${top}%`,
-      left: `${left}%`,
-      transform: `translate(-${left / 3}%, -${top / 5}%) rotate(${rotate}deg)`,
-      zIndex: index + 1,
-    } as const;
+  function updateScrollButtons() {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+    const current = el.scrollLeft;
+    const threshold = 4;
+
+    setCanScrollLeft(current > threshold);
+    setCanScrollRight(current < maxScrollLeft - threshold);
   }
 
   function handleWish(userId: string, wishDate: string) {
@@ -126,136 +131,124 @@ export function BirthdaysCarousel({
     });
   }
 
+  React.useEffect(() => {
+    updateScrollButtons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users.length]);
+
+  function scrollByCards(direction: "left" | "right") {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const amount = Math.max(280, Math.floor(el.clientWidth * 0.85));
+    el.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  }
+
   return (
-    <Card className="relative overflow-hidden rounded-[2rem] border border-sky-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.96),_rgba(224,242,254,0.94)_28%,_rgba(191,219,254,0.92)_62%,_rgba(147,197,253,0.95)_100%)] shadow-[0_24px_60px_-34px_rgba(29,78,216,0.35)]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-8 top-5 h-24 w-24 rounded-full bg-white/45 blur-2xl" />
-        <div className="absolute right-10 top-7 h-16 w-16 rounded-full bg-sky-200/45 blur-xl" />
-        <div className="absolute bottom-4 left-1/3 h-20 w-20 rounded-full bg-blue-300/30 blur-2xl" />
-        <div className="absolute left-6 top-6 h-2.5 w-2.5 rounded-full bg-sky-400/60" />
-        <div className="absolute left-16 top-14 h-1.5 w-1.5 rounded-full bg-cyan-300/70" />
-        <div className="absolute right-16 top-12 h-2 w-2 rounded-full bg-blue-400/60" />
-        <div className="absolute right-24 top-20 h-1.5 w-1.5 rounded-full bg-sky-500/70" />
-        <div className="absolute bottom-10 right-10 h-2 w-2 rounded-full bg-cyan-300/70" />
-      </div>
-
-      <CardHeader className="relative flex flex-row items-center justify-between gap-3 p-5">
-        <div>
-          <div className="flex items-center gap-2 text-rose-600">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.28em]">
-              Celebrate
-            </span>
-          </div>
-          <div className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-            {title}
-          </div>
-          <div className="mt-1 text-xs text-slate-600">
-            Birthday wishes stay bright and visible all month.
-          </div>
-        </div>
-
-        <div className="hidden rounded-full border border-white/70 bg-white/55 p-3 text-rose-600 shadow-sm sm:flex">
-          <CakeSlice className="h-5 w-5" />
-        </div>
+    <Card className="rounded-lg border border-slate-200 bg-white/80 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between px-4 py-3">
+        <div className="text-sm font-semibold text-slate-900">{title}</div>
       </CardHeader>
 
-      <CardContent className="relative pb-5">
-        <div className="flex gap-4 overflow-x-auto pr-2">
-          {users.length === 0 ? (
-            <div className="rounded-2xl border border-white/70 bg-white/60 px-4 py-6 text-xs text-slate-500 shadow-sm">
-              No birthdays coming up.
-            </div>
-          ) : (
-            users.map((u) => {
-              const wishes = getWishes(u);
+      <CardContent className="relative pb-4">
+        <div className="relative">
+          <div
+            ref={scrollerRef}
+            className="scrollbar-hidden flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2"
+            onScroll={updateScrollButtons}
+          >
+            {users.length === 0 ? (
+              <div className="rounded-md border border-slate-200 bg-white px-4 py-6 text-xs text-slate-500 shadow-sm">
+                No birthdays coming up.
+              </div>
+            ) : (
+              users.map((u) => {
+                const wishes = getWishes(u);
+                const isPending = pendingUserId === u.id;
+                const isWishedByMe = hasWishedByCurrentUser(u);
 
-              return (
-                <div
-                  key={u.id}
-                  className="relative min-w-[255px] overflow-hidden rounded-[1.6rem] border border-white/80 bg-[linear-gradient(165deg,rgba(255,255,255,0.97),rgba(239,246,255,0.94))] p-4 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.4)]"
-                >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,#38bdf8,#3b82f6,#22d3ee)]" />
-                  <div className="absolute right-3 top-3 rounded-full border border-sky-100 bg-sky-50/90 p-2 text-sky-600 shadow-sm">
-                    <Gift className="h-3.5 w-3.5" />
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <Avatar className="h-12 w-12 ring-4 ring-sky-100/90">
-                      <AvatarImage src={u.image ?? undefined} alt={u.name} />
-                      <AvatarFallback className="bg-sky-100 text-sm text-sky-700">
-                        {u.name?.[0] ?? "U"}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="min-w-0 pt-1">
-                      <div className="truncate text-lg font-semibold text-slate-900">
-                        {u.name}
-                      </div>
-                      <div className="mt-0.5 text-xs font-medium text-sky-600">
-                        {u.subtitle ?? "Happy Birthday!"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-4 h-9 w-full rounded-full border-sky-200/90 bg-white/90 px-3 text-[11px] font-semibold text-sky-700 shadow-sm hover:bg-sky-50 disabled:border-emerald-200 disabled:bg-emerald-50/90 disabled:text-emerald-700"
-                    onClick={() => handleWish(u.id, u.wishDate)}
-                    disabled={pendingUserId === u.id || hasWishedByCurrentUser(u)}
+                return (
+                  <div
+                    key={u.id}
+                    className="snap-start"
+                    aria-label={`Birthday card for ${u.name}`}
                   >
-                    {pendingUserId === u.id
-                      ? "Sending..."
-                      : hasWishedByCurrentUser(u)
-                        ? "Wished By You"
-                        : wishes.length > 0
-                          ? "Add Your Wish"
-                          : "Happy Birthday"}
-                  </Button>
+                    <div className="relative w-[240px] overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+                      <div
+                        className={`h-10 ${getAccentBandClass(`${u.id}:${u.wishDate}`)}`}
+                      />
 
-                  <div className="relative mt-4 h-36 overflow-hidden rounded-[1.3rem] bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.82),rgba(224,242,254,0.45)_60%,rgba(255,255,255,0)_100%)]">
-                    {wishes.length === 0 ? (
-                      <div className="flex h-full items-center justify-center text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-                        Wishes will appear here
+                      <div className="relative -mt-8 flex justify-center px-4">
+                        <Avatar className="h-16 w-16 border-4 border-white shadow-sm">
+                          <AvatarImage src={u.image ?? undefined} alt={u.name} />
+                          <AvatarFallback className="bg-slate-100 text-base text-slate-700">
+                            {u.name?.[0] ?? "U"}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
-                    ) : (
-                      wishes.map((wish, index) => (
-                        <div
-                          key={`${wish.userId}-${index}`}
-                          className="absolute flex max-w-[126px] items-center gap-1.5 rounded-full border border-sky-200/90 bg-white/95 px-2.5 py-1.5 shadow-[0_10px_24px_-18px_rgba(59,130,246,0.45)]"
-                          style={getWishStyle(
-                            `${u.id}:${u.wishDate}:${wish.userId}`,
-                            index,
-                          )}
-                        >
-                          <Avatar className="h-5 w-5">
-                            <AvatarImage
-                              src={wish.image ?? undefined}
-                              alt={wish.name ?? "Wisher"}
-                            />
-                            <AvatarFallback className="bg-sky-50 text-[9px] text-sky-700">
-                              {wish.name?.[0] ?? "U"}
-                            </AvatarFallback>
-                          </Avatar>
 
-                          <span className="truncate text-[10px] font-semibold text-sky-700">
-                            HB {getFirstName(u.name)}
-                          </span>
+                      <div className="px-4 pb-4 pt-3 text-center">
+                        <div className="truncate text-sm font-semibold text-slate-900">
+                          {u.name}
                         </div>
-                      ))
-                    )}
-                  </div>
+                        <div className="truncate text-xs text-slate-500">
+                          {u.position?.trim() ? u.position : "Employee"}
+                        </div>
 
-                  {errorByUserId[u.id] ? (
-                    <div className="mt-1 text-[10px] text-red-600">
-                      {errorByUserId[u.id]}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="mt-3 h-8 w-full rounded-md border-slate-300 bg-white text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-70"
+                          onClick={() => handleWish(u.id, u.wishDate)}
+                          disabled={isPending || isWishedByMe}
+                        >
+                          {isPending
+                            ? "Sending..."
+                            : isWishedByMe
+                              ? "Wished"
+                              : wishes.length > 0
+                                ? "Send wishes"
+                                : "Send wishes"}
+                        </Button>
+
+                        <div className="mt-2 text-xs text-slate-500">
+                          {u.subtitle ?? ""}
+                        </div>
+
+                        {errorByUserId[u.id] ? (
+                          <div className="mt-2 text-[11px] text-red-600">
+                            {errorByUserId[u.id]}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
-                  ) : null}
-                </div>
-              );
-            })
-          )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <button
+            type="button"
+            aria-label="Scroll birthdays left"
+            onClick={() => scrollByCards("left")}
+            disabled={!canScrollLeft}
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/90 p-2 text-slate-700 shadow-sm backdrop-blur disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Scroll birthdays right"
+            onClick={() => scrollByCards("right")}
+            disabled={!canScrollRight}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/90 p-2 text-slate-700 shadow-sm backdrop-blur disabled:opacity-40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </CardContent>
     </Card>
