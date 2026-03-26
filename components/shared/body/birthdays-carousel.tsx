@@ -1,12 +1,21 @@
 "use client";
 
 import * as React from "react";
+import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { sendBirthdayWish } from "@/lib/actions/birthday-wishes.actions";
+import { createBirthdayWishPost } from "@/lib/actions/birthday-wishes.actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type BirthdayWish = {
   userId: string;
@@ -40,13 +49,14 @@ export function BirthdaysCarousel({
   const [optimisticWishes, setOptimisticWishes] = React.useState<
     Record<string, BirthdayWish[]>
   >({});
-  const [errorByUserId, setErrorByUserId] = React.useState<
-    Record<string, string>
-  >({});
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(false);
   const [, startTransition] = React.useTransition();
+  const [wishDialogOpen, setWishDialogOpen] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState<BirthdayUser | null>(
+    null,
+  );
 
   function getWishes(user: BirthdayUser) {
     return optimisticWishes[user.id] ?? user.wishes ?? [];
@@ -94,41 +104,14 @@ export function BirthdaysCarousel({
     setCanScrollRight(current < maxScrollLeft - threshold);
   }
 
-  function handleWish(userId: string, wishDate: string) {
-    setErrorByUserId((current) => ({ ...current, [userId]: "" }));
-    setPendingUserId(userId);
+  function openWishDialog(user: BirthdayUser) {
+    setSelectedUser(user);
+    setWishDialogOpen(true);
+  }
 
-    startTransition(async () => {
-      const result = await sendBirthdayWish(userId, wishDate);
-
-      if (result.success && "wish" in result) {
-        setOptimisticWishes((current) => {
-          const existing =
-            current[userId] ?? users.find((user) => user.id === userId)?.wishes ?? [];
-          const nextWish = result.wish;
-
-          if (!nextWish || existing.some((wish) => wish.userId === nextWish.userId)) {
-            return current;
-          }
-
-          return {
-            ...current,
-            [userId]: [...existing, nextWish],
-          };
-        });
-
-        router.refresh();
-      } else {
-        setErrorByUserId((current) => ({
-          ...current,
-          [userId]:
-            ("message" in result ? result.message : null) ??
-            "Could not save wish",
-        }));
-      }
-
-      setPendingUserId((current) => (current === userId ? null : current));
-    });
+  function closeWishDialog() {
+    setWishDialogOpen(false);
+    setSelectedUser(null);
   }
 
   React.useEffect(() => {
@@ -144,6 +127,24 @@ export function BirthdaysCarousel({
     el.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth",
+    });
+  }
+
+  function applyOptimisticWish(userId: string, wish: BirthdayWish | undefined) {
+    if (!wish) return;
+
+    setOptimisticWishes((current) => {
+      const existing =
+        current[userId] ?? users.find((user) => user.id === userId)?.wishes ?? [];
+
+      if (existing.some((item) => item.userId === wish.userId)) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [userId]: [...existing, wish],
+      };
     });
   }
 
@@ -202,7 +203,7 @@ export function BirthdaysCarousel({
                           type="button"
                           variant="outline"
                           className="mt-3 h-8 w-full rounded-md border-slate-300 bg-white text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-70"
-                          onClick={() => handleWish(u.id, u.wishDate)}
+                          onClick={() => openWishDialog(u)}
                           disabled={isPending || isWishedByMe}
                         >
                           {isPending
@@ -218,11 +219,6 @@ export function BirthdaysCarousel({
                           {u.subtitle ?? ""}
                         </div>
 
-                        {errorByUserId[u.id] ? (
-                          <div className="mt-2 text-[11px] text-red-600">
-                            {errorByUserId[u.id]}
-                          </div>
-                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -251,7 +247,122 @@ export function BirthdaysCarousel({
           </button>
         </div>
       </CardContent>
+
+      {selectedUser ? (
+        <BirthdayWishDialog
+          key={`${selectedUser.id}:${selectedUser.wishDate}`}
+          open={wishDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) closeWishDialog();
+            else setWishDialogOpen(true);
+          }}
+          user={selectedUser}
+          onSubmitting={(userId) => setPendingUserId(userId)}
+          onSubmitted={() => setPendingUserId(null)}
+          onSuccess={(wish) => {
+            applyOptimisticWish(selectedUser.id, wish);
+            startTransition(() => router.refresh());
+            closeWishDialog();
+          }}
+        />
+      ) : null}
     </Card>
+  );
+}
+
+function BirthdayWishDialog({
+  open,
+  onOpenChange,
+  user,
+  onSubmitting,
+  onSubmitted,
+  onSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: BirthdayUser;
+  onSubmitting: (userId: string) => void;
+  onSubmitted: () => void;
+  onSuccess: (wish: BirthdayWish | undefined) => void;
+}) {
+  const [state, action] = useActionState(createBirthdayWishPost, {
+    success: false,
+    message: "",
+  } as any);
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Send birthday wishes</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-white/70 px-3 py-2">
+          <Avatar className="h-10 w-10 border border-slate-200">
+            <AvatarImage src={user.image ?? undefined} alt={user.name} />
+            <AvatarFallback className="bg-slate-100 text-sm text-slate-700">
+              {user.name?.[0] ?? "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-slate-900">
+              {user.name}
+            </div>
+            <div className="text-xs text-slate-500">{user.subtitle ?? ""}</div>
+          </div>
+        </div>
+
+        <form
+          ref={formRef}
+          action={async (fd) => {
+            onSubmitting(user.id);
+            const res = (await action(fd)) as any;
+            onSubmitted();
+
+            if (res?.success) {
+              formRef.current?.reset();
+              onSuccess(res?.wish);
+            }
+            return res;
+          }}
+          className="space-y-3"
+        >
+          <input type="hidden" name="birthdayUserId" value={user.id} />
+          <input type="hidden" name="wishDate" value={user.wishDate} />
+
+          <Textarea
+            name="content"
+            placeholder="Write your wish (optional)…"
+            className="min-h-[90px] text-xs"
+          />
+
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-slate-700">
+              Add an image (optional)
+            </div>
+            <Input name="image" type="file" accept="image/*" className="text-xs" />
+            <div className="text-[11px] text-slate-500">
+              If you don&apos;t upload an image, a birthday design card will be used.
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full text-xs">
+            Post wish
+          </Button>
+
+          {state?.message ? (
+            <div
+              className={`text-xs ${
+                state?.success ? "text-green-700" : "text-red-600"
+              }`}
+            >
+              {state.message}
+            </div>
+          ) : null}
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -53,6 +53,7 @@ enum FeedPostType {
   SHOUTOUT
   KUDOS
   POLL
+  BIRTHDAY
 }
 
 enum FeedReactionType {
@@ -301,7 +302,8 @@ model User {
   notifications          Notification[]
   birthdayWishesReceived BirthdayWish[]     @relation("BirthdayWishRecipient")
   birthdayWishesSent     BirthdayWish[]     @relation("BirthdayWishSender")
-  feedPost               FeedPost[]
+  feedPost               FeedPost[]         @relation("FeedPostAuthor")
+  birthdayFeedPosts      FeedPost[]         @relation("FeedPostBirthdayUser")
   feedReaction           FeedReaction[]
   feedComments           FeedComment[]
   employeeDocuments      EmployeeDocument[]
@@ -572,13 +574,18 @@ model FeedPost {
   type FeedPostType @default(SHOUTOUT)
 
   content String
+  imageUrl String?
+
+  // Birthday post fields
+  birthdayUserId String? @db.Uuid
+  birthdayUser   User?   @relation("FeedPostBirthdayUser", fields: [birthdayUserId], references: [id], onDelete: SetNull)
 
   // Poll fields
   pollQuestion String?
   pollOptions  Json?
 
   authorId String @db.Uuid
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author   User   @relation("FeedPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -589,6 +596,7 @@ model FeedPost {
   @@index([authorId])
   @@index([createdAt])
   @@index([type])
+  @@index([birthdayUserId])
 }
 
 model FeedReaction {

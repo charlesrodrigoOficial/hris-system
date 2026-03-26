@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { useTransition } from "react";
@@ -20,8 +20,13 @@ type FeedPost = {
   id: string;
   authorName: string;
   authorRole?: string;
+  authorImage?: string | null;
   createdAtLabel: string;
   body: string;
+  type?: "SHOUTOUT" | "KUDOS" | "POLL" | "BIRTHDAY" | string;
+  imageUrl?: string | null;
+  birthdayUserName?: string | null;
+  birthdayUserImage?: string | null;
   reactionsCount: number;
   myReactionType?: FeedReactionType;
   reactionSummary: {
@@ -37,6 +42,70 @@ type FeedPost = {
     createdAtLabel: string;
   }[];
 };
+
+function BirthdayPostContent({
+  message,
+  imageUrl,
+  birthdayUserName,
+  birthdayUserImage,
+}: {
+  message: string;
+  imageUrl?: string | null;
+  birthdayUserName?: string | null;
+  birthdayUserImage?: string | null;
+}) {
+  const displayName = birthdayUserName?.trim() || "Employee";
+
+  if (imageUrl) {
+    return (
+      <div className="space-y-3">
+        <div className="text-xs font-semibold text-slate-900">
+          Birthday wish for {displayName}
+        </div>
+        <img
+          src={imageUrl}
+          alt={`Birthday wish for ${displayName}`}
+          className="w-full rounded-xl border border-slate-200 bg-white object-cover"
+        />
+        {message ? <div className="text-xs text-slate-700">{message}</div> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs font-semibold text-slate-900">
+        Birthday wish for {displayName}
+      </div>
+
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-pink-500 via-violet-500 to-indigo-500 p-6 text-white">
+        <div className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl" />
+        <div className="pointer-events-none absolute -bottom-10 right-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute inset-0 opacity-35">
+          <div className="absolute left-6 top-5 h-2 w-2 rounded-full bg-white" />
+          <div className="absolute left-16 top-10 h-1.5 w-1.5 rounded-full bg-white" />
+          <div className="absolute right-10 top-8 h-2 w-2 rounded-full bg-white" />
+          <div className="absolute right-20 top-16 h-1.5 w-1.5 rounded-full bg-white" />
+          <div className="absolute left-10 bottom-8 h-2 w-2 rounded-full bg-white" />
+          <div className="absolute right-12 bottom-10 h-1.5 w-1.5 rounded-full bg-white" />
+        </div>
+
+        <div className="relative flex flex-col items-center text-center">
+          <Avatar className="h-20 w-20 border-4 border-white/80 shadow-lg">
+            <AvatarImage src={birthdayUserImage ?? undefined} alt={displayName} />
+            <AvatarFallback className="bg-white/20 text-xl text-white">
+              {displayName?.[0] ?? "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="mt-4 text-lg font-bold">Happy Birthday!</div>
+          <div className="text-sm font-semibold opacity-95">{displayName}</div>
+        </div>
+      </div>
+
+      {message ? <div className="text-xs text-slate-700">{message}</div> : null}
+    </div>
+  );
+}
 
 function DeleteCommentButton({ commentId }: { commentId: string }) {
   const [pending, startTransition] = useTransition();
@@ -71,6 +140,7 @@ export function FeedPostCard({
       <CardHeader className="flex flex-row items-start justify-between gap-3 p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
+            <AvatarImage src={post.authorImage ?? undefined} alt={post.authorName} />
             <AvatarFallback className="bg-slate-100 text-slate-900">
               {post.authorName?.[0] ?? "U"}
             </AvatarFallback>
@@ -96,10 +166,16 @@ export function FeedPostCard({
       </CardHeader>
 
       <CardContent className="px-4 pb-4 text-xs text-slate-700">
-        {post.body}
-        <span className="ml-2 cursor-pointer text-slate-500 underline">
-          
-        </span>
+        {post.type === "BIRTHDAY" ? (
+          <BirthdayPostContent
+            message={post.body}
+            imageUrl={post.imageUrl}
+            birthdayUserName={post.birthdayUserName}
+            birthdayUserImage={post.birthdayUserImage}
+          />
+        ) : (
+          post.body
+        )}
       </CardContent>
 
       <CardFooter className="block border-t border-slate-300/70 p-3">

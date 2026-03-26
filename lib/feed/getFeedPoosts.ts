@@ -16,7 +16,8 @@ export async function getFeedPosts(viewerId?: string | null) {
     orderBy: { createdAt: "desc" },
     take: 20,
     include: {
-      author: { select: { name: true, role: true } },
+      author: { select: { name: true, role: true, image: true } },
+      birthdayUser: { select: { id: true, name: true, image: true } },
       reactions: { select: { userId: true, type: true } },
       comments: {
         orderBy: { createdAt: "asc" },
@@ -38,11 +39,15 @@ export async function getFeedPosts(viewerId?: string | null) {
       id: p.id,
       authorName: p.author?.name ?? "Unknown",
       authorRole: p.author?.role ?? "",
+      authorImage: p.author?.image ?? null,
 
       createdAtLabel: formatDate(p.createdAt),
       body: p.content,
 
       type: p.type,
+      imageUrl: (p as any).imageUrl ?? null,
+      birthdayUserName: p.birthdayUser?.name ?? null,
+      birthdayUserImage: p.birthdayUser?.image ?? null,
       pollQuestion: p.pollQuestion,
       pollOptions: (p.pollOptions as unknown as string[]) ?? [],
 
