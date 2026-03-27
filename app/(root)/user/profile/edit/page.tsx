@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProfileForm from "../profile-form";
 import { getEditProfileUser } from "@/lib/user/get-edit-profile-user";
+import ChangePasswordForm from "./change-password-form";
 
 function splitName(
   firstName?: string | null,
@@ -97,6 +98,15 @@ export default async function EditProfilePage() {
               secondLevelManagerName: secondLevelManagerLabel,
             }}
           />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6 rounded-lg border-slate-200 bg-white/80 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Security</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChangePasswordForm />
         </CardContent>
       </Card>
     </div>

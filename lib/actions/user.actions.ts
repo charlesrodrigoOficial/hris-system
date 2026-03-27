@@ -2,6 +2,7 @@
 
 import {
   createUserSchema,
+  changePasswordSchema,
   signInFormSchema,
   signUpFormSchema,
   updateProfileSchema,
@@ -9,7 +10,7 @@ import {
 } from "../validators";
 import { auth, signIn, signOut } from "@/auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { hashSync } from "bcrypt-ts-edge";
+import { compareSync, hashSync } from "bcrypt-ts-edge";
 import { prisma } from "@/db/prisma";
 import { UserRole } from "@prisma/client";
 import { formatError } from "../utils";
@@ -163,6 +164,63 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
       message: "Profile updated successfully",
     };
   } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+export async function changePassword(prevState: unknown, formData: FormData) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const parsed = changePasswordSchema.parse({
+      currentPassword: formData.get("currentPassword"),
+      newPassword: formData.get("newPassword"),
+      confirmNewPassword: formData.get("confirmNewPassword"),
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, password: true },
+    });
+
+    if (!user) throw new Error("User not found");
+    if (!user.password) {
+      return {
+        success: false,
+        message: "Password not set for this account. Contact an admin.",
+      };
+    }
+
+    const matchesCurrent = compareSync(parsed.currentPassword, user.password);
+    if (!matchesCurrent) {
+      return { success: false, message: "Current password is incorrect" };
+    }
+
+    const newIsSameAsOld = compareSync(parsed.newPassword, user.password);
+    if (newIsSameAsOld) {
+      return {
+        success: false,
+        message: "New password must be different from current password",
+      };
+    }
+
+    const hashedPassword = hashSync(parsed.newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    revalidatePath("/user/profile/edit");
+
+    return { success: true, message: "Password updated successfully" };
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     return { success: false, message: formatError(error) };
   }
 }
