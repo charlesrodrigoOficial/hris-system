@@ -19,7 +19,6 @@ import {
 import AttendanceUserClient from "@/app/(root)/user/profile/attendance-user-client";
 import { cn } from "@/lib/utils";
 import { canManageAttendance } from "@/lib/auth/roles";
-import { isAdmin } from "@/lib/requests/helpers";
 
 type SidebarItem = {
   title: string;
@@ -28,8 +27,6 @@ type SidebarItem = {
 };
 
 function getSidebarItems(role?: string | null): SidebarItem[] {
-  const canSeeOrg = isAdmin(role);
-
   return [
     { title: "Overview", href: "/", icon: LayoutDashboard },
     { title: "Attendance", icon: CalendarCheck },
@@ -48,15 +45,11 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
       href: "/user/scorecard",
       icon: Star,
     },
-    ...(canSeeOrg
-      ? [
-          {
-            title: "Org",
-            href: "/admin/employees",
-            icon: Building2,
-          },
-        ]
-      : []),
+    {
+      title: "Org",
+      href: "/user/organization",
+      icon: Building2,
+    },
     {
       title: "Payroll",
       href: "/user/profile",

@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { usePathname } from "next/navigation";
 import type { OrgUser } from "@/lib/build-org-tree";
 
 type Props = {
@@ -47,6 +48,8 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default function UserProfileSheet({ user, open, onOpenChange }: Props) {
+  const pathname = usePathname();
+  const showAdminProfileLink = pathname.startsWith("/admin/");
   const displayName = user?.fullName || user?.name || user?.email || "Profile";
   const initials = getInitials(displayName);
 
@@ -56,7 +59,7 @@ export default function UserProfileSheet({ user, open, onOpenChange }: Props) {
         {!user ? null : (
           <div className="space-y-6">
             <SheetHeader className="text-left">
-              <SheetTitle>Employee Profile</SheetTitle>
+              <SheetTitle>User Profile</SheetTitle>
               <SheetDescription>
                 Workforce details and reporting information.
               </SheetDescription>
@@ -97,11 +100,13 @@ export default function UserProfileSheet({ user, open, onOpenChange }: Props) {
                   </div>
 
                   <div className="mt-4">
-                    <Button asChild className="rounded-xl">
-                      <Link href={`/admin/users/${user.id}/edit`}>
-                        View full profile
-                      </Link>
-                    </Button>
+                    {!showAdminProfileLink ? null : (
+                      <Button asChild className="rounded-xl">
+                        <Link href={`/admin/users/${user.id}/edit`}>
+                          View full profile
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
