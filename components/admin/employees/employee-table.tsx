@@ -34,6 +34,7 @@ type EmployeeRow = {
 
 type Props = {
   employees: EmployeeRow[];
+  title?: string;
 };
 
 function labelEnum(value?: string) {
@@ -50,11 +51,11 @@ function formatDate(d?: Date | null) {
   }).format(new Date(d));
 }
 
-export default function EmployeeTable({ employees }: Props) {
+export default function EmployeeTable({ employees, title = "Employees" }: Props) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Employees</CardTitle>
+        <CardTitle>{title}</CardTitle>
 
         {/* <Button asChild>
           <Link href="/admin/employees/new">Add Employee</Link>
@@ -136,7 +137,7 @@ export default function EmployeeTable({ employees }: Props) {
                   colSpan={8}
                   className="text-center text-muted-foreground"
                 >
-                  No employees found.
+                  No records found.
                 </TableCell>
               </TableRow>
             )}

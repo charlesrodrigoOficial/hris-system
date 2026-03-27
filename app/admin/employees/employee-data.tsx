@@ -22,6 +22,25 @@ export default async function EmployeeData() {
     },
   });
 
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      fullName: true,
+      email: true,
+      role: true,
+      phoneNo: true,
+      employmentType: true,
+      isActive: true,
+      contractEndDate: true,
+      department: { select: { departmentName: true } },
+      branch: { select: { branchName: true } },
+      position: true,
+      shift: { select: { name: true } },
+    },
+  });
+
   const usersByRole = await prisma.user.groupBy({
     by: ["role"],
     _count: { _all: true },
@@ -65,12 +84,21 @@ export default async function EmployeeData() {
       user: { role: employee.role },
     }));
 
-  const employeeRows = employees.map((employee) => ({
-    ...employee,
-    userId: employee.id,
-    fullName: employee.fullName ?? employee.name ?? "Unnamed",
-    employmentType: employee.employmentType ?? "FULL_TIME",
-    user: { name: employee.name, email: employee.email, role: employee.role },
+  const employeeRows = users.map((user) => ({
+    id: user.id,
+    userId: user.id,
+    fullName: user.fullName ?? user.name ?? "Unnamed",
+    email: user.email,
+    phoneNo: user.phoneNo,
+    employmentType:
+      user.employmentType ?? (user.role === "EMPLOYEE" ? "FULL_TIME" : undefined),
+    isActive: user.isActive ?? true,
+    contractEndDate: user.contractEndDate,
+    user: { name: user.name, email: user.email, role: user.role },
+    department: user.department,
+    branch: user.branch,
+    position: user.position,
+    shift: user.shift,
   }));
 
   const reviewRows = employees.map((employee) => {
@@ -93,7 +121,7 @@ export default async function EmployeeData() {
       <HeadcountChart data={headcountData} />
       <ReviewStatusList month={month} reviews={reviewRows} />
       <LastDayList items={lastDayRows} />
-      <EmployeeTable employees={employeeRows} />
+      <EmployeeTable title="Active / Inactive Users" employees={employeeRows} />
     </div>
   );
 }

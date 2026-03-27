@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, type LucideIcon } from "lucide-react";
+import { Building2, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
 import AdminQuickActions from "@/components/admin/ui/admin-quick-actions";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ type SidebarItem = {
 const links: SidebarItem[] = [
   { title: "Overview", href: "/admin/overview", icon: LayoutDashboard },
   { title: "Users", href: "/admin/users", icon: Users },
+  { title: "Organization", href: "/admin/organization", icon: Building2 },
 ];
 
 const sidebarButtonClassName =

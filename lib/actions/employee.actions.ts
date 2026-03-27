@@ -46,7 +46,7 @@ export async function ensureEmployeeAndRedirect(formData: FormData) {
   });
 
   if (!user) throw new Error("User not found");
-  if (user.role !== "EMPLOYEE") throw new Error("This user is not an EMPLOYEE");
+  if (user.role !== "EMPLOYEE") redirect(`/admin/users/${user.id}`);
 
   const defaultDept = await prisma.department.upsert({
     where: { departmentName: DEFAULT_DEPARTMENT_NAME },
@@ -69,20 +69,23 @@ export async function ensureEmployeeAndRedirect(formData: FormData) {
 }
 
 export async function toggleEmployeeStatus(formData: FormData) {
-  const userId = String(formData.get("userId"));
+  const userId = String(formData.get("userId") ?? "");
+  if (!userId) return;
 
   const employee = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, isActive: true, role: true },
+    select: { id: true, isActive: true },
   });
 
   if (!employee) return;
-  if (employee.role !== "EMPLOYEE") return;
 
   await prisma.user.update({
     where: { id: employee.id },
     data: { isActive: !employee.isActive },
   });
 
+  revalidatePath("/admin/employees");
   revalidatePath("/admin/employees/employees-with-role");
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/organization");
 }
