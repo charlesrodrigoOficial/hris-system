@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ function timeAgo(iso: string) {
 }
 
 export default function NotificationBell() {
+  const router = useRouter();
   const [items, setItems] = React.useState<Notif[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
 
@@ -79,7 +80,18 @@ export default function NotificationBell() {
           <div className="p-3 text-sm text-muted-foreground">No notifications yet.</div>
         ) : (
           items.map((n) => (
-            <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1">
+            <DropdownMenuItem
+              key={n.id}
+              className="flex cursor-pointer flex-col items-start gap-1"
+              onSelect={() => {
+                const href =
+                  n.href ??
+                  (n.title === "Request Status Updated" ? "/user/requests" : null);
+
+                void markRead(n.id);
+                if (href) router.push(href);
+              }}
+            >
               <div className="flex w-full items-center justify-between">
                 <span className={`text-sm font-medium ${n.isRead ? "opacity-70" : ""}`}>
                   {n.title}
@@ -90,25 +102,6 @@ export default function NotificationBell() {
               <span className={`text-xs ${n.isRead ? "text-muted-foreground" : ""}`}>
                 {n.message}
               </span>
-
-              <div className="flex gap-2 pt-1">
-                {n.href ? (
-                  <Link
-                    href={n.href}
-                    onClick={() => markRead(n.id)}
-                    className="text-xs font-medium text-blue-600 hover:underline"
-                  >
-                    View
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() => markRead(n.id)}
-                    className="text-xs font-medium text-blue-600 hover:underline"
-                  >
-                    Mark read
-                  </button>
-                )}
-              </div>
             </DropdownMenuItem>
           ))
         )}

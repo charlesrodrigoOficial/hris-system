@@ -1,9 +1,7 @@
 import { prisma } from "@/db/prisma";
 import { notFound } from "next/navigation";
-import { updateDepartment } from "@/lib/actions/department.actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import EditDepartmentForm from "./edit-department-form";
 
 export default async function EditDepartmentPage({
   params,
@@ -45,37 +43,7 @@ export default async function EditDepartmentPage({
         <CardTitle>Edit Department</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={updateDepartment} className="space-y-4">
-          <input type="hidden" name="id" value={department.id} />
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Department Name</label>
-            <Input
-              name="departmentName"
-              defaultValue={department.departmentName}
-              placeholder="Enter department name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Department Manager</label>
-            <select
-              name="depManagerId"
-              defaultValue={department.depManagerId ?? ""}
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            >
-              <option value="">No manager assigned</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.fullName ?? employee.name ?? employee.email}{" "}
-                  {employee.email ? `- ${employee.email}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <Button type="submit">Save changes</Button>
-        </form>
+        <EditDepartmentForm department={department} employees={employees} />
       </CardContent>
     </Card>
   );

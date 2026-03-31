@@ -39,6 +39,7 @@ export default async function OverviewPage() {
     alertCount,
     onlineCount,
     notActiveCount,
+    pendingRequestCount,
   } = await getOverviewPageData();
 
   return (
@@ -58,7 +59,14 @@ export default async function OverviewPage() {
             <Link href="/admin/attendance">Attendance</Link>
           </Button>
           <Button asChild>
-            <Link href="/admin/requests">HR Requests</Link>
+            <Link href="/admin/requests" className="flex items-center gap-2">
+              HR Requests
+              {pendingRequestCount > 0 ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold leading-none text-white">
+                  {pendingRequestCount}
+                </span>
+              ) : null}
+            </Link>
           </Button>
         </div>
       </div>

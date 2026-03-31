@@ -6,9 +6,10 @@ import RequestListItem from "./request-list-item";
 type Props = {
   rows: RequestRow[];
   loading: boolean;
+  focusRequestId?: string | null;
 };
 
-export default function RequestList({ rows, loading }: Props) {
+export default function RequestList({ rows, loading, focusRequestId }: Props) {
   if (loading) {
     return (
       <div className="text-sm text-muted-foreground">Loading requests...</div>
@@ -26,7 +27,11 @@ export default function RequestList({ rows, loading }: Props) {
   return (
     <>
       {rows.map((r) => (
-        <RequestListItem key={r.id} request={r} />
+        <RequestListItem
+          key={r.id}
+          request={r}
+          isFocused={Boolean(focusRequestId && r.id === focusRequestId)}
+        />
       ))}
     </>
   );

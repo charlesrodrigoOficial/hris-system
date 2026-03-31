@@ -15,6 +15,24 @@ import type {
 
 export const runtime = "nodejs";
 
+function getUploadErrorMessage(error: unknown) {
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as any).code)
+      : null;
+
+  switch (code) {
+    case "EROFS":
+      return "File upload failed because this server is running on a read-only filesystem. Please contact HR/IT to configure persistent file storage, then try again.";
+    case "EACCES":
+      return "File upload failed due to missing server permissions. Please contact HR/IT.";
+    case "ENOSPC":
+      return "File upload failed because the server is out of disk space. Please contact HR/IT.";
+    default:
+      return "Failed to save the uploaded file. Please try again.";
+  }
+}
+
 async function saveAttachment(params: {
   requestId: string;
   file: File;
@@ -246,27 +264,65 @@ export async function POST(req: Request) {
       },
     });
 
-    if (receiptDocument) {
-      await saveAttachment({
-        requestId: created.id,
-        file: receiptDocument,
-        attachmentType: "CLAIM_RECEIPT",
-      });
+    try {
+      if (receiptDocument) {
+        await saveAttachment({
+          requestId: created.id,
+          file: receiptDocument,
+          attachmentType: "CLAIM_RECEIPT",
+        });
+      }
+
+      if (supportingDocument) {
+        await saveAttachment({
+          requestId: created.id,
+          file: supportingDocument,
+          attachmentType: "MANAGER_APPROVAL",
+        });
+      }
+    } catch (uploadError) {
+      console.error("Request attachment upload failed", uploadError);
+
+      await prisma.request
+        .delete({ where: { id: created.id } })
+        .catch(() => null);
+
+      return NextResponse.json(
+        { error: getUploadErrorMessage(uploadError) },
+        { status: 500 },
+      );
     }
 
-    if (supportingDocument) {
-      await saveAttachment({
-        requestId: created.id,
-        file: supportingDocument,
-        attachmentType: "MANAGER_APPROVAL",
+    const hrUsers = await prisma.user.findMany({
+      where: { role: { in: ["HR", "ADMIN"] } },
+      select: { id: true },
+    });
+
+    const recipients = hrUsers
+      .map((u) => u.id)
+      .filter((id) => id && id !== session.user.id);
+
+    if (recipients.length > 0) {
+      const who = session.user.name?.trim() || "An employee";
+      const what = created.title?.trim() || created.type;
+
+      await prisma.notification.createMany({
+        data: recipients.map((userId) => ({
+          userId,
+          title: "New Request Submitted",
+          message: `${who} submitted a request: ${what}`,
+          href: `/admin/requests?focus=${created.id}`,
+        })),
       });
     }
 
     return NextResponse.json(created);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to create request";
+    console.error("Failed to create request", error);
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create request. Please try again." },
+      { status: 500 },
+    );
   }
 }

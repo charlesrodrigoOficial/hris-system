@@ -10,9 +10,6 @@ export default async function UserOrganizationPage() {
   }
 
   const users = await prisma.user.findMany({
-    where: {
-      isActive: true,
-    },
     select: {
       id: true,
       name: true,
@@ -77,7 +74,7 @@ export default async function UserOrganizationPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Organization</h1>
         <p className="text-sm text-muted-foreground">
@@ -89,4 +86,3 @@ export default async function UserOrganizationPage() {
     </div>
   );
 }
-

@@ -3,9 +3,6 @@ import { prisma } from "@/db/prisma";
 
 export default async function OrganizationPage() {
   const users = await prisma.user.findMany({
-    where: {
-      isActive: true,
-    },
     select: {
       id: true,
       name: true,

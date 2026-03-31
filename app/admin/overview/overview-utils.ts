@@ -1,5 +1,6 @@
 import { getAttendanceAlerts } from "@/lib/attendance/getAttendanceAlert";
 import { getTodayWorkforce } from "@/lib/attendance/getTodayWorkForce";
+import { prisma } from "@/db/prisma";
 
 export type Role = "ADMIN" | "HR" | "MANAGER" | "FINANCE" | "EMPLOYEE";
 
@@ -124,6 +125,10 @@ export async function getOverviewPageData() {
     minMissingDays: 2,
   });
 
+  const pendingRequestCount = await prisma.request.count({
+    where: { status: { in: ["PENDING", "PROCESSING"] } },
+  });
+
   return {
     onlineToday,
     notActiveToday,
@@ -131,5 +136,6 @@ export async function getOverviewPageData() {
     onlineCount: data.onlineCount,
     notActiveCount: data.notActiveCount,
     alertCount: alerts.length,
+    pendingRequestCount,
   };
 }

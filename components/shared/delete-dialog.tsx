@@ -1,5 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
 
@@ -24,6 +25,7 @@ const DeleteDialog = ({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleDeleteClick = () => {
     startTransition(async () => {
@@ -36,6 +38,7 @@ const DeleteDialog = ({
         });
       } else {
         setOpen(false);
+        router.refresh();
         toast({
           description: res.message,
         });

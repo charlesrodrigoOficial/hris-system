@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   node: OrgNode;
   onSelect: (user: OrgNode) => void;
+  depth?: number;
 };
 
 function getInitials(value: string) {
@@ -55,7 +56,7 @@ function roleBadgeClass(role?: string | null) {
   }
 }
 
-export default function OrgNodeCard({ node, onSelect }: Props) {
+export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
   const [expanded, setExpanded] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -63,14 +64,23 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
   const reportsCount = node._count?.directReports ?? node.children.length;
   const initials = useMemo(() => getInitials(displayName), [displayName]);
   const hasChildren = node.children.length > 0;
+  const isChild = depth > 0;
 
   return (
     <div className="flex flex-col items-center">
       <Card
         onClick={() => onSelect(node)}
-        className="relative w-[340px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+        className={cn(
+          "relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md",
+          isChild ? "w-[300px]" : "w-[340px]",
+        )}
       >
-        <div className={cn("absolute left-0 top-0 h-1.5 w-full", roleAccentClass(node.role))} />
+        <div
+          className={cn(
+            "absolute left-0 top-0 h-1.5 w-full",
+            roleAccentClass(node.role),
+          )}
+        />
 
         <button
           type="button"
@@ -78,15 +88,23 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
             event.stopPropagation();
             onSelect(node);
           }}
-          className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
+          className={cn(
+            "absolute right-4 top-4 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50",
+            isChild ? "h-9 w-9" : "h-10 w-10",
+          )}
           aria-label="Open profile"
         >
           <MoreHorizontal className="h-5 w-5 text-slate-600" />
         </button>
 
-        <CardContent className="p-6">
+        <CardContent className={cn(isChild ? "p-5" : "p-6")}>
           <div className="flex items-start gap-4">
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+            <div
+              className={cn(
+                "relative shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100",
+                isChild ? "h-14 w-14" : "h-16 w-16",
+              )}
+            >
               {node.image && !imageFailed ? (
                 <img
                   src={node.image}
@@ -102,15 +120,30 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
             </div>
 
             <div className="min-w-0 flex-1 text-left">
-              <h3 className="truncate text-lg font-semibold text-slate-900">
+              <h3
+                className={cn(
+                  "truncate font-semibold text-slate-900",
+                  isChild ? "text-base" : "text-lg",
+                )}
+              >
                 {displayName}
               </h3>
 
-              <p className="mt-1 truncate text-sm font-medium text-slate-600">
+              <p
+                className={cn(
+                  "mt-1 truncate font-medium text-slate-600",
+                  isChild ? "text-[13px]" : "text-sm",
+                )}
+              >
                 {node.position || "No position"}
               </p>
 
-              <p className="mt-2 truncate text-xs font-semibold tracking-[0.2em] text-slate-400">
+              <p
+                className={cn(
+                  "mt-2 truncate font-semibold tracking-[0.2em] text-slate-400",
+                  isChild ? "text-[11px]" : "text-xs",
+                )}
+              >
                 {(node.department?.departmentName || "No department").toUpperCase()}
                 {node.branch?.branchName
                   ? ` • ${node.branch.branchName.toUpperCase()}`
@@ -133,6 +166,15 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
             <Badge variant="outline" className="rounded-full">
               {reportsCount} reports
             </Badge>
+
+            {node.isActive === false ? (
+              <Badge
+                variant="outline"
+                className="rounded-full border-red-200 bg-red-50 text-red-700"
+              >
+                Inactive
+              </Badge>
+            ) : null}
           </div>
 
           <button
@@ -145,7 +187,10 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
               }
               setExpanded((prev) => !prev);
             }}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className={cn(
+              "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 font-medium text-slate-700 transition-colors hover:bg-slate-100",
+              isChild ? "px-4 py-2.5 text-[13px]" : "px-4 py-3 text-sm",
+            )}
           >
             {!hasChildren ? (
               "View profile"
@@ -179,7 +224,7 @@ export default function OrgNodeCard({ node, onSelect }: Props) {
                 className="relative flex flex-col items-center pt-6"
               >
                 <div className="absolute left-1/2 top-0 h-6 w-px -translate-x-1/2 bg-slate-300" />
-                <OrgNodeCard node={child} onSelect={onSelect} />
+                <OrgNodeCard node={child} onSelect={onSelect} depth={depth + 1} />
               </div>
             ))}
           </div>

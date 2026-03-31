@@ -6,13 +6,17 @@ import type { RequestRow } from "@/lib/requests/types";
 
 type Props = {
   request: RequestRow;
+  isFocused?: boolean;
 };
 
-export default function RequestListItem({ request }: Props) {
+export default function RequestListItem({ request, isFocused = false }: Props) {
   const meta = STATUS_META[request.status] ?? STATUS_META.PENDING;
 
   return (
-    <div className="flex items-start justify-between gap-4 border-b pb-3">
+    <div
+      id={`request-row-${request.id}`}
+      className={`flex items-start justify-between gap-4 border-b pb-3 ${isFocused ? "rounded-md bg-blue-50/60 p-3 ring-1 ring-blue-200" : ""}`}
+    >
       <div className="space-y-1">
         <p className="font-medium">{request.title || typeLabel(request.type)}</p>
         <p className="text-sm text-muted-foreground">

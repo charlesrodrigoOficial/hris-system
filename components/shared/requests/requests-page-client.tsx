@@ -26,6 +26,7 @@ type Props = {
   requester: RequestFormContext;
   initialType?: RequestType;
   allowedTypes?: RequestType[];
+  focusRequestId?: string | null;
   timeOffSummary?: {
     annualAllowanceDays: number;
     approvedDays: number;
@@ -39,6 +40,7 @@ export default function RequestsPageClient({
   requester,
   initialType = "SUPPORT",
   allowedTypes = ["SUPPORT", "LEAVE", "CLAIM"],
+  focusRequestId = null,
   timeOffSummary = null,
 }: Props) {
   const leaveOnly = allowedTypes.length === 1 && allowedTypes[0] === "LEAVE";
@@ -47,6 +49,7 @@ export default function RequestsPageClient({
   const [rows, setRows] = React.useState<RequestRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
+  const [hasFocused, setHasFocused] = React.useState(false);
 
   const [type, setType] = React.useState<RequestType>(defaultType);
   const [supportRequestType, setSupportRequestType] = React.useState<
@@ -98,6 +101,16 @@ export default function RequestsPageClient({
   React.useEffect(() => {
     load();
   }, []);
+
+  React.useEffect(() => {
+    if (!focusRequestId || hasFocused || loading) return;
+
+    const el = document.getElementById(`request-row-${focusRequestId}`);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHasFocused(true);
+  }, [focusRequestId, hasFocused, loading, rows]);
 
   React.useEffect(() => {
     if (!allowedTypes.includes(type)) {
@@ -331,7 +344,11 @@ export default function RequestsPageClient({
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <RequestList rows={rows} loading={loading} />
+          <RequestList
+            rows={rows}
+            loading={loading}
+            focusRequestId={focusRequestId}
+          />
         </CardContent>
       </Card>
     </div>

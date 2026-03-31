@@ -4,7 +4,7 @@ import { prisma } from "@/db/prisma";
 import RequestsPageClient from "@/components/shared/requests/requests-page-client";
 
 export default async function RequestsPage(props: {
-  searchParams: Promise<{ mode?: string }>;
+  searchParams: Promise<{ mode?: string; focus?: string }>;
 }) {
   const session = await auth();
   const searchParams = await props.searchParams;
@@ -14,6 +14,7 @@ export default async function RequestsPage(props: {
   }
 
   const mode = searchParams.mode;
+  const focusRequestId = searchParams.focus;
   const leaveOnly = mode === "leave";
   const supportOnly = mode === "support";
 
@@ -113,6 +114,7 @@ export default async function RequestsPage(props: {
       requester={requester}
       initialType={leaveOnly ? "LEAVE" : "SUPPORT"}
       timeOffSummary={timeOffSummary}
+      focusRequestId={focusRequestId}
       allowedTypes={
         leaveOnly
           ? ["LEAVE"]

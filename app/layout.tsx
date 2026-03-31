@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import ProfileForm from "./(root)/user/profile/profile-form";
 import { APP_DESCRIPTION, APP_NAME, SERVER_URL } from "@/lib/constants";
-// import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,7 +34,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          {/* <Toaster /> */}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

@@ -11,6 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { deleteDepartment } from "@/lib/actions/department.actions";
+import DeleteDialog from "@/components/shared/delete-dialog";
+import DepartmentUsersDropdown from "./department-users-dropdown";
 
 export default async function DepartmentsPage() {
   const departments = await prisma.department.findMany({
@@ -21,6 +23,18 @@ export default async function DepartmentsPage() {
           name: true,
           email: true,
         },
+      },
+      employees: {
+        select: {
+          id: true,
+          image: true,
+          firstName: true,
+          fullName: true,
+          name: true,
+          email: true,
+          country: true,
+        },
+        orderBy: [{ fullName: "asc" }, { name: "asc" }],
       },
     },
     orderBy: { createdAt: "desc" },
@@ -49,7 +63,21 @@ export default async function DepartmentsPage() {
           <TableBody>
             {departments.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.departmentName}</TableCell>
+                <TableCell>
+                  <DepartmentUsersDropdown
+                    departmentId={item.id}
+                    departmentName={item.departmentName}
+                    users={item.employees.map((u) => ({
+                      id: u.id,
+                      image: u.image ?? null,
+                      firstName: u.firstName ?? null,
+                      fullName: u.fullName ?? null,
+                      name: u.name ?? null,
+                      email: u.email,
+                      country: u.country ? String(u.country) : null,
+                    }))}
+                  />
+                </TableCell>
                 <TableCell>
                   {new Date(item.createdAt).toLocaleDateString()}
                 </TableCell>
@@ -66,18 +94,7 @@ export default async function DepartmentsPage() {
                       Edit
                     </Button>
                   </Link>
-
-                  <form
-                    action={async () => {
-                      "use server";
-                      await deleteDepartment(item.id);
-                    }}
-                    className="inline-block"
-                  >
-                    <Button variant="destructive" size="sm">
-                      Delete
-                    </Button>
-                  </form>
+                  <DeleteDialog id={item.id} action={deleteDepartment} />
                 </TableCell>
               </TableRow>
             ))}
