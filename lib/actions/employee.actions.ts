@@ -49,6 +49,7 @@ export async function ensureEmployeeAndRedirect(formData: FormData) {
   if (user.role !== "EMPLOYEE") redirect(`/admin/users/${user.id}`);
 
   const defaultDept = await prisma.department.upsert({
+    
     where: { departmentName: DEFAULT_DEPARTMENT_NAME },
     update: {},
     create: { departmentName: DEFAULT_DEPARTMENT_NAME },

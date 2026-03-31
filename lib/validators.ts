@@ -50,6 +50,10 @@ const optionalUuid = z
   .or(z.literal(""))
   .optional();
 
+const countryOfResidenceSchema = z
+  .union([z.nativeEnum(Country), z.literal("INDONESIA"), z.literal("THAILAND")])
+  .transform((value) => value as unknown as Country);
+
 const updateBasicUserSchema = z.object({
   name: z.string().trim().min(3, "Name must be at least 3 characters"),
   email: z.string().trim().email("Enter a valid email"),
@@ -81,7 +85,7 @@ export const updateUserSchema = z
   mostFascinatingTrip: optionalAdminLongText,
   dreamTravelDestination: optionalAdminText,
   postCode: optionalAdminText,
-  country: z.nativeEnum(Country).nullable().optional(),
+  country: countryOfResidenceSchema.nullable().optional(),
   address: optionalAdminLongText,
   accountName: optionalAdminText,
   accountNumber: optionalAdminText,
@@ -119,7 +123,7 @@ export const updateUserSchema = z
 export const createUserSchema = signUpFormSchema.and(
   z.object({
     role: z.nativeEnum(UserRole).optional(), // default in action
-    country: z.nativeEnum(Country).nullable().optional(),
+    country: countryOfResidenceSchema.nullable().optional(),
   })
 );
 

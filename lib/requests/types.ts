@@ -105,36 +105,57 @@ export type RequestFormContext = {
 };
 
 export type AdminRequestRow = {
-  id: string
-  title: string
-  description: string | null
-  type: RequestType
-  status: RequestStatus
-  createdAt: string
-  supportRequestType?: SupportRequestType | null
-  supportRequestTypeOther?: string | null
-  expectedCompletionDate?: string | null
-  supportAdditionalNotes?: string | null
-  leaveType?: LeaveRequestType | null
-  claimPurpose?: ClaimPurpose | null
-  claimPurposeOther?: string | null
-  expenseDate?: string | null
+  id: string;
+  title: string;
+  description: string | null;
+  type: RequestType;
+  status: RequestStatus;
+  createdAt: string;
+
+  supportRequestType?: SupportRequestType | null;
+  supportRequestTypeOther?: string | null;
+  expectedCompletionDate?: string | null;
+  supportAdditionalNotes?: string | null;
+  leaveType?: LeaveRequestType | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  claimPurpose?: ClaimPurpose | null;
+  claimPurposeOther?: string | null;
+  expenseDate?: string | null;
+  amount?: string | number | null;
+  currency?: string | null;
   managerEmployee?: {
-    id: string
-    fullName: string
-  } | null
-  bankName?: string | null
-  accountNumber?: string | null
-  ibanSwift?: string | null
+    id: string;
+    fullName: string;
+  } | null;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  ibanSwift?: string | null;
   attachments?: Array<{
-    id: string
-    fileName: string
-    fileUrl: string
-    attachmentType: RequestAttachmentType
-  }>
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    attachmentType: RequestAttachmentType;
+  }>;
+  activities?: Array<{
+    id: string;
+    fromStatus: RequestStatus | null;
+    toStatus: RequestStatus | null;
+    note: string | null;
+    createdAt: string;
+    actor: {
+      id: string;
+      name: string | null;
+      fullName: string | null;
+      email: string | null;
+    };
+  }>;
 
   user: {
-    name: string | null
-    email: string | null
-  }
-}
+    name: string | null;
+    fullName: string | null;
+    email: string | null;
+    position: string | null;
+    department: { departmentName: string } | null;
+  };
+};

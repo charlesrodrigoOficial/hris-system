@@ -30,6 +30,10 @@ export function PersonalDetailsCard({
 }: {
   form: UseFormReturn<UpdateUserFormValues>;
 }) {
+  const countryOptions = Array.from(
+    new Set([...Object.values(Country), "INDONESIA", "THAILAND"]),
+  );
+
   return (
     <Section
       title="Personal Details"
@@ -106,7 +110,7 @@ export function PersonalDetailsCard({
               </FormControl>
               <SelectContent>
                 <SelectItem value="NONE">None</SelectItem>
-                {Object.values(Country).map((country) => (
+                {countryOptions.map((country) => (
                   <SelectItem key={country} value={country}>
                     {country.replaceAll("_", " ")}
                   </SelectItem>

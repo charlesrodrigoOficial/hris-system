@@ -47,6 +47,8 @@ enum Country {
   USA
   CANADA
   AUSTRALIA
+  INDONESIA
+  THAILAND
 }
 
 enum FeedPostType {

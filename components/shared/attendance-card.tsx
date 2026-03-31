@@ -27,6 +27,26 @@ type Attendance = {
   workingHours: string | number | null;
   workMode?: WorkMode | null;
 };
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+async function readJsonSafe(res: Response) {
+  const contentType = res.headers.get("content-type") ?? "";
+  const text = await res.text();
+
+  if (!contentType.includes("application/json")) {
+    return { data: null as any, text, isJson: false };
+  }
+
+  if (!text.trim()) {
+    return { data: null as any, text: "", isJson: false };
+  }
+
+  try {
+    return { data: JSON.parse(text) as any, text, isJson: true };
+  } catch {
+    return { data: null as any, text, isJson: false };
+  }
+}
 
 function formatTime(value: string | null) {
   if (!value) return "—";
@@ -76,16 +96,40 @@ export function AttendanceCard() {
   async function loadToday() {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/attendance/today", { cache: "no-store" });
-    const data = await res.json();
+    const res = await fetch(
+      `/api/attendance/today?tz=${encodeURIComponent(timeZone)}`,
+      { cache: "no-store" },
+    );
+    const { data, text, isJson } = await readJsonSafe(res);
     if (!res.ok) {
-      setError(data?.error ?? "Failed to load attendance");
+      setError(
+        data?.error ??
+          (!isJson && text
+            ? "Failed to load attendance (unexpected response). Please sign in again."
+            : "Failed to load attendance"),
+      );
       setAttendance(null);
       setLoading(false);
       return;
     }
-    setAttendance(data.attendance ?? null);
-    if (data.attendance?.workMode) setWorkMode(data.attendance.workMode);
+
+    if (!data || typeof data !== "object" || !("attendance" in data)) {
+      setError(
+        !isJson && text
+          ? "Failed to load attendance (unexpected response). Please sign in again."
+          : "Failed to load attendance",
+      );
+      setAttendance(null);
+      setLoading(false);
+      return;
+    }
+
+    const attendanceData = (data as any).attendance as
+      | Attendance
+      | null
+      | undefined;
+    setAttendance(attendanceData ?? null);
+    if (attendanceData?.workMode) setWorkMode(attendanceData.workMode);
     setLoading(false);
   }
 
@@ -99,14 +143,29 @@ export function AttendanceCard() {
     const res = await fetch("/api/attendance/check-in", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workMode }),
+      body: JSON.stringify({ workMode, timeZone }),
     });
-    const data = await res.json();
+    const { data, text, isJson } = await readJsonSafe(res);
     if (!res.ok) {
-      setError(data?.error ?? "Check-in failed");
+      setError(
+        data?.error ??
+          (!isJson && text
+            ? "Check-in failed (unexpected response). Please sign in again."
+            : "Check-in failed"),
+      );
       setActionLoading(null);
       return;
     }
+    if (!data?.attendance) {
+      setError(
+        !isJson && text
+          ? "Check-in failed (unexpected response). Please sign in again."
+          : "Check-in failed",
+      );
+      setActionLoading(null);
+      return;
+    }
+
     setAttendance(data.attendance);
     setActionLoading(null);
   }
@@ -114,13 +173,32 @@ export function AttendanceCard() {
   async function checkOut() {
     setActionLoading("out");
     setError(null);
-    const res = await fetch("/api/attendance/check-out", { method: "POST" });
-    const data = await res.json();
+    const res = await fetch("/api/attendance/check-out", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timeZone }),
+    });
+    const { data, text, isJson } = await readJsonSafe(res);
     if (!res.ok) {
-      setError(data?.error ?? "Check-out failed");
+      setError(
+        data?.error ??
+          (!isJson && text
+            ? "Check-out failed (unexpected response). Please sign in again."
+            : "Check-out failed"),
+      );
       setActionLoading(null);
       return;
     }
+    if (!data?.attendance) {
+      setError(
+        !isJson && text
+          ? "Check-out failed (unexpected response). Please sign in again."
+          : "Check-out failed",
+      );
+      setActionLoading(null);
+      return;
+    }
+
     setAttendance(data.attendance);
     setActionLoading(null);
   }
@@ -183,11 +261,15 @@ export function AttendanceCard() {
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="OFFICE" id="office" />
-                <Label htmlFor="office" className="text-xs">Office</Label>
+                <Label htmlFor="office" className="text-xs">
+                  Office
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="REMOTE" id="remote" />
-                <Label htmlFor="remote" className="text-xs">Remote</Label>
+                <Label htmlFor="remote" className="text-xs">
+                  Remote
+                </Label>
               </div>
             </RadioGroup>
           </div>
