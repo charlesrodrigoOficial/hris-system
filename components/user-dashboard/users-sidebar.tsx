@@ -62,7 +62,7 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
     },
     {
       title: "Help",
-      href: "/user/requests",
+      href: "/user/help",
       icon: CircleHelp,
     },
     {

@@ -43,7 +43,11 @@ export function EssentialsCard({ className }: EssentialsCardProps) {
             hover:bg-white hover:shadow
           "
         >
-          <Link href="/user/essentials">
+          <Link
+            href="https://sites.google.com/intelura.com/intelurapedia/home?pli=1&authuser=2"
+            target="_blank"
+            rel="noreferrer"
+          >
             <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
             Inteluropedia
           </Link>

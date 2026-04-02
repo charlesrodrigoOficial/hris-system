@@ -6,18 +6,18 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { canManageAttendance } from "@/lib/auth/roles";
 import {
-  CalendarDays,
   ClipboardList,
   MessageSquareText,
   Table2,
   Wallet,
   Sparkles,
+  Clock3,
 } from "lucide-react";
 
 const baseActions = [
   { title: "Payrolls", href: "/admin/payrolls", Icon: Wallet },
-  { title: "Calendar", href: "/admin/calender", Icon: CalendarDays },
-  { title: "Support", href: "/user/requests", Icon: MessageSquareText },
+  { title: "Time", href: "/user/requests?mode=leave", Icon: Clock3 },
+  { title: "Support", href: "/user/requests?mode=support", Icon: MessageSquareText },
 ];
 
 type QuickActionsProps = {
