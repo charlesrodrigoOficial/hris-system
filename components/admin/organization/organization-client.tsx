@@ -11,6 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import OrgNodeCard from "@/components/admin/organization/org-node";
 import { buildOrgTree, type OrgUser } from "@/lib/build-org-tree";
 import UserProfileSheet from "./user-profile-sheet";
@@ -66,6 +67,7 @@ function RootDropZone({ enabled }: { enabled: boolean }) {
 }
 
 export default function OrganizationClient({ users, canEdit = false }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("all");
   const [branch, setBranch] = useState("all");
@@ -81,11 +83,12 @@ export default function OrganizationClient({ users, canEdit = false }: Props) {
   );
 
   useEffect(() => {
-    // Refresh local state from server when not editing.
-    if (!editMode && !savingMove) {
+    // Keep local state in sync with server data when it changes.
+    // Do not reset based on editMode; that would undo optimistic moves.
+    if (!savingMove) {
       setLocalUsers(users);
     }
-  }, [users, editMode, savingMove]);
+  }, [users, savingMove]);
 
   const departments = useMemo(() => {
     return Array.from(
@@ -254,6 +257,7 @@ export default function OrganizationClient({ users, canEdit = false }: Props) {
       }
 
       toast({ description: "Hierarchy updated." });
+      router.refresh();
     } catch (error) {
       setLocalUsers(previousUsers);
       toast({

@@ -27,12 +27,13 @@ const UserButton = async () => {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { name: true, email: true, role: true },
+    select: { name: true, email: true, role: true, image: true },
   });
 
   const displayName = currentUser?.name ?? session.user?.name ?? "User";
   const displayEmail = currentUser?.email ?? session.user?.email ?? "";
   const displayRole = currentUser?.role ?? session.user.role;
+  const displayImage = currentUser?.image ?? session.user?.image ?? null;
   const firstInitial = displayName.charAt(0).toUpperCase() || "U";
 
   return (
@@ -42,9 +43,20 @@ const UserButton = async () => {
           <div className="flex items-center">
             <Button
               variant="ghost"
-              className="relative w-8 h-8 rounded-full ml-2 flex items-center justify-center bg-gray-200"
+              className="relative ml-2 h-8 w-8 overflow-hidden rounded-full bg-gray-200 p-0"
             >
-              {firstInitial}
+              {displayImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={displayImage}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-700">
+                  {firstInitial}
+                </span>
+              )}
             </Button>
           </div>
         </DropdownMenuTrigger>
