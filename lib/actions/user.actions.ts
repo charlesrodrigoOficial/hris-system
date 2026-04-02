@@ -121,6 +121,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
     const parsed = updateProfileSchema.parse({
       name: formData.get("name") ?? "",
       email: formData.get("email"),
+      image: formData.get("image"),
       about: formData.get("about"),
       linkedIn: formData.get("linkedIn"),
       hobbies: formData.get("hobbies"),
@@ -142,6 +143,7 @@ export async function updateProfile(prevState: unknown, formData: FormData) {
         id: currentUser.id,
       },
       data: {
+        image: emptyToNull(parsed.image),
         about: emptyToNull(parsed.about),
         linkedIn: emptyToNull(parsed.linkedIn),
         hobbies: emptyToNull(parsed.hobbies),
@@ -339,6 +341,7 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
     const firstName = emptyToNull(user.firstName);
     const lastName = emptyToNull(user.lastName);
     const about = emptyToNull(user.about);
+    const image = emptyToNull(user.image);
     const linkedIn = emptyToNull(user.linkedIn);
     const hobbies = emptyToNull(user.hobbies);
     const superpowers = emptyToNull(user.superpowers);
@@ -374,6 +377,7 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
         lastName,
         email: normalizedEmail,
         role: user.role,
+        image,
         about,
         linkedIn,
         hobbies,

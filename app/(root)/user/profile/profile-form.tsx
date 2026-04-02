@@ -44,6 +44,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
     success: false,
     message: "",
   });
+  const [image, setImage] = React.useState(user.image ?? "");
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = React.useState(0);
 
@@ -74,6 +75,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         value={`${user.firstName} ${user.lastName}`.trim()}
       />
       <input type="hidden" name="email" value={user.email} />
+      <input type="hidden" name="image" value={image} />
 
       <div className="space-y-4">
         <div className="space-y-3 rounded-2xl border bg-muted/30 p-3">
@@ -127,7 +129,11 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         >
           <CarouselContent className="items-start">
             <CarouselItem>
-              <ProfileDetailsCard user={user} />
+              <ProfileDetailsCard
+                user={user}
+                image={image}
+                onImageChange={setImage}
+              />
             </CarouselItem>
             <CarouselItem>
               <PersonalDetailsCard user={user} />

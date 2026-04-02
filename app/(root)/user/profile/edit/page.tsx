@@ -69,6 +69,7 @@ export default async function EditProfilePage() {
               firstName,
               lastName,
               email: user.email,
+              image: user.image ?? null,
               country: user.country,
               postCode: user.postCode,
               address: user.address,

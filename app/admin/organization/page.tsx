@@ -1,7 +1,16 @@
 import OrganizationClient from "@/components/admin/organization/organization-client";
 import { prisma } from "@/db/prisma";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
 export default async function OrganizationPage() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
+  const canEdit = ["ADMIN", "HR"].includes(String(session.user.role));
+
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -75,7 +84,7 @@ export default async function OrganizationPage() {
         </p>
       </div>
 
-      <OrganizationClient users={normalizedUsers} />
+      <OrganizationClient users={normalizedUsers} canEdit={canEdit} />
     </div>
   );
 }

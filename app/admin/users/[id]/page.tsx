@@ -73,6 +73,7 @@ const AdminUserUpdatePage = async (props: {
 
   const formUser: UpdateUserFormValues & { employeeId?: string | null } = {
     id: user.id,
+    image: user.image ?? "",
     email: user.email,
     role: user.role,
     firstName,

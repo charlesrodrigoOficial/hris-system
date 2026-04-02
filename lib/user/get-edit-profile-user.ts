@@ -8,6 +8,7 @@ const editProfileUserSelect = Prisma.validator<Prisma.UserSelect>()({
   firstName: true,
   lastName: true,
   email: true,
+  image: true,
   country: true,
   postCode: true,
   address: true,

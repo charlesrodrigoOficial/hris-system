@@ -49,6 +49,8 @@ const optionalUuid = z
   .uuid("Select a valid option")
   .or(z.literal(""))
   .optional();
+  
+const optionalImageUrl = z.string().trim().max(2048).or(z.literal("")).optional();
 
 const countryOfResidenceSchema = z
   .union([z.nativeEnum(Country), z.literal("INDONESIA"), z.literal("THAILAND")])
@@ -60,6 +62,7 @@ const updateBasicUserSchema = z.object({
 });
 
 export const updateProfileSchema = updateBasicUserSchema.extend({
+  image: optionalImageUrl,
   about: optionalProfileText,
   linkedIn: optionalProfileLink,
   hobbies: optionalProfileText,
@@ -73,6 +76,7 @@ export const updateProfileSchema = updateBasicUserSchema.extend({
 export const updateUserSchema = z
   .object({
   id: z.string().min(1, "ID is required"),
+  image: optionalImageUrl,
   email: z.string().trim().email("Enter a valid email"),
   role: z.nativeEnum(UserRole),
   firstName: optionalAdminText,

@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { OrgNode } from "@/lib/build-org-tree";
@@ -10,6 +12,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   node: OrgNode;
   onSelect: (user: OrgNode) => void;
+  editMode?: boolean;
   depth?: number;
 };
 
@@ -56,23 +59,78 @@ function roleBadgeClass(role?: string | null) {
   }
 }
 
-export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
+function mergeRefs<T>(
+  ...refs: Array<((node: T | null) => void) | undefined>
+): (node: T | null) => void {
+  return (node) => {
+    for (const ref of refs) {
+      ref?.(node);
+    }
+  };
+}
+
+export default function OrgNodeCard({
+  node,
+  onSelect,
+  editMode = false,
+  depth = 0,
+}: Props) {
   const [expanded, setExpanded] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
 
   const displayName = node.fullName || node.name || node.email;
-  const reportsCount = node._count?.directReports ?? node.children.length;
+  const reportsCount = editMode
+    ? node.children.length
+    : (node._count?.directReports ?? node.children.length);
   const initials = useMemo(() => getInitials(displayName), [displayName]);
   const hasChildren = node.children.length > 0;
   const isChild = depth > 0;
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: node.id,
+    disabled: !editMode,
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: node.id,
+    disabled: !editMode,
+  });
+
+  const setNodeRef = useMemo(
+    () => mergeRefs<HTMLDivElement>(setDragRef as any, setDropRef as any),
+    [setDragRef, setDropRef],
+  );
+
+  const style = editMode
+    ? {
+        transform: CSS.Translate.toString(transform),
+        transition: isDragging ? undefined : "transform 200ms ease",
+      }
+    : undefined;
+
   return (
     <div className="flex flex-col items-center">
       <Card
-        onClick={() => onSelect(node)}
+        ref={setNodeRef}
+        style={style}
+        onClick={() => {
+          if (editMode) return;
+          onSelect(node);
+        }}
+        {...(editMode ? attributes : {})}
+        {...(editMode ? listeners : {})}
         className={cn(
           "relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md",
-          isChild ? "w-[300px]" : "w-[340px]",
+          isChild ? "w-[230px]" : "w-[260px]",
+          editMode && "touch-none select-none cursor-grab active:cursor-grabbing",
+          editMode && isOver && "ring-2 ring-primary ring-offset-2",
+          isDragging && "opacity-70",
         )}
       >
         <div
@@ -82,27 +140,40 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
           )}
         />
 
+        {!editMode ? null : (
+          <div
+            className={cn(
+              "pointer-events-none absolute left-4 top-4 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm",
+              isChild ? "h-8 w-8" : "h-9 w-9",
+            )}
+            aria-hidden="true"
+          >
+            <GripVertical className="h-4 w-4 text-slate-600" />
+          </div>
+        )}
+
         <button
           type="button"
           onClick={(event) => {
             event.stopPropagation();
             onSelect(node);
           }}
+          onPointerDown={(event) => event.stopPropagation()}
           className={cn(
             "absolute right-4 top-4 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50",
-            isChild ? "h-9 w-9" : "h-10 w-10",
+            isChild ? "h-8 w-8" : "h-9 w-9",
           )}
           aria-label="Open profile"
         >
-          <MoreHorizontal className="h-5 w-5 text-slate-600" />
+          <MoreHorizontal className="h-4 w-4 text-slate-600" />
         </button>
 
-        <CardContent className={cn(isChild ? "p-5" : "p-6")}>
-          <div className="flex items-start gap-4">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
             <div
               className={cn(
                 "relative shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100",
-                isChild ? "h-14 w-14" : "h-16 w-16",
+                isChild ? "h-10 w-10" : "h-12 w-12",
               )}
             >
               {node.image && !imageFailed ? (
@@ -123,7 +194,7 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
               <h3
                 className={cn(
                   "truncate font-semibold text-slate-900",
-                  isChild ? "text-base" : "text-lg",
+                  isChild ? "text-sm" : "text-base",
                 )}
               >
                 {displayName}
@@ -132,7 +203,7 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
               <p
                 className={cn(
                   "mt-1 truncate font-medium text-slate-600",
-                  isChild ? "text-[13px]" : "text-sm",
+                  "text-xs",
                 )}
               >
                 {node.position || "No position"}
@@ -152,18 +223,21 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
               className={cn(
-                "rounded-full px-3 py-1 text-xs font-medium",
+                "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
                 roleBadgeClass(node.role),
               )}
             >
               {node.role}
             </Badge>
 
-            <Badge variant="outline" className="rounded-full">
+            <Badge
+              variant="outline"
+              className="rounded-full px-2.5 py-0.5 text-[11px]"
+            >
               {reportsCount} reports
             </Badge>
 
@@ -187,21 +261,22 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
               }
               setExpanded((prev) => !prev);
             }}
+            onPointerDown={(event) => event.stopPropagation()}
             className={cn(
-              "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 font-medium text-slate-700 transition-colors hover:bg-slate-100",
-              isChild ? "px-4 py-2.5 text-[13px]" : "px-4 py-3 text-sm",
+              "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 font-medium text-slate-700 transition-colors hover:bg-slate-100",
+              isChild ? "px-3 py-2 text-xs" : "px-3 py-2.5 text-xs",
             )}
           >
             {!hasChildren ? (
               "View profile"
             ) : expanded ? (
               <>
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" />
                 Collapse team
               </>
             ) : (
               <>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5" />
                 Expand team
               </>
             )}
@@ -211,20 +286,25 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
 
       {expanded && hasChildren && (
         <div className="flex w-full flex-col items-center">
-          <div className="h-6 w-px bg-slate-300" />
+          <div className="h-5 w-px bg-slate-300" />
 
-          <div className="relative flex flex-wrap items-start justify-center gap-x-6 gap-y-8 px-3 pt-6">
+          <div className="relative flex flex-wrap items-start justify-center gap-x-4 gap-y-6 px-2 pt-5">
             {node.children.length > 1 && (
-              <div className="absolute left-10 right-10 top-0 h-px bg-slate-300" />
+              <div className="absolute left-8 right-8 top-0 h-px bg-slate-300" />
             )}
 
             {node.children.map((child) => (
               <div
                 key={child.id}
-                className="relative flex flex-col items-center pt-6"
+                className="relative flex flex-col items-center pt-5"
               >
-                <div className="absolute left-1/2 top-0 h-6 w-px -translate-x-1/2 bg-slate-300" />
-                <OrgNodeCard node={child} onSelect={onSelect} depth={depth + 1} />
+                <div className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-slate-300" />
+                <OrgNodeCard
+                  node={child}
+                  onSelect={onSelect}
+                  editMode={editMode}
+                  depth={depth + 1}
+                />
               </div>
             ))}
           </div>
@@ -233,4 +313,3 @@ export default function OrgNodeCard({ node, onSelect, depth = 0 }: Props) {
     </div>
   );
 }
-

@@ -12,6 +12,7 @@ export type ProfileUserData = {
   firstName: string;
   lastName: string;
   email: string;
+  image: string | null;
   country: Country | null;
   postCode: string | null;
   address: string | null;
