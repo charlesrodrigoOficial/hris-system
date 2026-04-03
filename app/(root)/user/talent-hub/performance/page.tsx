@@ -37,7 +37,7 @@ function statusBadgeVariant(status: string) {
   }
 }
 
-export default async function ReviewsPage() {
+export default async function TalentHubPerformancePage() {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -65,12 +65,16 @@ export default async function ReviewsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <Card className="rounded-lg border-slate-200 bg-white/80 shadow-sm">
+      <Card className="rounded-2xl border-slate-200 bg-white/80 shadow-sm">
         <CardHeader>
-          <CardTitle>Reviews</CardTitle>
+          <CardTitle>Performance</CardTitle>
           <CardDescription>
             Recent performance review history for{" "}
-            {employee?.fullName ?? employee?.name ?? session.user.name ?? "Employee"}.
+            {employee?.fullName ??
+              employee?.name ??
+              session.user.name ??
+              "Employee"}
+            .
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -82,7 +86,7 @@ export default async function ReviewsPage() {
             employee.performanceReviews.map((review) => (
               <div
                 key={review.id}
-                className="rounded-lg border border-slate-200 p-4"
+                className="rounded-xl border border-slate-200 bg-white p-4"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -98,7 +102,9 @@ export default async function ReviewsPage() {
                     </Badge>
                     <div className="text-sm font-medium">
                       Score:{" "}
-                      {review.score !== null ? Number(review.score).toFixed(2) : "-"}
+                      {review.score !== null
+                        ? Number(review.score).toFixed(2)
+                        : "-"}
                     </div>
                   </div>
                 </div>
@@ -116,3 +122,4 @@ export default async function ReviewsPage() {
     </div>
   );
 }
+

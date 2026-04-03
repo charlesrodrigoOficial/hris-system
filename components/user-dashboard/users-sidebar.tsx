@@ -41,8 +41,8 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
       icon: FileText,
     },
     {
-      title: "Reviews",
-      href: "/user/scorecard",
+      title: "Talent Hub",
+      href: "/user/talent-hub",
       icon: Star,
     },
     {

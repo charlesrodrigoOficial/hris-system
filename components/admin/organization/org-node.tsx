@@ -42,23 +42,6 @@ function roleAccentClass(role?: string | null) {
   }
 }
 
-function roleBadgeClass(role?: string | null) {
-  switch (String(role ?? "").toUpperCase()) {
-    case "ADMIN":
-      return "border-violet-200 bg-violet-50 text-violet-700";
-    case "HR":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
-    case "MANAGER":
-      return "border-amber-200 bg-amber-50 text-amber-800";
-    case "FINANCE":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700";
-    case "EMPLOYEE":
-      return "border-slate-200 bg-slate-50 text-slate-700";
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-700";
-  }
-}
-
 function mergeRefs<T>(
   ...refs: Array<((node: T | null) => void) | undefined>
 ): (node: T | null) => void {
@@ -224,16 +207,6 @@ export default function OrgNodeCard({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn(
-                "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
-                roleBadgeClass(node.role),
-              )}
-            >
-              {node.role}
-            </Badge>
-
             <Badge
               variant="outline"
               className="rounded-full px-2.5 py-0.5 text-[11px]"
