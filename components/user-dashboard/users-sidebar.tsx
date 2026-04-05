@@ -67,7 +67,7 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
     },
     {
       title: "Settings",
-      href: "/user/profile/edit",
+      href: "/user/settings",
       icon: Settings,
     },
   ];

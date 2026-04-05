@@ -48,12 +48,12 @@ export default async function EditProfilePage() {
   );
 
   const managerLabel = user.manager
-    ? user.manager.fullName ?? user.manager.name ?? user.manager.email
+    ? (user.manager.fullName ?? user.manager.name ?? user.manager.email)
     : "";
   const secondLevelManagerLabel = user.secondLevelManager
-    ? user.secondLevelManager.fullName ??
+    ? (user.secondLevelManager.fullName ??
       user.secondLevelManager.name ??
-      user.secondLevelManager.email
+      user.secondLevelManager.email)
     : "";
 
   return (
@@ -102,7 +102,10 @@ export default async function EditProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="mt-6 rounded-lg border-slate-200 bg-white/80 shadow-sm">
+      <Card
+        id="security"
+        className="mt-6 rounded-lg border-slate-200 bg-white/80 shadow-sm"
+      >
         <CardHeader>
           <CardTitle className="text-2xl">Security</CardTitle>
         </CardHeader>

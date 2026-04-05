@@ -4,6 +4,7 @@ import * as React from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   type CarouselApi,
@@ -40,6 +41,17 @@ function SubmitButton() {
 }
 
 export default function ProfileForm({ user }: ProfileFormProps) {
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get("section");
+  const initialIndex =
+    sectionParam === "personal"
+      ? 1
+      : sectionParam === "banking"
+        ? 2
+        : sectionParam === "employment"
+          ? 3
+          : 0;
+
   const [state, action] = useActionState(updateProfile, {
     success: false,
     message: "",
@@ -53,6 +65,8 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       return;
     }
 
+    carouselApi.scrollTo(initialIndex);
+
     const updateActiveIndex = () => {
       setActiveIndex(carouselApi.selectedScrollSnap());
     };
@@ -65,7 +79,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       carouselApi.off("select", updateActiveIndex);
       carouselApi.off("reInit", updateActiveIndex);
     };
-  }, [carouselApi]);
+  }, [carouselApi, initialIndex]);
 
   return (
     <form action={action} className="space-y-6">
