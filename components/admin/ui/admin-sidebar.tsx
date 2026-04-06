@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import AdminQuickActions from "@/components/admin/ui/admin-quick-actions";
 import { cn } from "@/lib/utils";
+import { SheetClose } from "@/components/ui/sheet";
 
 type SidebarItem = {
   title: string;
@@ -32,11 +33,86 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Sidebar() {
+export function AdminSidebarNav({
+  closeOnNavigate = false,
+  className,
+}: {
+  closeOnNavigate?: boolean;
+  className?: string;
+}) {
   const pathname = usePathname();
   const [overviewLink, ...remainingLinks] = links;
   const OverviewIcon = overviewLink.icon;
 
+  return (
+    <nav className={cn("flex flex-1 flex-col gap-1 overflow-y-auto", className)}>
+      {closeOnNavigate ? (
+        <SheetClose asChild>
+          <Link
+            href={overviewLink.href}
+            className={cn(
+              sidebarButtonClassName,
+              isActivePath(pathname, overviewLink.href)
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+            )}
+          >
+            <OverviewIcon className="h-4 w-4 shrink-0" />
+            <span>{overviewLink.title}</span>
+          </Link>
+        </SheetClose>
+      ) : (
+        <Link
+          href={overviewLink.href}
+          className={cn(
+            sidebarButtonClassName,
+            isActivePath(pathname, overviewLink.href)
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+          )}
+        >
+          <OverviewIcon className="h-4 w-4 shrink-0" />
+          <span>{overviewLink.title}</span>
+        </Link>
+      )}
+
+      <div className="space-y-3 pt-3">
+        {remainingLinks.map((item) => {
+          const active = isActivePath(pathname, item.href);
+          const Icon = item.icon;
+
+          const link = (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                sidebarButtonClassName,
+                active
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{item.title}</span>
+            </Link>
+          );
+
+          return closeOnNavigate ? (
+            <SheetClose asChild key={item.href}>
+              {link}
+            </SheetClose>
+          ) : (
+            link
+          );
+        })}
+
+        <AdminQuickActions closeOnNavigate={closeOnNavigate} />
+      </div>
+    </nav>
+  );
+}
+
+export default function Sidebar() {
   return (
     <div className="flex h-full flex-col px-4">
       <div className="sticky top-0 z-10 bg-background pb-3">
@@ -45,45 +121,7 @@ export default function Sidebar() {
         </p>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        <Link
-          href={overviewLink.href}
-          className={cn(
-            sidebarButtonClassName,
-            isActivePath(pathname, overviewLink.href)
-              ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow",
-          )}
-        >
-          <OverviewIcon className="h-4 w-4 shrink-0" />
-          <span>{overviewLink.title}</span>
-        </Link>
-
-        <div className="space-y-3 pt-3">
-          {remainingLinks.map((item) => {
-            const active = isActivePath(pathname, item.href);
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  sidebarButtonClassName,
-                  active
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow",
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-
-          <AdminQuickActions />
-        </div>
-      </nav>
+      <AdminSidebarNav />
     </div>
   );
 }

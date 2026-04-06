@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SheetClose } from "@/components/ui/sheet";
 
 type AdminAction = {
   title: string;
@@ -34,7 +35,11 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function AdminQuickActions() {
+export default function AdminQuickActions({
+  closeOnNavigate = false,
+}: {
+  closeOnNavigate?: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -43,7 +48,7 @@ export default function AdminQuickActions() {
         const active = isActivePath(pathname, action.href);
         const Icon = action.icon;
 
-        return (
+        const link = (
           <Link
             key={action.href}
             href={action.href}
@@ -51,12 +56,20 @@ export default function AdminQuickActions() {
               actionButtonClassName,
               active
                 ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow",
+                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span>{action.title}</span>
           </Link>
+        );
+
+        return closeOnNavigate ? (
+          <SheetClose asChild key={action.href}>
+            {link}
+          </SheetClose>
+        ) : (
+          link
         );
       })}
     </div>
