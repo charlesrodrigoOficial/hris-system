@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Logo from "./logo";
+import Logo, { InlineLogo } from "./logo";
 
 function toTitleCase(input: string) {
   const cleaned = input.trim().replace(/\s+/g, " ");
@@ -45,6 +45,8 @@ export default function NameCardClient({
             <p className="text-lg font-medium tracking-wide opacity-90">
               Hi {displayName}
             </p>
+
+            <InlineLogo className="ml-auto md:hidden" />
           </div>
 
           <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl md:text-4xl">
@@ -68,7 +70,9 @@ export default function NameCardClient({
       </div>
 
       {/* ✅ LOGO OVERLAY anchored to this wrapper */}
-      <Logo />
+      <div className="hidden md:block">
+        <Logo />
+      </div>
     </div>
   );
 }
