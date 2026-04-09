@@ -52,7 +52,7 @@ export default function ShoutoutComposer({
   const [options, setOptions] = useState<string[]>(["", ""]);
 
   return (
-    <div className="space-y-3 rounded-lg border border-slate-300/70 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-200 p-4 text-slate-950 shadow-lg">
+    <div className="space-y-3 rounded-lg border border-slate-300/70 bg-gradient-to-b from-white via-slate-50 to-white p-4 text-slate-950 shadow-lg">
       {/* Shoutout */}
       <form action={action} className="flex items-center gap-3">
         <input type="hidden" name="type" value="SHOUTOUT" />

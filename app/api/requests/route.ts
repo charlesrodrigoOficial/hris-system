@@ -49,7 +49,7 @@ async function saveAttachment(params: {
 
   await writeFile(filePath, buffer);
 
-  await prisma.attachment.create({
+  return prisma.attachment.create({
     data: {
       requestId,
       fileName: file.name,
@@ -57,6 +57,15 @@ async function saveAttachment(params: {
       fileType: file.type || null,
       fileSize: file.size,
       attachmentType,
+    },
+    select: {
+      id: true,
+      fileName: true,
+      fileUrl: true,
+      fileType: true,
+      fileSize: true,
+      attachmentType: true,
+      createdAt: true,
     },
   });
 }
@@ -274,11 +283,40 @@ export async function POST(req: Request) {
       }
 
       if (supportingDocument) {
-        await saveAttachment({
+        const attachment = await saveAttachment({
           requestId: created.id,
           file: supportingDocument,
           attachmentType: "MANAGER_APPROVAL",
         });
+
+        if (created.type === "SUPPORT" || created.type === "LEAVE") {
+          try {
+            const uploadedBy =
+              session.user.name?.trim() ||
+              session.user.email?.trim() ||
+              "Employee";
+
+            await prisma.employeeDocument.create({
+              data: {
+                userId: session.user.id,
+                title: attachment.fileName,
+                category: "PERSONAL",
+                fileName: attachment.fileName,
+                fileUrl: attachment.fileUrl,
+                fileType: attachment.fileType ?? null,
+                fileSize: attachment.fileSize ?? null,
+                sourceLabel:
+                  created.type === "SUPPORT" ? "Support Request" : "Time Off",
+                uploadedBy,
+              },
+            });
+          } catch (employeeDocError) {
+            console.error(
+              "Failed to mirror request attachment into employee documents",
+              employeeDocError,
+            );
+          }
+        }
       }
     } catch (uploadError) {
       console.error("Request attachment upload failed", uploadError);

@@ -143,6 +143,13 @@ export default function RequestFormFields({
   error,
 }: Props) {
   const showTypePicker = allowedTypes.length > 1;
+  const managers = Array.from(
+    new Map(
+      requester.managers
+        .filter((manager) => manager?.id)
+        .map((manager) => [manager.id, manager]),
+    ).values(),
+  );
 
   return (
     <div className="space-y-4">
@@ -327,19 +334,19 @@ export default function RequestFormFields({
             <Select
               value={managerId}
               onValueChange={setManagerId}
-              disabled={requester.managers.length === 0}
+              disabled={managers.length === 0}
             >
               <SelectTrigger className="rounded-xl">
                 <SelectValue
                   placeholder={
-                    requester.managers.length === 0
+                    managers.length === 0
                       ? "No department managers found"
                       : "Select manager"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
-                {requester.managers.map((manager) => (
+                {managers.map((manager) => (
                   <SelectItem key={manager.id} value={manager.id}>
                     {manager.name}
                   </SelectItem>
@@ -488,19 +495,19 @@ export default function RequestFormFields({
             <Select
               value={managerId}
               onValueChange={setManagerId}
-              disabled={requester.managers.length === 0}
+              disabled={managers.length === 0}
             >
               <SelectTrigger className="rounded-xl">
                 <SelectValue
                   placeholder={
-                    requester.managers.length === 0
+                    managers.length === 0
                       ? "No department managers found"
                       : "Select manager"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
-                {requester.managers.map((manager) => (
+                {managers.map((manager) => (
                   <SelectItem key={manager.id} value={manager.id}>
                     {manager.name}
                   </SelectItem>

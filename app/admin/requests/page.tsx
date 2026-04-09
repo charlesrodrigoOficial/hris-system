@@ -5,6 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -191,6 +199,7 @@ export default function AdminRequestsPage() {
   const searchParams = useSearchParams();
   const focusRequestId = searchParams.get("focus");
   const [rows, setRows] = React.useState<AdminRequestRow[]>([]);
+  const [actorRole, setActorRole] = React.useState<string | null>(null);
   const [hasFocused, setHasFocused] = React.useState(false);
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>(() =>
     focusRequestId ? { [focusRequestId]: true } : {},
@@ -201,6 +210,21 @@ export default function AdminRequestsPage() {
     label: string;
   } | null>(null);
   const [reviewNote, setReviewNote] = React.useState("");
+  const [approvalDocument, setApprovalDocument] = React.useState<File | null>(
+    null,
+  );
+
+  const [companyDocDialogOpen, setCompanyDocDialogOpen] =
+    React.useState(false);
+  const [companyDocTitle, setCompanyDocTitle] = React.useState("");
+  const [companyDocCategory, setCompanyDocCategory] = React.useState("GUIDE");
+  const [companyDocFile, setCompanyDocFile] = React.useState<File | null>(null);
+  const [companyDocError, setCompanyDocError] = React.useState<string | null>(
+    null,
+  );
+  const [companyDocUploading, setCompanyDocUploading] = React.useState(false);
+
+  const canUploadCompanyDocs = actorRole === "ADMIN" || actorRole === "HR";
 
   async function load() {
     const res = await fetch("/api/admin/requests", { cache: "no-store" });
@@ -210,6 +234,18 @@ export default function AdminRequestsPage() {
 
   React.useEffect(() => {
     load();
+  }, []);
+
+  React.useEffect(() => {
+    async function loadActor() {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { role?: string | null };
+      const role = typeof data?.role === "string" ? data.role.trim() : "";
+      setActorRole(role ? role.toUpperCase() : null);
+    }
+
+    loadActor();
   }, []);
 
   React.useEffect(() => {
@@ -227,14 +263,71 @@ export default function AdminRequestsPage() {
     setExpanded((prev) => ({ ...prev, [focusRequestId]: true }));
   }, [focusRequestId]);
 
-  async function updateStatus(id: string, status: RequestStatus, note?: string) {
-    await fetch(`/api/admin/requests/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, note }),
-    });
+  async function updateStatus(params: {
+    id: string;
+    status: RequestStatus;
+    note?: string;
+    approvalDocument?: File | null;
+  }) {
+    const { id, status, note, approvalDocument } = params;
+
+    if (approvalDocument) {
+      const fd = new FormData();
+      fd.set("status", status);
+      if (note) fd.set("note", note);
+      fd.set("approvalDocument", approvalDocument);
+
+      await fetch(`/api/admin/requests/${id}`, {
+        method: "PATCH",
+        body: fd,
+      });
+    } else {
+      await fetch(`/api/admin/requests/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, note }),
+      });
+    }
 
     load();
+  }
+
+  async function uploadCompanyDocument() {
+    setCompanyDocError(null);
+
+    if (!companyDocFile) {
+      setCompanyDocError("Please select a file to upload.");
+      return;
+    }
+
+    setCompanyDocUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", companyDocFile);
+      fd.set("category", companyDocCategory);
+      if (companyDocTitle.trim()) fd.set("title", companyDocTitle.trim());
+
+      const res = await fetch("/api/admin/company-documents", {
+        method: "POST",
+        body: fd,
+      });
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as any;
+        setCompanyDocError(
+          payload?.error || "Failed to upload company document.",
+        );
+        return;
+      }
+
+      setCompanyDocDialogOpen(false);
+      setCompanyDocTitle("");
+      setCompanyDocCategory("GUIDE");
+      setCompanyDocFile(null);
+      setCompanyDocError(null);
+    } finally {
+      setCompanyDocUploading(false);
+    }
   }
 
   const groupCounts = React.useMemo(() => {
@@ -264,11 +357,100 @@ export default function AdminRequestsPage() {
   return (
     <div className="p-6 space-y-6">
       <Dialog
+        open={companyDocDialogOpen}
+        onOpenChange={(open) => {
+          setCompanyDocDialogOpen(open);
+          if (!open) {
+            setCompanyDocTitle("");
+            setCompanyDocCategory("GUIDE");
+            setCompanyDocFile(null);
+            setCompanyDocError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload company document</DialogTitle>
+            <DialogDescription>
+              Only HR Manager and Super Admin can upload company documents.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Title (optional)</p>
+              <Input
+                value={companyDocTitle}
+                onChange={(e) => setCompanyDocTitle(e.target.value)}
+                placeholder="e.g. Employee handbook 2026"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Category</p>
+              <Select value={companyDocCategory} onValueChange={setCompanyDocCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EMPLOYMENT_LETTER">Employment letter</SelectItem>
+                  <SelectItem value="CONTRACT">Contract</SelectItem>
+                  <SelectItem value="HANDBOOK">Handbook</SelectItem>
+                  <SelectItem value="HR_POLICY">HR policy</SelectItem>
+                  <SelectItem value="GUIDE">Guide</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">File</p>
+              <Input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                onChange={(e) => setCompanyDocFile(e.target.files?.[0] ?? null)}
+              />
+              {companyDocFile ? (
+                <p className="text-xs text-muted-foreground">
+                  Selected file: {companyDocFile.name}
+                </p>
+              ) : null}
+            </div>
+
+            {companyDocError ? (
+              <p className="text-sm text-red-600">{companyDocError}</p>
+            ) : null}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCompanyDocDialogOpen(false)}
+              disabled={companyDocUploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={uploadCompanyDocument}
+              disabled={!canUploadCompanyDocs || companyDocUploading}
+              title={
+                canUploadCompanyDocs
+                  ? undefined
+                  : "Only HR Manager and Super Admin can upload."
+              }
+            >
+              {companyDocUploading ? "Uploading..." : "Upload"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={Boolean(reviewDialog)}
         onOpenChange={(open) => {
           if (!open) {
             setReviewDialog(null);
             setReviewNote("");
+            setApprovalDocument(null);
           }
         }}
       >
@@ -298,12 +480,31 @@ export default function AdminRequestsPage() {
             />
           </div>
 
+          {reviewDialog?.status !== "REJECTED" ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Approval document (optional)</p>
+              <Input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp"
+                onChange={(e) =>
+                  setApprovalDocument(e.target.files?.[0] ?? null)
+                }
+              />
+              {approvalDocument ? (
+                <p className="text-xs text-muted-foreground">
+                  Selected file: {approvalDocument.name}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setReviewDialog(null);
                 setReviewNote("");
+                setApprovalDocument(null);
               }}
             >
               Cancel
@@ -318,9 +519,15 @@ export default function AdminRequestsPage() {
                 if (!reviewDialog) return;
                 const trimmed = reviewNote.trim();
                 const note = trimmed ? trimmed : undefined;
-                await updateStatus(reviewDialog.id, reviewDialog.status, note);
+                await updateStatus({
+                  id: reviewDialog.id,
+                  status: reviewDialog.status,
+                  note,
+                  approvalDocument,
+                });
                 setReviewDialog(null);
                 setReviewNote("");
+                setApprovalDocument(null);
               }}
             >
               Confirm
@@ -330,8 +537,21 @@ export default function AdminRequestsPage() {
       </Dialog>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>All Requests</CardTitle>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!canUploadCompanyDocs}
+            onClick={() => setCompanyDocDialogOpen(true)}
+            title={
+              canUploadCompanyDocs
+                ? undefined
+                : "Only HR Manager and Super Admin can upload."
+            }
+          >
+            Upload company doc
+          </Button>
         </CardHeader>
 
         <CardContent className="space-y-6">

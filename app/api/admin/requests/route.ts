@@ -10,12 +10,18 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const allowed = ["ADMIN", "HR"];
+  const allowed = ["ADMIN", "HR", "MANAGER"];
   if (!allowed.includes(user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const requests = await prisma.request.findMany({
+    where:
+      user.role === "MANAGER"
+        ? {
+            managerEmployeeId: user.id,
+          }
+        : undefined,
     include: {
       attachments: {
         select: {

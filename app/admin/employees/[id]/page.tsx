@@ -65,7 +65,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card id={id} className="scroll-mt-24 rounded-3xl">
+    <Card id={id} className="scroll-mt-24 rounded-3xl bg-transparent">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
@@ -130,7 +130,7 @@ export default async function AdminEmployeeProfilePage({
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden rounded-3xl border-slate-200 bg-white/80 shadow-sm">
+      <Card className="overflow-hidden rounded-3xl border-slate-200 bg-transparent shadow-sm">
         <CardContent className="p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-start gap-4">
@@ -186,7 +186,7 @@ export default async function AdminEmployeeProfilePage({
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-6 grid gap-4 rounded-2xl p-4 sm:grid-cols-2 lg:grid-cols-5">
             <SummaryItem label="Email" value={user.email} />
             <SummaryItem
               label="Reports to"
@@ -265,7 +265,7 @@ export default async function AdminEmployeeProfilePage({
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        <Card className="h-fit rounded-3xl">
+        <Card className="h-fit rounded-3xl bg-transparent">
           <CardHeader>
             <CardTitle className="text-base">Sections</CardTitle>
           </CardHeader>
