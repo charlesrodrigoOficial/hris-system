@@ -21,6 +21,7 @@ import { PAGE_SIZE } from "../constants";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { normalizeRelativeCallbackUrl } from "../auth/redirects";
+import { isSuperAdmin } from "@/lib/auth/rbac";
 
 function getRedirectTo(formData: FormData) {
   const callbackUrl = formData.get("callbackUrl");
@@ -276,6 +277,15 @@ export async function getAllUsers({
   page: number;
   // query: string;
 }) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { data: [], totalPages: 0 };
+  }
+
+  if (!isSuperAdmin(session.user.role)) {
+    return { data: [], totalPages: 0 };
+  }
+
   // const queryFilter: Prisma.UserWhereInput =
   //   query && query !== "all"
   //     ? {
@@ -307,6 +317,14 @@ export async function getAllUsers({
 //Delete a user
 export async function deleteUser(id: string) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Not authenticated" };
+    }
+    if (!isSuperAdmin(session.user.role)) {
+      return { success: false, message: "Not authorized" };
+    }
+
     await prisma.user.delete({ where: { id } });
 
     revalidatePath("/admin/users");
@@ -326,6 +344,14 @@ export async function deleteUser(id: string) {
 //Update a user
 export async function updateUser(user: z.infer<typeof updateUserSchema>) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: "Not authenticated" };
+    }
+    if (!isSuperAdmin(session.user.role)) {
+      return { success: false, message: "Not authorized" };
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { id: true, name: true },
@@ -439,7 +465,7 @@ export async function createUser(prevState: unknown, formData: FormData) {
 
     // ✅ RBAC (adjust if your role field name differs)
     const actorRole = (session.user as any).role as string | undefined;
-    if (!["ADMIN", "HR"].includes(actorRole ?? "")) {
+    if (!isSuperAdmin(actorRole)) {
       return { success: false, message: "Not authorized" };
     }
 

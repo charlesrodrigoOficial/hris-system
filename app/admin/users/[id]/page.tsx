@@ -5,6 +5,7 @@ import { getUserById } from "@/lib/actions/user.actions";
 import { updateUserSchema } from "@/lib/validators";
 import UpdateUserForm from "./update-user-form";
 import { z } from "zod";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
 export const metadata: Metadata = {
   title: "Update User",
@@ -39,6 +40,7 @@ function splitName(
 const AdminUserUpdatePage = async (props: {
   params: Promise<{ id: string }>;
 }) => {
+  await requireAdminPermission("roles:assign");
   const { id } = await props.params;
 
   const [user, departments, employees] = await Promise.all([

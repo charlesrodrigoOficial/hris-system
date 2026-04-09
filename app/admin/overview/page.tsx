@@ -30,8 +30,11 @@ import {
   roleBadgeVariant,
   type Role,
 } from "./overview-utils";
+import { formatUserRoleLabel } from "@/lib/user/role-label";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
 export default async function OverviewPage() {
+  await requireAdminPermission("attendance:review");
   const {
     onlineToday,
     notActiveToday,
@@ -154,7 +157,7 @@ export default async function OverviewPage() {
                                 variant={roleBadgeVariant(row.role)}
                                 className={roleBadgeClass(row.role)}
                               >
-                                {row.role}
+                                {formatUserRoleLabel(row.role)}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -227,7 +230,7 @@ export default async function OverviewPage() {
                                 variant={roleBadgeVariant(row.role)}
                                 className={roleBadgeClass(row.role)}
                               >
-                                {row.role}
+                                {formatUserRoleLabel(row.role)}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -327,7 +330,7 @@ export default async function OverviewPage() {
                             variant={roleBadgeVariant(alert.role as Role)}
                             className={roleBadgeClass(alert.role as Role)}
                           >
-                            {alert.role}
+                            {formatUserRoleLabel(alert.role)}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
                             {alert.country}

@@ -8,6 +8,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireAdminSession } from "@/lib/auth/guards";
+import { hasPermission, isSuperAdmin } from "@/lib/auth/rbac";
 
 const settingsItems = [
   {
@@ -15,40 +17,52 @@ const settingsItems = [
     description: "Manage company details and structure.",
     href: "/admin/organization",
     Icon: Building2,
+    permission: "org:manage",
   },
   {
     title: "User and Role Management",
     description: "Manage user accounts and roles.",
     href: "/admin/users",
     Icon: Users,
+    permission: "roles:assign",
   },
   {
     title: "Attendance settings",
     description: "Configure attendance tracking and rules.",
     href: "/admin/attendance",
     Icon: CalendarCheck,
+    permission: "attendance:review",
   },
   {
     title: "Payroll settings",
     description: "Payroll runs, schedules, and exports.",
     href: "/admin/payrolls",
     Icon: Wallet,
+    permission: "payroll:manage",
   },
   {
     title: "Calender & event settings",
     description: "Manage company calendar and events.",
     href: "/admin/calender",
     Icon: CalendarDays,
+    permission: "calendar:manage",
   },
   {
     title: "Security settings",
     description: "Security policies and account controls.",
     href: "/admin/settings/security",
     Icon: Shield,
+    permission: "security:manage",
   },
 ] as const;
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const session = await requireAdminSession();
+  const role = session.user.role;
+  const visibleItems = settingsItems.filter((item) =>
+    isSuperAdmin(role) || hasPermission(role, item.permission as any),
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -59,7 +73,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {settingsItems.map(({ title, description, href, Icon }) => (
+        {visibleItems.map(({ title, description, href, Icon }) => (
           <Link key={href} href={href} className="group">
             <Card className="h-full rounded-2xl border-slate-200 bg-white/80 shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
               <CardHeader className="flex-row items-start gap-3">

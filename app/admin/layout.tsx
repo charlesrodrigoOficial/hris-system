@@ -5,13 +5,25 @@ import AdminMenu from "@/components/shared/header/admin-menu";
 import MainNav from "./main-nav";
 import { Input } from "@/components/ui/input";
 import Sidebar from "@/components/admin/ui/admin-sidebar";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { canAccessAdminArea } from "@/lib/auth/rbac";
 // import AdminSearch from "@/components/admin/admin-search";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
+  if (!canAccessAdminArea(session.user.role)) {
+    redirect("/");
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       {/* Header */}
@@ -46,7 +58,7 @@ export default function AdminLayout({
         <div className="container mx-auto flex h-full gap-6 overflow-hidden">
           {/* Sidebar */}
           <aside className="hidden h-full w-56 shrink-0 border-r py-6 md:block">
-            <Sidebar />
+            <Sidebar role={session.user.role} />
           </aside>
 
           {/* Page content */}

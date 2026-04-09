@@ -2,8 +2,10 @@ import { createDepartment } from "@/lib/actions/department.actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
-export default function NewDepartmentPage() {
+export default async function NewDepartmentPage() {
+  await requireAdminPermission("departments:manage");
   return (
     <Card className="max-w-xl">
       <CardHeader>

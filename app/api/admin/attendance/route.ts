@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
   //RBAC
   const role = user.role;
-  const allowed = ["ADMIN", "HR", "FINANCE", "MANAGER"];
+  const allowed = ["ADMIN", "HR", "MANAGER"];
   if (!allowed.includes(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

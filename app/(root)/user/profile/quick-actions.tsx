@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const baseActions = [
-  { title: "Payrolls", href: "/admin/payrolls", Icon: Wallet },
+  { title: "Payroll", href: "/user/payroll", Icon: Wallet },
   { title: "Time", href: "/user/requests?mode=leave", Icon: Clock3 },
   { title: "Support", href: "/user/requests?mode=support", Icon: MessageSquareText },
 ];

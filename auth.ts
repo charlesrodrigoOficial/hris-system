@@ -11,7 +11,11 @@ import { UserRole } from "@prisma/client";
 import { getBaseUrl } from "@/lib/constants";
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN ?? "intelura.com";
-const ALLOWED_ROLES = new Set<UserRole>([UserRole.ADMIN, UserRole.HR]);
+const ALLOWED_ROLES = new Set<UserRole>([
+  UserRole.ADMIN,
+  UserRole.HR,
+  UserRole.FINANCE,
+]);
 const AUTH_BASE_URL = getBaseUrl();
 
 function getSafeRedirectUrl(url: string, baseUrl: string) {

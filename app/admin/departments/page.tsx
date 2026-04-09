@@ -13,8 +13,10 @@ import {
 import { deleteDepartment } from "@/lib/actions/department.actions";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import DepartmentUsersDropdown from "./department-users-dropdown";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
 export default async function DepartmentsPage() {
+  await requireAdminPermission("departments:manage");
   const departments = await prisma.department.findMany({
     include: {
       depManager: {

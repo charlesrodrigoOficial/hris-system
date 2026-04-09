@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserIcon } from "lucide-react";
+import { adminHomePath, canAccessAdminArea } from "@/lib/user/role-label";
 
 const UserButton = async () => {
   const session = await auth();
@@ -78,9 +79,9 @@ const UserButton = async () => {
             </Link>
           </DropdownMenuItem>
 
-          {(displayRole === "ADMIN" || displayRole === "HR") && (
+          {canAccessAdminArea(displayRole) && (
             <DropdownMenuItem>
-              <Link href="/admin/overview" className="w-full">
+              <Link href={adminHomePath(displayRole)} className="w-full">
                 Admin
               </Link>
             </DropdownMenuItem>

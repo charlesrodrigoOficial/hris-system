@@ -7,12 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import DepartmentSelect from "./department-select";
+import { requireAdminSession } from "@/lib/auth/guards";
+import { adminHomePath, hasPermission } from "@/lib/auth/rbac";
+import { redirect } from "next/navigation";
+import { updateEmployeePayroll } from "@/lib/actions/employee-payroll.actions";
 
 export default async function EditEmployeePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await requireAdminSession();
+  const actorRole = session.user.role;
+  const canEditProfile = hasPermission(actorRole, "users:edit_profile");
+  const canEditPayroll = hasPermission(actorRole, "users:edit_payroll");
+
+  if (!canEditProfile && !canEditPayroll) {
+    redirect(adminHomePath(actorRole));
+  }
+
   const { id } = await params;
 
   const employee = await prisma.user.findUnique({
@@ -31,6 +44,12 @@ export default async function EditEmployeePage({
       department: { select: { id: true, departmentName: true } },
       branch: { select: { branchName: true } },
       country: true,
+      accountName: true,
+      accountNumber: true,
+      swiftCode: true,
+      iban: true,
+      sortCode: true,
+      salary: true,
     },
   });
 
@@ -174,11 +193,89 @@ export default async function EditEmployeePage({
             </div>
 
             <div className="md:col-span-2 flex justify-end gap-2">
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" disabled={!canEditProfile}>
+                Save changes
+              </Button>
             </div>
           </form>
         </CardContent>
       </Card>
+
+      {!canEditPayroll ? null : (
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>Payroll details</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <form
+              action={updateEmployeePayroll}
+              className="grid gap-4 md:grid-cols-2"
+            >
+              <input type="hidden" name="id" value={employee.id} />
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Salary</label>
+                <Input
+                  name="salary"
+                  defaultValue={employee.salary?.toString() ?? ""}
+                  placeholder="e.g. 5000"
+                  inputMode="decimal"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Account name</label>
+                <Input
+                  name="accountName"
+                  defaultValue={employee.accountName ?? ""}
+                  placeholder="Enter account name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Account number</label>
+                <Input
+                  name="accountNumber"
+                  defaultValue={employee.accountNumber ?? ""}
+                  placeholder="Enter account number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">SWIFT code</label>
+                <Input
+                  name="swiftCode"
+                  defaultValue={employee.swiftCode ?? ""}
+                  placeholder="Enter SWIFT code"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">IBAN</label>
+                <Input
+                  name="iban"
+                  defaultValue={employee.iban ?? ""}
+                  placeholder="Enter IBAN"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Sort code</label>
+                <Input
+                  name="sortCode"
+                  defaultValue={employee.sortCode ?? ""}
+                  placeholder="Enter sort code"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex justify-end gap-2">
+                <Button type="submit">Save payroll changes</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

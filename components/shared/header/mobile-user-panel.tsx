@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
 import { Button } from "@/components/ui/button";
 import { signOutUser } from "@/lib/actions/user.actions";
+import { adminHomePath, canAccessAdminArea, formatUserRoleLabel } from "@/lib/user/role-label";
 
 export default async function MobileUserPanel() {
   const session = await auth();
@@ -55,7 +56,7 @@ export default async function MobileUserPanel() {
             </div>
           ) : null}
           <div className="mt-1 inline-flex rounded-full bg-slate-900/5 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-            {displayRole}
+            {formatUserRoleLabel(displayRole)}
           </div>
         </div>
       </div>
@@ -65,9 +66,9 @@ export default async function MobileUserPanel() {
           <Link href="/user/profile/edit">Edit Profile</Link>
         </Button>
 
-        {(displayRole === "ADMIN" || displayRole === "HR") && (
+        {canAccessAdminArea(displayRole) && (
           <Button asChild variant="outline" className="w-full justify-start">
-            <Link href="/admin/overview">Admin</Link>
+            <Link href={adminHomePath(displayRole)}>Admin</Link>
           </Button>
         )}
 
@@ -80,4 +81,3 @@ export default async function MobileUserPanel() {
     </div>
   );
 }
-

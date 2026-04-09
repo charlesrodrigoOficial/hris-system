@@ -10,6 +10,14 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { adminHomePath, canAccessAdminArea, hasPermission, isPayrollAdmin, isSuperAdmin } from "@/lib/auth/rbac";
+
+type SettingsTile = {
+  title: string;
+  href: string;
+  description: string;
+  Icon: React.ComponentType<{ className?: string }>;
+};
 
 const settingsItems = [
   {
@@ -24,7 +32,7 @@ const settingsItems = [
     Icon: Shield,
     description: "Password & account security",
   },
-] as const;
+] satisfies SettingsTile[];
 
 const adminSettingsItems = [
   {
@@ -51,17 +59,41 @@ const adminSettingsItems = [
     Icon: CalendarDays,
     description: "Company events and schedules",
   },
-  ] as const;
+  ] satisfies SettingsTile[];
+
+function adminTilesForRole(role?: string | null) {
+  const tiles: SettingsTile[] = [];
+
+  if (isPayrollAdmin(role) || isSuperAdmin(role)) {
+    tiles.push({
+      title: "Payroll settings",
+      href: "/admin/payrolls",
+      Icon: Wallet,
+      description: "Payroll runs, schedules, and exports",
+    });
+  }
+
+  if (hasPermission(role, "org:manage")) tiles.push(adminSettingsItems[0]);
+  if (isSuperAdmin(role)) tiles.push(adminSettingsItems[1]);
+  if (hasPermission(role, "attendance:review")) tiles.push(adminSettingsItems[2]);
+  if (hasPermission(role, "calendar:manage")) tiles.push(adminSettingsItems[3]);
+
+  if (canAccessAdminArea(role)) {
+    tiles.unshift({
+      title: "Admin dashboard",
+      href: adminHomePath(role),
+      Icon: Shield,
+      description: "Administration & operations",
+    });
+  }
+
+  return tiles;
+}
 
 function SettingsTiles({
   items,
 }: {
-  items: readonly {
-    title: string;
-    href: string;
-    description: string;
-    Icon: React.ComponentType<{ className?: string }>;
-  }[];
+  items: readonly SettingsTile[];
 }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -93,9 +125,8 @@ export default async function UserSettingsPage() {
   }
 
   const role = (session.user as any)?.role as string | undefined;
-  const canSeeAdminSettings = role === "ADMIN" || role === "HR";
-  const allItems = canSeeAdminSettings
-    ? [...settingsItems, ...adminSettingsItems]
+  const allItems = canAccessAdminArea(role)
+    ? [...settingsItems, ...adminTilesForRole(role)]
     : settingsItems;
 
   return (

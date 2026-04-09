@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
-export default function AdminSecuritySettingsPage() {
+export default async function AdminSecuritySettingsPage() {
+  await requireAdminPermission("security:manage");
   return (
     <div className="space-y-6">
       <div>
@@ -38,4 +40,3 @@ export default function AdminSecuritySettingsPage() {
     </div>
   );
 }
-

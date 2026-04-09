@@ -19,7 +19,10 @@ export async function createFeedPost(prev: any, formData: FormData) {
   if (!session?.user?.id)
     return { success: false, message: "Not authenticated" };
   if (!canCreateFeedPost(session.user.role))
-    return { success: false, message: "Only Admin and HR can create posts" };
+    return {
+      success: false,
+      message: "Only Super Admin and HR Manager can create posts",
+    };
 
   const raw = {
     type: String(formData.get("type") ?? "SHOUTOUT"),
@@ -129,7 +132,10 @@ export async function deletePost(postId: string) {
   if (!post) return { success: false, message: "Post not found" };
 
   if (!canManageFeed(session.user.role))
-    return { success: false, message: "Only Admin and HR can delete posts" };
+    return {
+      success: false,
+      message: "Only Super Admin and HR Manager can delete posts",
+    };
 
   await prisma.feedPost.delete({ where: { id: postId } });
   revalidateFeedPaths();
@@ -141,7 +147,10 @@ export async function deleteComment(commentId: string) {
   if (!session?.user?.id)
     return { success: false, message: "Not authenticated" };
   if (!canManageFeed(session.user.role))
-    return { success: false, message: "Only Admin and HR can delete comments" };
+    return {
+      success: false,
+      message: "Only Super Admin and HR Manager can delete comments",
+    };
 
   const comment = await prisma.feedComment.findUnique({
     where: { id: commentId },

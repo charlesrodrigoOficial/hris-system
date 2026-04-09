@@ -1,5 +1,6 @@
 export function canManageAttendance(role?: string | null) {
-  return role === "ADMIN" || role === "HR";
+  const normalized = String(role ?? "").trim().toUpperCase();
+  return normalized === "ADMIN" || normalized === "HR";
 }
 
 export function canManageFeed(role?: string | null) {

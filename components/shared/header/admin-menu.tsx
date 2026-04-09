@@ -4,8 +4,12 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import UserButton from "./user-button";
 import NotificationBell from "./notification-bell";
 import { AdminSidebarNav } from "@/components/admin/ui/admin-sidebar";
+import { auth } from "@/auth";
 
 const AdminMenu = async () => {
+  const session = await auth();
+  const role = session?.user?.role ?? null;
+
   return (
     <div className="flex justify-end gap-3">
       <nav className="hidden md:flex w-full max-w-xs gap-1">
@@ -32,7 +36,11 @@ const AdminMenu = async () => {
               <UserButton />
             </div>
 
-            <AdminSidebarNav closeOnNavigate className="w-full min-h-0 border-t pt-3" />
+            <AdminSidebarNav
+              role={role}
+              closeOnNavigate
+              className="w-full min-h-0 border-t pt-3"
+            />
           </SheetContent>
         </Sheet>
       </nav>
@@ -41,4 +49,3 @@ const AdminMenu = async () => {
 };
 
 export default AdminMenu;
-

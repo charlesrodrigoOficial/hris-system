@@ -8,10 +8,12 @@ import {
   CalendarCheck,
   ClipboardList,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SheetClose } from "@/components/ui/sheet";
+import { hasPermission, isPayrollAdmin, isSuperAdmin } from "@/lib/auth/rbac";
 
 type AdminAction = {
   title: string;
@@ -19,14 +21,33 @@ type AdminAction = {
   icon: LucideIcon;
 };
 
-const actions: AdminAction[] = [
-  { title: "User Overview", href: "/admin/employees", icon: Users },
-  { title: "Calendar", href: "/admin/calender", icon: CalendarDays },
-  { title: "Attendance", href: "/admin/attendance", icon: CalendarCheck },
-  { title: "Requests", href: "/admin/requests", icon: ClipboardList },
+function getActions(role?: string | null): AdminAction[] {
+  const actions: AdminAction[] = [];
 
-  { title: "Departments", href: "/admin/departments", icon: Building2 },
-];
+  actions.push({ title: "Employees", href: "/admin/employees", icon: Users });
+
+  if (isPayrollAdmin(role) || isSuperAdmin(role)) {
+    actions.push({ title: "Payroll", href: "/admin/payrolls", icon: Wallet });
+  }
+
+  if (hasPermission(role, "calendar:manage")) {
+    actions.push({ title: "Calendar", href: "/admin/calender", icon: CalendarDays });
+  }
+
+  if (hasPermission(role, "attendance:review")) {
+    actions.push({ title: "Attendance", href: "/admin/attendance", icon: CalendarCheck });
+  }
+
+  if (hasPermission(role, "requests:manage")) {
+    actions.push({ title: "Requests", href: "/admin/requests", icon: ClipboardList });
+  }
+
+  if (hasPermission(role, "departments:manage")) {
+    actions.push({ title: "Departments", href: "/admin/departments", icon: Building2 });
+  }
+
+  return actions;
+}
 
 const actionButtonClassName =
   "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition";
@@ -36,11 +57,14 @@ function isActivePath(pathname: string, href: string) {
 }
 
 export default function AdminQuickActions({
+  role,
   closeOnNavigate = false,
 }: {
+  role?: string | null;
   closeOnNavigate?: boolean;
 }) {
   const pathname = usePathname();
+  const actions = getActions(role);
 
   return (
     <div className="space-y-1">

@@ -1,15 +1,10 @@
 import OrganizationClient from "@/components/admin/organization/organization-client";
 import { prisma } from "@/db/prisma";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
 export default async function OrganizationPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/sign-in");
-  }
-
-  const canEdit = ["ADMIN", "HR"].includes(String(session.user.role));
+  const session = await requireAdminPermission("org:manage");
+  const canEdit = true;
 
   const users = await prisma.user.findMany({
     select: {

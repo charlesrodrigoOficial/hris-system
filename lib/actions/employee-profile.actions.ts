@@ -4,8 +4,18 @@ import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Gender } from "@prisma/client";
+import { auth } from "@/auth";
+import { adminHomePath, hasPermission } from "@/lib/auth/rbac";
 
 export async function updateEmployeeProfile(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+  if (!hasPermission(session.user.role, "users:edit_profile")) {
+    redirect(adminHomePath(session.user.role));
+  }
+
   const id = String(formData.get("id") || "");
 
   const genderRaw = String(formData.get("gender") || "");

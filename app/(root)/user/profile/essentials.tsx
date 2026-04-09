@@ -49,7 +49,7 @@ export function EssentialsCard({ className }: EssentialsCardProps) {
             rel="noreferrer"
           >
             <BookOpen className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
-            Inteluropedia
+            Intelurapedia
           </Link>
         </Button>
       </div>

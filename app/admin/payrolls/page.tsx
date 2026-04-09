@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { requireAdminPermission } from "@/lib/auth/guards";
+import { hasPermission } from "@/lib/auth/rbac";
 
-export default function AdminPayrollsPage() {
+export default async function AdminPayrollsPage() {
+  const session = await requireAdminPermission("payroll:manage");
   return (
     <div className="space-y-6">
       <div>
@@ -18,15 +21,16 @@ export default function AdminPayrollsPage() {
           <CardDescription>Coming soon.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
+          {hasPermission(session.user.role, "calendar:manage") ? (
+            <Button asChild variant="outline">
+              <Link href="/admin/calender">Open calendar</Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline">
-            <Link href="/admin/calender">Open calendar</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/admin/users">Manage employee bank details</Link>
+            <Link href="/admin/employees">Manage employee payroll details</Link>
           </Button>
         </CardContent>
       </Card>
     </div>
   );
 }
-

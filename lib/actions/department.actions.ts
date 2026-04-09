@@ -4,8 +4,24 @@ import { prisma } from "@/db/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { formatError } from "@/lib/utils";
+import { auth } from "@/auth";
+import { adminHomePath, hasPermission } from "@/lib/auth/rbac";
+
+async function requireDepartmentAccess() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
+  if (!hasPermission(session.user.role, "departments:manage")) {
+    redirect(adminHomePath(session.user.role));
+  }
+
+  return session;
+}
 
 export async function createDepartment(formData: FormData) {
+  await requireDepartmentAccess();
   const departmentName = String(formData.get("departmentName") || "").trim();
 
   if (!departmentName) {
@@ -30,6 +46,7 @@ export async function createDepartment(formData: FormData) {
 
 export async function updateDepartment(formData: FormData) {
   try {
+    await requireDepartmentAccess();
     const id = String(formData.get("id") || "").trim();
     const departmentName = String(formData.get("departmentName") || "").trim();
     const depManagerIdRaw = String(formData.get("depManagerId") || "").trim();
@@ -72,24 +89,6 @@ export async function updateDepartment(formData: FormData) {
       if (!manager) {
         return { success: false, message: "Selected manager does not exist." };
       }
-
-      const alreadyManages = await prisma.department.findFirst({
-        where: {
-          depManagerId,
-          NOT: { id },
-        },
-        select: {
-          id: true,
-          departmentName: true,
-        },
-      });
-
-      if (alreadyManages) {
-        return {
-          success: false,
-          message: `This user is already assigned as a Department Manager for "${alreadyManages.departmentName}".`,
-        };
-      }
     }
 
     await prisma.department.update({
@@ -125,7 +124,7 @@ export async function updateDepartment(formData: FormData) {
         return {
           success: false,
           message:
-            "This user is already assigned as a Department Manager for another department.",
+            'Database still enforces a unique Department Manager. Apply the latest Prisma migrations (local: `npx prisma migrate dev`, server: `npx prisma migrate deploy`) then retry.',
         };
       }
 
@@ -140,6 +139,7 @@ export async function updateDepartment(formData: FormData) {
 
 export async function deleteDepartment(id: string) {
   try {
+    await requireDepartmentAccess();
     if (!id) {
       return { success: false, message: "Department id is required." };
     }
@@ -202,6 +202,7 @@ export async function removeUserFromDepartment(params: {
   userId: string;
 }) {
   try {
+    await requireDepartmentAccess();
     const departmentId = String(params.departmentId || "").trim();
     const userId = String(params.userId || "").trim();
 

@@ -52,7 +52,7 @@ function getSidebarItems(role?: string | null): SidebarItem[] {
     },
     {
       title: "Payroll",
-      href: "/user/profile",
+      href: "/user/payroll",
       icon: Receipt,
     },
     {

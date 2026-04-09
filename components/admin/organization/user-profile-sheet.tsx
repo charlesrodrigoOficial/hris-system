@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
 import type { OrgUser } from "@/lib/build-org-tree";
+import { formatUserRoleLabel } from "@/lib/user/role-label";
 
 type Props = {
   user: OrgUser | null;
@@ -90,7 +91,9 @@ export default function UserProfileSheet({ user, open, onOpenChange }: Props) {
                   </p>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Badge variant="secondary">{user.role}</Badge>
+                    <Badge variant="secondary">
+                      {formatUserRoleLabel(user.role)}
+                    </Badge>
                     <Badge variant="outline">
                       {user.department?.departmentName || "No department"}
                     </Badge>
@@ -102,7 +105,7 @@ export default function UserProfileSheet({ user, open, onOpenChange }: Props) {
                   <div className="mt-4">
                     {!showAdminProfileLink ? null : (
                       <Button asChild className="rounded-xl">
-                        <Link href={`/admin/users/${user.id}/edit`}>
+                        <Link href={`/admin/employees/${user.id}`}>
                           View full profile
                         </Link>
                       </Button>

@@ -40,7 +40,7 @@ const sections: HelpSection[] = [
       {
         question: "How does Intelura work?",
         answer:
-          "Use the sidebar to navigate modules like Profile, Documents, Requests, and more. Admins/HR users can access additional tools from the Admin area.",
+          "Use the sidebar to navigate modules like Profile, Documents, Requests, and more. Super Admin/HR Manager users can access additional tools from the Admin area.",
       },
       {
         question: "Do I need technical knowledge to use Intelura?",
@@ -57,12 +57,12 @@ const sections: HelpSection[] = [
       {
         question: "Is there a real person reviewing my data?",
         answer:
-          "Only authorized HR/Admin users can access and manage employee data, based on their role permissions.",
+          "Only authorized HR Manager/Super Admin users can access and manage employee data, based on their role permissions.",
       },
       {
         question: "What if my data is incomplete or messy?",
         answer:
-          "Update your Profile details, or contact HR via Requests → Support. HR/Admin can also correct certain records.",
+          "Update your Profile details, or contact HR via Requests → Support. HR Manager/Super Admin can also correct certain records.",
       },
       {
         question: "How is Intelura different from reports?",
@@ -79,7 +79,7 @@ const sections: HelpSection[] = [
       {
         question: "Do I need a contract for a one-time audit?",
         answer:
-          "For billing or contract questions, contact your HR/Admin team or use Requests → Support so it reaches the right internal channel.",
+          "For billing or contract questions, contact your HR Manager/Super Admin team or use Requests → Support so it reaches the right internal channel.",
       },
       {
         question: "What is the cost of each Intelura solution?",
@@ -89,7 +89,7 @@ const sections: HelpSection[] = [
       {
         question: "Can I cancel my subscription anytime?",
         answer:
-          "Subscriptions are organization-managed. Submit a support request and HR/Admin can advise based on your plan.",
+          "Subscriptions are organization-managed. Submit a support request and HR Manager/Super Admin can advise based on your plan.",
       },
     ],
   },
@@ -106,12 +106,12 @@ const sections: HelpSection[] = [
       {
         question: "Who can see my insights and data?",
         answer:
-          "Visibility depends on roles (Employee, Manager, HR, Admin). You can ask HR for details about your organization’s access rules.",
+          "Visibility depends on roles (Employee, Manager, HR Manager, Super Admin). You can ask HR for details about your organization’s access rules.",
       },
       {
         question: "Can I request to have my data deleted?",
         answer:
-          "Yes—submit a support request and HR/Admin will handle it according to company policy and legal requirements.",
+          "Yes—submit a support request and HR Manager/Super Admin will handle it according to company policy and legal requirements.",
       },
     ],
   },
@@ -211,4 +211,3 @@ export default function HelpClient() {
     </div>
   );
 }
-

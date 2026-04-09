@@ -3,10 +3,26 @@
 import { prisma } from "@/db/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
+import { adminHomePath, hasPermission } from "@/lib/auth/rbac";
 
 const DEFAULT_DEPARTMENT_NAME = "ADMINISTRATION";
 
+async function requireEmployeeAdmin() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
+  if (!hasPermission(session.user.role, "users:edit_employment")) {
+    redirect(adminHomePath(session.user.role));
+  }
+
+  return session;
+}
+
 export async function getUsersWithEmployeeRole() {
+  await requireEmployeeAdmin();
   const users = await prisma.user.findMany({
     where: { role: "EMPLOYEE" },
     orderBy: { createdAt: "desc" },
@@ -37,6 +53,7 @@ function safeFullName(name: string | null | undefined, email: string) {
 }
 
 export async function ensureEmployeeAndRedirect(formData: FormData) {
+  await requireEmployeeAdmin();
   const userId = String(formData.get("userId") ?? "");
   if (!userId) throw new Error("Missing userId");
 
@@ -70,6 +87,7 @@ export async function ensureEmployeeAndRedirect(formData: FormData) {
 }
 
 export async function toggleEmployeeStatus(formData: FormData) {
+  await requireEmployeeAdmin();
   const userId = String(formData.get("userId") ?? "");
   if (!userId) return;
 

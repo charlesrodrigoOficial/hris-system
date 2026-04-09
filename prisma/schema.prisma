@@ -287,7 +287,7 @@ model User {
   department         Department?         @relation("DepartmentEmployees", fields: [departmentId], references: [id], onDelete: Restrict)
   branch             Branch?             @relation("BranchEmployees", fields: [branchId], references: [id], onDelete: SetNull)
   managesBranch      Branch?             @relation("BranchManager")
-  departmentManager  Department?         @relation("DepartmentManager")
+  managedDepartments Department[]        @relation("DepartmentManager")
   managedRequests    Request[]           @relation("RequestManager")
   manager            User?               @relation("UserManager", fields: [managerId], references: [id], onDelete: SetNull)
   directReports      User[]              @relation("UserManager")
@@ -443,14 +443,16 @@ model Department {
   departmentName String @unique
   empCount       Int    @default(0)
 
-  depManagerId String? @unique @db.Uuid
-  depManager   User?   @relation("DepartmentManager", fields: [depManagerId], references: [id])
+  depManagerId String? @db.Uuid
+  depManager   User?   @relation("DepartmentManager", fields: [depManagerId], references: [id], onDelete: SetNull)
 
   employees User[] @relation("DepartmentEmployees")
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   calendarItems CalendarItem[]
+
+  @@index([depManagerId])
 }
 
 model Shift {

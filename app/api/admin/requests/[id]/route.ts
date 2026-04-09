@@ -28,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const allowed = ["ADMIN", "HR", "FINANCE", "MANAGER"];
+    const allowed = ["ADMIN", "HR"];
     if (!allowed.includes(actor.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

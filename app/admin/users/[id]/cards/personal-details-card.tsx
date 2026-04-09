@@ -21,8 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { USER_ROLES } from "@/lib/constants";
+import { formatUserRoleLabel } from "@/lib/user/role-label";
 import {
-  formatEnumLabel,
   Section,
   TextAreaField,
   TextField,
@@ -233,7 +233,7 @@ export function PersonalDetailsCard({
               <SelectContent>
                 {USER_ROLES.map((role) => (
                   <SelectItem key={role} value={role}>
-                    {formatEnumLabel(role)}
+                    {formatUserRoleLabel(role)}
                   </SelectItem>
                 ))}
               </SelectContent>

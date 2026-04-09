@@ -15,6 +15,8 @@ import Pagination from "@/components/shared/header/pagination";
 import { Badge } from "@/components/ui/badge";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import { UserRole } from "@prisma/client";
+import { formatUserRoleLabel } from "@/lib/user/role-label";
+import { requireAdminPermission } from "@/lib/auth/guards";
 
 export const metadata: Metadata = {
   title: "Admin Users",
@@ -40,15 +42,12 @@ function roleBadgeClass(role: UserRole) {
   }
 }
 
-function formatRoleLabel(role: UserRole) {
-  return role.charAt(0) + role.slice(1).toLowerCase();
-}
-
 const AdminUserPage = async (props: {
   searchParams: Promise<{
     page: string;
   }>;
 }) => {
+  await requireAdminPermission("roles:assign");
   const { page = "1" } = await props.searchParams;
 
   const users = await getAllUsers({ page: Number(page) });
@@ -88,7 +87,7 @@ const AdminUserPage = async (props: {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={roleBadgeClass(user.role)}>
-                    {formatRoleLabel(user.role)}
+                    {formatUserRoleLabel(user.role)}
                   </Badge>
                 </TableCell>
                 <TableCell>
