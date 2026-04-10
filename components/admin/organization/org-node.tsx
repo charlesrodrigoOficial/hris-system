@@ -27,13 +27,11 @@ function getInitials(value: string) {
 
 function roleAccentClass(role?: string | null) {
   switch (String(role ?? "").toUpperCase()) {
-    case "ADMIN":
+    case "SUPER_ADMIN":
       return "bg-gradient-to-r from-violet-500 to-sky-500";
-    case "HR":
+    case "HR_MANAGER":
       return "bg-gradient-to-r from-emerald-500 to-teal-500";
-    case "MANAGER":
-      return "bg-gradient-to-r from-amber-500 to-orange-500";
-    case "FINANCE":
+    case "PAYROLL_MANAGER":
       return "bg-gradient-to-r from-emerald-600 to-lime-500";
     case "EMPLOYEE":
       return "bg-gradient-to-r from-slate-500 to-slate-400";

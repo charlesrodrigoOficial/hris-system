@@ -224,7 +224,8 @@ export default function AdminRequestsPage() {
   );
   const [companyDocUploading, setCompanyDocUploading] = React.useState(false);
 
-  const canUploadCompanyDocs = actorRole === "ADMIN" || actorRole === "HR";
+  const canUploadCompanyDocs =
+    actorRole === "SUPER_ADMIN" || actorRole === "HR_MANAGER";
 
   async function load() {
     const res = await fetch("/api/admin/requests", { cache: "no-store" });

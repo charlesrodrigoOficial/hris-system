@@ -81,16 +81,22 @@ function isActivePath(pathname: string, href?: string) {
 export function UserSidebarNav({
   role,
   closeOnNavigate = false,
+  collapsed = false,
   className,
 }: {
   role?: string | null;
   closeOnNavigate?: boolean;
+  collapsed?: boolean;
   className?: string;
 }) {
   const pathname = usePathname();
   const items = getSidebarItems(role);
   const [overviewItem, ...secondaryItems] = items;
   const OverviewIcon = overviewItem.icon;
+  const labelClassName = collapsed ? "sr-only" : undefined;
+  const linkBaseClassName = collapsed
+    ? "flex w-full items-center justify-center rounded-xl border border-transparent p-3 text-sm font-medium transition"
+    : "grid w-full grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition";
 
   return (
     <nav
@@ -104,28 +110,28 @@ export function UserSidebarNav({
           <Link
             href={overviewItem.href!}
             className={cn(
-              "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition",
+              linkBaseClassName,
               isActivePath(pathname, overviewItem.href)
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
             )}
           >
             <OverviewIcon className="h-4 w-4 shrink-0" />
-            <span>{overviewItem.title}</span>
+            <span className={labelClassName}>{overviewItem.title}</span>
           </Link>
         </SheetClose>
       ) : (
         <Link
           href={overviewItem.href!}
           className={cn(
-            "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition",
+            linkBaseClassName,
             isActivePath(pathname, overviewItem.href)
               ? "bg-muted text-foreground"
               : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
           )}
         >
           <OverviewIcon className="h-4 w-4 shrink-0" />
-          <span>{overviewItem.title}</span>
+          <span className={labelClassName}>{overviewItem.title}</span>
         </Link>
       )}
 
@@ -135,7 +141,7 @@ export function UserSidebarNav({
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
           const cardClassName = cn(
-            "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition",
+            linkBaseClassName,
             item.href || isAttendanceItem
               ? active
                 ? "bg-muted text-foreground"
@@ -153,9 +159,10 @@ export function UserSidebarNav({
                         type="button"
                         className={cn(cardClassName, "w-full")}
                         onClick={openDialog}
+                        title={collapsed ? item.title : undefined}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span>{item.title}</span>
+                        <span className={labelClassName}>{item.title}</span>
                       </button>
                     );
 
@@ -168,20 +175,28 @@ export function UserSidebarNav({
                 />
               ) : item.href ? closeOnNavigate ? (
                 <SheetClose asChild>
-                  <Link href={item.href} className={cardClassName}>
+                  <Link
+                    href={item.href}
+                    className={cardClassName}
+                    title={collapsed ? item.title : undefined}
+                  >
                     <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.title}</span>
+                    <span className={labelClassName}>{item.title}</span>
                   </Link>
                 </SheetClose>
               ) : (
-                <Link href={item.href} className={cardClassName}>
+                <Link
+                  href={item.href}
+                  className={cardClassName}
+                  title={collapsed ? item.title : undefined}
+                >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.title}</span>
+                  <span className={labelClassName}>{item.title}</span>
                 </Link>
               ) : (
                 <div className={cardClassName}>
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.title}</span>
+                  <span className={labelClassName}>{item.title}</span>
                 </div>
               )}
             </div>
@@ -192,27 +207,39 @@ export function UserSidebarNav({
   );
 }
 
-export default function Sidebar({ role }: { role?: string | null }) {
+export default function Sidebar({
+  role,
+  collapsed = false,
+}: {
+  role?: string | null;
+  collapsed?: boolean;
+}) {
   return (
-    <div className="flex h-full flex-col px-4">
+    <div className={cn("flex h-full flex-col", collapsed ? "px-2" : "px-4")}>
       <div className="sticky top-0 z-10 bg-background pb-3">
-        <div className="border-b px-4 py-1">
-          <Link href="/" className="flex items-center gap-2">
+        <div className={cn("border-b py-1", collapsed ? "px-2" : "px-4")}>
+          <Link
+            href="/"
+            className={cn("flex items-center gap-2", collapsed && "justify-center")}
+            title={collapsed ? "Dashboard" : undefined}
+          >
             <Image
               src="/images/favicon.png"
               alt="Intelura"
-              width={120}
-              height={30}
-              className="object-contain"
+              width={collapsed ? 32 : 120}
+              height={collapsed ? 32 : 30}
+              className={cn("object-contain", collapsed && "mx-auto")}
             />
           </Link>
         </div>
-        <p className="mb-3 mt-3 text-center text-base font-semibold text-muted-foreground">
-          Dashboard
-        </p>
+        {!collapsed ? (
+          <p className="mb-3 mt-3 text-center text-base font-semibold text-muted-foreground">
+            Dashboard
+          </p>
+        ) : null}
       </div>
 
-      <UserSidebarNav role={role} />
+      <UserSidebarNav role={role} collapsed={collapsed} />
     </div>
   );
 }

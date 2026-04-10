@@ -99,7 +99,7 @@ export function leaveTypeLabel(value: LeaveRequestType) {
 }
 
 export function isAdmin(role?: string | null) {
-  return role === "ADMIN";
+  return role === "SUPER_ADMIN";
 }
 
 export function claimPurposeLabel(value: ClaimPurpose) {

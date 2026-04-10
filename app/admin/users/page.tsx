@@ -24,19 +24,14 @@ export const metadata: Metadata = {
 
 function roleBadgeClass(role: UserRole) {
   switch (role) {
-    case "ADMIN":
+    case "SUPER_ADMIN":
       return "border-red-200 bg-red-100 text-red-800";
-    case "HR":
+    case "HR_MANAGER":
       return "border-fuchsia-200 bg-fuchsia-100 text-fuchsia-800";
-    case "MANAGER":
-      return "border-amber-200 bg-amber-100 text-amber-800";
-    case "FINANCE":
+    case "PAYROLL_MANAGER":
       return "border-emerald-200 bg-emerald-100 text-emerald-800";
-    case "ANALYST":
-      return "border-cyan-200 bg-cyan-100 text-cyan-800";
     case "EMPLOYEE":
       return "border-blue-200 bg-blue-100 text-blue-800";
-    case "USER":
     default:
       return "border-slate-200 bg-slate-100 text-slate-800";
   }

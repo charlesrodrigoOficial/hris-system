@@ -8,7 +8,10 @@ import {
 import { prisma } from "@/db/prisma";
 import { CalendarEvent, Viewer } from "@/lib/calender/types/calendar-event.types";
 
-const ADMIN_LIKE_ROLES = new Set<UserRole>(["ADMIN", "HR"]);
+const ADMIN_LIKE_ROLES = new Set<UserRole>([
+  "SUPER_ADMIN",
+  "HR_MANAGER",
+]);
 
 export const CALENDAR_ATTENDANCE_STATUSES: AttendanceStatus[] = [
   AttendanceStatus.ABSENT,
@@ -130,10 +133,6 @@ export function getScopedCalendarVisibility(
 export async function getScopedUserIdsForRestrictedSources(viewer: Viewer) {
   if (ADMIN_LIKE_ROLES.has(viewer.role)) {
     return null;
-  }
-
-  if (viewer.role === "MANAGER") {
-    return getManagerScopeUserIds(viewer.id);
   }
 
   return [viewer.id];

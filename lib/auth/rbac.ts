@@ -1,11 +1,8 @@
 export type NormalizedRole =
-  | "ADMIN"
-  | "HR"
-  | "FINANCE"
-  | "MANAGER"
+  | "SUPER_ADMIN"
+  | "HR_MANAGER"
+  | "PAYROLL_MANAGER"
   | "EMPLOYEE"
-  | "USER"
-  | "ANALYST";
 
 export type Permission =
   | "admin:access"
@@ -31,20 +28,24 @@ function normalizeRole(role?: string | null): NormalizedRole | null {
 }
 
 export function isSuperAdmin(role?: string | null) {
-  return normalizeRole(role) === "ADMIN";
+  return normalizeRole(role) === "SUPER_ADMIN";
 }
 
 export function isHrManager(role?: string | null) {
-  return normalizeRole(role) === "HR";
+  return normalizeRole(role) === "HR_MANAGER";
 }
 
 export function isPayrollAdmin(role?: string | null) {
-  return normalizeRole(role) === "FINANCE";
+  return normalizeRole(role) === "PAYROLL_MANAGER";
 }
 
 export function canAccessAdminArea(role?: string | null) {
   const r = normalizeRole(role);
-  return r === "ADMIN" || r === "HR" || r === "FINANCE";
+  return (
+    r === "SUPER_ADMIN" ||
+    r === "HR_MANAGER" ||
+    r === "PAYROLL_MANAGER"
+  );
 }
 
 export function hasPermission(role?: string | null, permission?: Permission) {
@@ -53,14 +54,14 @@ export function hasPermission(role?: string | null, permission?: Permission) {
   if (!r) return false;
 
   // Super Admin owns the system.
-  if (r === "ADMIN") return true;
+  if (r === "SUPER_ADMIN") return true;
 
   switch (permission) {
     case "admin:access":
       return canAccessAdminArea(r);
 
     case "users:view":
-      return r === "HR" || r === "FINANCE";
+      return r === "HR_MANAGER" || r === "PAYROLL_MANAGER";
 
     case "users:create":
     case "users:delete":
@@ -70,19 +71,19 @@ export function hasPermission(role?: string | null, permission?: Permission) {
 
     case "users:edit_profile":
     case "users:edit_employment":
-      return r === "HR";
+      return r === "HR_MANAGER";
 
     // HR can view payroll-related info, but should not edit it by default.
     case "users:edit_payroll":
     case "payroll:manage":
-      return r === "FINANCE";
+      return r === "PAYROLL_MANAGER";
 
     case "org:manage":
     case "departments:manage":
     case "attendance:review":
     case "requests:manage":
     case "calendar:manage":
-      return r === "HR";
+      return r === "HR_MANAGER";
 
     default:
       return false;
@@ -91,7 +92,6 @@ export function hasPermission(role?: string | null, permission?: Permission) {
 
 export function adminHomePath(role?: string | null) {
   const r = normalizeRole(role);
-  if (r === "FINANCE") return "/admin/payrolls";
+  if (r === "PAYROLL_MANAGER") return "/admin/payrolls";
   return "/admin/overview";
 }
-

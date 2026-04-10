@@ -160,10 +160,10 @@ export async function createCalendarItemAction(
   const data = parsed.data;
 
   const isAdminLike =
-    viewer.role === UserRole.ADMIN || viewer.role === UserRole.HR;
-  const isManager = viewer.role === UserRole.MANAGER;
+    viewer.role === UserRole.SUPER_ADMIN ||
+    viewer.role === UserRole.HR_MANAGER;
 
-  if (!isAdminLike && !isManager) {
+  if (!isAdminLike) {
     return {
       ok: false,
       message: "You do not have permission to create calendar events.",
@@ -174,32 +174,6 @@ export async function createCalendarItemAction(
   let finalDepartmentId = data.departmentId ?? null;
   let finalUserId = data.userId ?? null;
   let finalCountry = data.country ?? null;
-
-  if (isManager) {
-    if (data.visibility === CalendarVisibility.COMPANY) {
-      return {
-        ok: false,
-        message: "Managers cannot create company-wide events.",
-      };
-    }
-
-    if (data.visibility === CalendarVisibility.DEPARTMENT) {
-      if (!viewer.departmentId) {
-        return {
-          ok: false,
-          message: "No department is assigned to your account.",
-        };
-      }
-
-      finalDepartmentId = viewer.departmentId;
-      finalUserId = null;
-    }
-
-    if (data.visibility === CalendarVisibility.PERSONAL) {
-      finalUserId = viewer.id;
-      finalDepartmentId = null;
-    }
-  }
 
   if (isAdminLike) {
     if (data.visibility === CalendarVisibility.COMPANY) {

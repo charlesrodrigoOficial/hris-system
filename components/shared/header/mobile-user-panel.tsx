@@ -26,7 +26,7 @@ export default async function MobileUserPanel() {
 
   const displayName = currentUser?.name ?? session.user?.name ?? "User";
   const displayEmail = currentUser?.email ?? session.user?.email ?? "";
-  const displayRole = currentUser?.role ?? session.user?.role ?? "USER";
+  const displayRole = currentUser?.role ?? session.user?.role ?? "EMPLOYEE";
   const displayImage = currentUser?.image ?? session.user?.image ?? null;
   const firstInitial = displayName.charAt(0).toUpperCase() || "U";
 

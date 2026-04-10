@@ -2,7 +2,11 @@ import { getAttendanceAlerts } from "@/lib/attendance/getAttendanceAlert";
 import { getTodayWorkforce } from "@/lib/attendance/getTodayWorkForce";
 import { prisma } from "@/db/prisma";
 
-export type Role = "ADMIN" | "HR" | "MANAGER" | "FINANCE" | "EMPLOYEE";
+export type Role =
+  | "SUPER_ADMIN"
+  | "HR_MANAGER"
+  | "PAYROLL_MANAGER"
+  | "EMPLOYEE";
 
 export type AttendanceRow = {
   id: string;
@@ -34,13 +38,11 @@ export function roleBadgeVariant(role: Role) {
 
 export function roleBadgeClass(role: Role) {
   switch (role) {
-    case "ADMIN":
+    case "SUPER_ADMIN":
       return "border-red-200 bg-red-100 text-red-800 hover:bg-red-100";
-    case "HR":
+    case "HR_MANAGER":
       return "border-fuchsia-200 bg-fuchsia-100 text-fuchsia-800 hover:bg-fuchsia-100";
-    case "MANAGER":
-      return "border-amber-200 bg-amber-100 text-amber-800 hover:bg-amber-100";
-    case "FINANCE":
+    case "PAYROLL_MANAGER":
       return "border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100";
     case "EMPLOYEE":
     default:

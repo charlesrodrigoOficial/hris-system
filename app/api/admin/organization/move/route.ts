@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const allowed = ["ADMIN", "HR"];
+  const allowed = ["SUPER_ADMIN", "HR_MANAGER"];
   if (!allowed.includes(String(user.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

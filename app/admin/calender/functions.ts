@@ -5,9 +5,8 @@ import { type CalendarEvent } from "@/lib/calender";
 import type { EventStyle, LegendItem } from "./types";
 
 export const ADMIN_CALENDAR_ROLES = new Set<UserRole>([
-  UserRole.ADMIN,
-  UserRole.HR,
-  UserRole.MANAGER,
+  UserRole.SUPER_ADMIN,
+  UserRole.HR_MANAGER,
 ]);
 
 export const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

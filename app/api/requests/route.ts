@@ -332,7 +332,7 @@ export async function POST(req: Request) {
     }
 
     const hrUsers = await prisma.user.findMany({
-      where: { role: { in: ["HR", "ADMIN"] } },
+      where: { role: { in: ["HR_MANAGER", "SUPER_ADMIN"] } },
       select: { id: true },
     });
 

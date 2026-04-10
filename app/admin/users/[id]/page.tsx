@@ -52,7 +52,12 @@ const AdminUserUpdatePage = async (props: {
     prisma.user.findMany({
       where: {
         role: {
-          in: ["EMPLOYEE", "MANAGER", "HR", "ADMIN"],
+          in: [
+            "EMPLOYEE",
+            "HR_MANAGER",
+            "PAYROLL_MANAGER",
+            "SUPER_ADMIN",
+          ],
         },
       },
       orderBy: { fullName: "asc" },

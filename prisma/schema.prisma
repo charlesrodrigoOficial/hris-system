@@ -121,12 +121,9 @@ enum ReviewStatus {
 }
 
 enum UserRole {
-  ADMIN
-  ANALYST
-  USER
-  HR
-  MANAGER
-  FINANCE
+  SUPER_ADMIN
+  HR_MANAGER
+  PAYROLL_MANAGER
   EMPLOYEE
 }
 
@@ -153,6 +150,24 @@ enum CalendarVisibility {
   COMPANY
   DEPARTMENT
   PERSONAL
+}
+
+enum PayCycleStatus {
+  OPEN
+  CLOSED
+}
+
+enum PayrollRunStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  COMPLETED
+}
+
+enum PayslipStatus {
+  DRAFT
+  PUBLISHED
+  VOIDED
 }
 
 model EmployeeDocument {
@@ -241,7 +256,7 @@ model User {
   emailVerified        DateTime?       @db.Timestamp(6)
   image                String?
   password             String? //for Hash password we can use bcrypt
-  role                 UserRole        @default(USER)
+  role                 UserRole        @default(EMPLOYEE)
   mfaEnabled           Boolean         @default(false)
   permissions          String[]        @default([])
   dateOfBirth          DateTime?       @db.Date
@@ -309,6 +324,13 @@ model User {
   feedReaction           FeedReaction[]
   feedComments           FeedComment[]
   employeeDocuments      EmployeeDocument[]
+  payCyclesCreated       PayCycle[]           @relation("PayCycleCreatedBy")
+  payrollRunsCreated     PayrollRun[]         @relation("PayrollRunCreatedBy")
+  payrollRunEmployees    PayrollRunEmployee[] @relation("PayrollRunEmployeeUser")
+  payrollRunsReviewed    PayrollRunEmployee[] @relation("PayrollRunEmployeeReviewedBy")
+  payslips               Payslip[]            @relation("PayslipEmployee")
+  payrollAuditTriggered  PayrollAuditLog[]    @relation("PayrollAuditActor")
+  payrollAuditOnEmployee PayrollAuditLog[]    @relation("PayrollAuditTargetEmployee")
 
   calendarItems        CalendarItem[] @relation("CalendarUser")
   calendarItemsCreated CalendarItem[] @relation("CalendarCreatedBy")
@@ -632,4 +654,176 @@ model FeedComment {
 
   @@index([postId])
   @@index([userId])
+}
+
+model PayCycle {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  periodStart DateTime       @db.Date @map("period_start")
+  periodEnd   DateTime       @db.Date @map("period_end")
+  payDate     DateTime       @db.Date @map("pay_date")
+  status      PayCycleStatus @default(OPEN)
+  createdById String?        @db.Uuid @map("created_by_id")
+  createdBy   User?          @relation("PayCycleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  payrollRuns PayrollRun[]
+  auditLogs   PayrollAuditLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([periodStart, periodEnd])
+  @@index([payDate])
+  @@index([status])
+  @@map("pay_cycles")
+}
+
+model PayrollRun {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payCycleId  String           @db.Uuid @map("pay_cycle_id")
+  payCycle    PayCycle         @relation(fields: [payCycleId], references: [id], onDelete: Cascade)
+  runNumber   Int              @default(1) @map("run_number")
+  status      PayrollRunStatus @default(DRAFT)
+  startedAt   DateTime?        @map("started_at")
+  reviewedAt  DateTime?        @map("reviewed_at")
+  completedAt DateTime?        @map("completed_at")
+  syncedAt    DateTime?        @map("synced_at")
+  createdById String?          @db.Uuid @map("created_by_id")
+  createdBy   User?            @relation("PayrollRunCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  runEmployees PayrollRunEmployee[]
+  payslips     Payslip[]
+  auditLogs    PayrollAuditLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([payCycleId, runNumber])
+  @@index([status])
+  @@index([payCycleId])
+  @@map("payroll_runs")
+}
+
+model PayrollRunEmployee {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payrollRunId   String      @db.Uuid @map("payroll_run_id")
+  payrollRun     PayrollRun  @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId     String      @db.Uuid @map("employee_id")
+  employee       User        @relation("PayrollRunEmployeeUser", fields: [employeeId], references: [id], onDelete: Cascade)
+  baseSalary     Decimal     @default(0) @db.Decimal(12, 2) @map("base_salary")
+  grossPay       Decimal     @default(0) @db.Decimal(12, 2) @map("gross_pay")
+  taxesTotal     Decimal     @default(0) @db.Decimal(12, 2) @map("taxes_total")
+  deductionsTotal Decimal    @default(0) @db.Decimal(12, 2) @map("deductions_total")
+  netPay         Decimal     @default(0) @db.Decimal(12, 2) @map("net_pay")
+  varianceAmount Decimal     @default(0) @db.Decimal(12, 2) @map("variance_amount")
+  varianceNote   String?     @db.Text @map("variance_note")
+  reviewedAt     DateTime?   @map("reviewed_at")
+  reviewedById   String?     @db.Uuid @map("reviewed_by_id")
+  reviewedBy     User?       @relation("PayrollRunEmployeeReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  payslip Payslip?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([payrollRunId, employeeId])
+  @@index([employeeId])
+  @@index([reviewedById])
+  @@map("payroll_run_employees")
+}
+
+model Payslip {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payrollRunId        String         @db.Uuid @map("payroll_run_id")
+  payrollRun          PayrollRun     @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  payrollRunEmployeeId String?       @unique @db.Uuid @map("payroll_run_employee_id")
+  payrollRunEmployee  PayrollRunEmployee? @relation(fields: [payrollRunEmployeeId], references: [id], onDelete: SetNull)
+  employeeId          String         @db.Uuid @map("employee_id")
+  employee            User           @relation("PayslipEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  payDate             DateTime       @db.Date @map("pay_date")
+  periodStart         DateTime       @db.Date @map("period_start")
+  periodEnd           DateTime       @db.Date @map("period_end")
+  currency            String         @default("GBP")
+  grossPay            Decimal        @default(0) @db.Decimal(12, 2) @map("gross_pay")
+  taxesTotal          Decimal        @default(0) @db.Decimal(12, 2) @map("taxes_total")
+  deductionsTotal     Decimal        @default(0) @db.Decimal(12, 2) @map("deductions_total")
+  netPay              Decimal        @default(0) @db.Decimal(12, 2) @map("net_pay")
+  status              PayslipStatus  @default(DRAFT)
+  pdfUrl              String?        @map("pdf_url")
+  publishedAt         DateTime?      @map("published_at")
+
+  earnings   PayslipEarning[]
+  taxes      PayslipTax[]
+  deductions PayslipDeduction[]
+  auditLogs  PayrollAuditLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([payrollRunId, employeeId])
+  @@index([employeeId, payDate])
+  @@index([status])
+  @@map("payslips")
+}
+
+model PayslipEarning {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payslipId String  @db.Uuid @map("payslip_id")
+  payslip   Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  label     String
+  amount    Decimal @default(0) @db.Decimal(12, 2)
+  sortOrder Int     @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([payslipId])
+  @@map("payslip_earnings")
+}
+
+model PayslipTax {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payslipId String  @db.Uuid @map("payslip_id")
+  payslip   Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  label     String
+  amount    Decimal @default(0) @db.Decimal(12, 2)
+  sortOrder Int     @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([payslipId])
+  @@map("payslip_taxes")
+}
+
+model PayslipDeduction {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payslipId String  @db.Uuid @map("payslip_id")
+  payslip   Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  label     String
+  amount    Decimal @default(0) @db.Decimal(12, 2)
+  sortOrder Int     @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([payslipId])
+  @@map("payslip_deductions")
+}
+
+model PayrollAuditLog {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId    String    @db.Uuid @map("actor_id")
+  actor      User      @relation("PayrollAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+  employeeId String?   @db.Uuid @map("employee_id")
+  employee   User?     @relation("PayrollAuditTargetEmployee", fields: [employeeId], references: [id], onDelete: SetNull)
+  payCycleId String?   @db.Uuid @map("pay_cycle_id")
+  payCycle   PayCycle? @relation(fields: [payCycleId], references: [id], onDelete: SetNull)
+  payrollRunId String? @db.Uuid @map("payroll_run_id")
+  payrollRun PayrollRun? @relation(fields: [payrollRunId], references: [id], onDelete: SetNull)
+  payslipId  String?   @db.Uuid @map("payslip_id")
+  payslip    Payslip?  @relation(fields: [payslipId], references: [id], onDelete: SetNull)
+  action     String
+  details    Json?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([actorId])
+  @@index([employeeId])
+  @@index([payrollRunId])
+  @@index([payslipId])
+  @@map("audit_log")
 }

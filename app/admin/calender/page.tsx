@@ -145,8 +145,8 @@ export default async function AdminCalendarPage({
             departments={departmentOptions}
             users={userOptions}
             canCreateCompanyEvents={
-              session.user.role === UserRole.ADMIN ||
-              session.user.role === UserRole.HR
+              session.user.role === UserRole.SUPER_ADMIN ||
+              session.user.role === UserRole.HR_MANAGER
             }
           />
         </div>

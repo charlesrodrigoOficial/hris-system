@@ -298,7 +298,7 @@ export default async function AdminEmployeeProfilePage({
           <SectionCard id="payroll" title="Payroll">
             {!canSeePayroll ? (
               <p className="text-sm text-muted-foreground">
-                Payroll data is restricted. Only Super Admin and Payroll Admin can
+                Payroll data is restricted. Only Super Admin and Payroll Manager can
                 view or manage compensation details.
               </p>
             ) : (

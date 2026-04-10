@@ -15,7 +15,7 @@ const NameCard = async () => {
   return (
     <NameCardClient
       name={currentUser?.name ?? session.user.name ?? "Employee"}
-      role={currentUser?.role ?? session.user.role ?? "USER"}
+      role={currentUser?.role ?? session.user.role ?? "EMPLOYEE"}
       image={currentUser?.image ?? session.user.image ?? null}
     />
   );

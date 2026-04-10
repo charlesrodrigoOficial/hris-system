@@ -68,7 +68,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const allowed = ["ADMIN", "HR", "MANAGER"];
+    const allowed = ["SUPER_ADMIN", "HR_MANAGER"];
     if (!allowed.includes(actor.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -133,13 +133,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
 
-    if (
-      actor.role === "MANAGER" &&
-      (!current.managerEmployeeId || current.managerEmployeeId !== actor.id)
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
     const canChange = ["PENDING", "PROCESSING"].includes(current.status);
     const shouldSaveDoc =
       canChange && nextStatus === "APPROVED" && approvalDocument;
@@ -201,7 +194,7 @@ export async function PATCH(
               actorFullName?.trim() ||
               actor.name?.trim() ||
               actor.email?.trim() ||
-              "HR";
+              "HR Manager";
 
             await tx.employeeDocument.create({
               data: {

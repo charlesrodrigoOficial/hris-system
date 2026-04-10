@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
   //RBAC
   const role = user.role;
-  const allowed = ["ADMIN", "HR", "MANAGER"];
+  const allowed = ["SUPER_ADMIN", "HR_MANAGER"];
   if (!allowed.includes(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -49,22 +49,6 @@ export async function GET(req: Request) {
   const toDateExclusive = ymdToUTCDate(to);
   toDateExclusive.setUTCDate(toDateExclusive.getUTCDate() + 1);
 
-  //Manager scope (department-only)
-  let managerDeptId: string | null = null;
-  if (role === "MANAGER") {
-    const me = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { departmentId: true },
-    });
-    managerDeptId = me?.departmentId ?? null;
-    if (!managerDeptId) {
-      return NextResponse.json(
-        { error: "Manager department not set" },
-        { status: 400 },
-      );
-    }
-  }
-
   const where: any = {
     date: { gte: fromDate, lt: toDateExclusive },
     ...(status !== "ALL" ? { status } : {}),
@@ -76,9 +60,6 @@ export async function GET(req: Request) {
               { email: { contains: q, mode: "insensitive" } },
             ],
           }
-        : {}),
-      ...(role === "MANAGER"
-        ? { departmentId: managerDeptId }
         : {}),
     },
   };

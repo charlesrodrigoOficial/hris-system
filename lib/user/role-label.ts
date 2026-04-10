@@ -9,10 +9,10 @@ function formatEnumLabel(value: string) {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  ADMIN: "Super Admin",
-  HR: "HR Manager",
-  USER: "Employee",
-  FINANCE: "Payroll Admin",
+  SUPER_ADMIN: "Super Admin",
+  HR_MANAGER: "HR Manager",
+  PAYROLL_MANAGER: "Payroll Manager",
+  EMPLOYEE: "Employee",
 };
 
 export function formatUserRoleLabel(role?: string | null) {

@@ -12,9 +12,9 @@ import { getBaseUrl } from "@/lib/constants";
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN ?? "intelura.com";
 const ALLOWED_ROLES = new Set<UserRole>([
-  UserRole.ADMIN,
-  UserRole.HR,
-  UserRole.FINANCE,
+  UserRole.SUPER_ADMIN,
+  UserRole.HR_MANAGER,
+  UserRole.PAYROLL_MANAGER,
 ]);
 const AUTH_BASE_URL = getBaseUrl();
 

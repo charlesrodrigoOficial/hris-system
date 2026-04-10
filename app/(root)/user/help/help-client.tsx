@@ -106,7 +106,7 @@ const sections: HelpSection[] = [
       {
         question: "Who can see my insights and data?",
         answer:
-          "Visibility depends on roles (Employee, Manager, HR Manager, Super Admin). You can ask HR for details about your organization’s access rules.",
+          "Visibility depends on roles (Employee, Payroll Manager, HR Manager, Super Admin). You can ask HR for details about your organization’s access rules.",
       },
       {
         question: "Can I request to have my data deleted?",
@@ -211,3 +211,4 @@ export default function HelpClient() {
     </div>
   );
 }
+
