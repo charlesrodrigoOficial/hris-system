@@ -7,6 +7,7 @@ import {
   CalendarDays,
   CalendarCheck,
   LayoutDashboard,
+  PanelLeft,
   Settings,
   Wallet,
   ClipboardList,
@@ -77,7 +78,16 @@ function getLinks(role?: string | null): SidebarItem[] {
 }
 
 const sidebarButtonClassName =
-  "grid grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition";
+  "items-center rounded-xl border border-transparent text-left text-sm font-medium transition";
+
+function getSidebarButtonClassName(collapsed: boolean) {
+  return cn(
+    sidebarButtonClassName,
+    collapsed
+      ? "flex justify-center px-2.5 py-2.5"
+      : "grid grid-cols-[16px_1fr] gap-2 px-3 py-2.5"
+  );
+}
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -86,50 +96,61 @@ function isActivePath(pathname: string, href: string) {
 export function AdminSidebarNav({
   role,
   closeOnNavigate = false,
+  collapsed = false,
   className,
 }: {
   role?: string | null;
   closeOnNavigate?: boolean;
+  collapsed?: boolean;
   className?: string;
 }) {
   const pathname = usePathname();
   const links = getLinks(role);
   const [overviewLink, ...remainingLinks] = links;
   const OverviewIcon = overviewLink.icon;
+  const buttonClassName = getSidebarButtonClassName(collapsed);
 
   return (
-    <nav className={cn("flex flex-1 flex-col gap-1 overflow-y-auto", className)}>
+    <nav
+      className={cn(
+        "flex flex-1 flex-col gap-1 overflow-y-auto",
+        collapsed && "items-center",
+        className
+      )}
+    >
       {closeOnNavigate ? (
         <SheetClose asChild>
           <Link
             href={overviewLink.href}
+            title={overviewLink.title}
             className={cn(
-              sidebarButtonClassName,
+              buttonClassName,
               isActivePath(pathname, overviewLink.href)
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
             )}
           >
             <OverviewIcon className="h-4 w-4 shrink-0" />
-            <span>{overviewLink.title}</span>
+            {!collapsed && <span>{overviewLink.title}</span>}
           </Link>
         </SheetClose>
       ) : (
         <Link
           href={overviewLink.href}
+          title={overviewLink.title}
           className={cn(
-            sidebarButtonClassName,
+            buttonClassName,
             isActivePath(pathname, overviewLink.href)
               ? "bg-muted text-foreground"
               : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
           )}
         >
           <OverviewIcon className="h-4 w-4 shrink-0" />
-          <span>{overviewLink.title}</span>
+          {!collapsed && <span>{overviewLink.title}</span>}
         </Link>
       )}
 
-      <div className="space-y-3 pt-3">
+      <div className={cn("space-y-3 pt-3", collapsed && "w-full")}>
         {remainingLinks.map((item) => {
           const active = isActivePath(pathname, item.href);
           const Icon = item.icon;
@@ -138,15 +159,16 @@ export function AdminSidebarNav({
             <Link
               key={item.href}
               href={item.href}
+              title={item.title}
               className={cn(
-                sidebarButtonClassName,
+                buttonClassName,
                 active
                   ? "bg-muted text-foreground"
                   : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.title}</span>
+              {!collapsed && <span>{item.title}</span>}
             </Link>
           );
 
@@ -163,16 +185,41 @@ export function AdminSidebarNav({
   );
 }
 
-export default function Sidebar({ role }: { role?: string | null }) {
+export default function Sidebar({
+  role,
+  collapsed = false,
+  onToggleCollapsed,
+}: {
+  role?: string | null;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
+}) {
   return (
-    <div className="flex h-full flex-col px-4">
+    <div className={cn("flex h-full flex-col", collapsed ? "px-2" : "px-4")}>
       <div className="sticky top-0 z-10 bg-background pb-3">
-        <p className="mb-3 text-center text-base font-semibold text-muted-foreground">
-          Admin Dashboard
-        </p>
+        <div className={cn("mb-3 flex items-center", collapsed ? "justify-center" : "justify-between")}>
+          {!collapsed && (
+            <p className="text-center text-base font-semibold text-muted-foreground">
+              Admin Dashboard
+            </p>
+          )}
+          {onToggleCollapsed ? (
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={cn(
+                "inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900",
+                collapsed && "mx-auto"
+              )}
+            >
+              <PanelLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      <AdminSidebarNav role={role} />
+      <AdminSidebarNav role={role} collapsed={collapsed} />
     </div>
   );
 }

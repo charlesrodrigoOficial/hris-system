@@ -4,7 +4,7 @@ import Link from "next/link";
 import AdminMenu from "@/components/shared/header/admin-menu";
 import MainNav from "./main-nav";
 import { Input } from "@/components/ui/input";
-import Sidebar from "@/components/admin/ui/admin-sidebar";
+import AdminSidebarShell from "@/components/admin/ui/admin-sidebar-shell";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { canAccessAdminArea } from "@/lib/auth/rbac";
@@ -56,10 +56,7 @@ export default async function AdminLayout({
       {/* Body */}
       <div className="min-h-0 flex-1 overflow-hidden">
         <div className="container mx-auto flex h-full gap-6 overflow-hidden">
-          {/* Sidebar */}
-          <aside className="hidden h-full w-56 shrink-0 border-r py-6 md:block">
-            <Sidebar role={session.user.role} />
-          </aside>
+          <AdminSidebarShell role={session.user.role} />
 
           {/* Page content */}
           <main className="min-w-0 flex-1 overflow-y-auto py-6 pr-1">
