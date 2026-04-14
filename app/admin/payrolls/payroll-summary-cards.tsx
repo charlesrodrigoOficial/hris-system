@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import PayrollDonutChart from "./payroll-donut-chart.client";
 
 export type PayrollSummary = {
-  employeesInRun: number;
+  activeUsersInRun: number;
   grossPay: number;
   taxes: number;
   deductions: number;
@@ -47,12 +47,12 @@ export default function PayrollSummaryCards({
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <Users className="h-4 w-4" />
-              Employees in run
+              Active users in run
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tracking-tight">
-              {summary.employeesInRun}
+              {summary.activeUsersInRun}
             </p>
           </CardContent>
         </Card>

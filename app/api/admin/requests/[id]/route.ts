@@ -186,29 +186,31 @@ export async function PATCH(
               },
             });
 
-            const actorFullName =
-              typeof (actor as any)?.fullName === "string"
-                ? String((actor as any).fullName)
-                : null;
-            const uploadedBy =
-              actorFullName?.trim() ||
-              actor.name?.trim() ||
-              actor.email?.trim() ||
-              "HR Manager";
+            if (request.type !== "LEAVE") {
+              const actorFullName =
+                typeof (actor as any)?.fullName === "string"
+                  ? String((actor as any).fullName)
+                  : null;
+              const uploadedBy =
+                actorFullName?.trim() ||
+                actor.name?.trim() ||
+                actor.email?.trim() ||
+                "HR Manager";
 
-            await tx.employeeDocument.create({
-              data: {
-                userId: request.userId,
-                title: `Approval - ${request.title}`,
-                category: "EMPLOYMENT",
-                fileName: savedDoc.originalName,
-                fileUrl: savedDoc.fileUrl,
-                fileType: savedDoc.fileType,
-                fileSize: savedDoc.fileSize ?? undefined,
-                sourceLabel: "Request Approval",
-                uploadedBy,
-              },
-            });
+              await tx.employeeDocument.create({
+                data: {
+                  userId: request.userId,
+                  title: `Approval - ${request.title}`,
+                  category: "EMPLOYMENT",
+                  fileName: savedDoc.originalName,
+                  fileUrl: savedDoc.fileUrl,
+                  fileType: savedDoc.fileType,
+                  fileSize: savedDoc.fileSize ?? undefined,
+                  sourceLabel: "Request Approval",
+                  uploadedBy,
+                },
+              });
+            }
           }
         }
 

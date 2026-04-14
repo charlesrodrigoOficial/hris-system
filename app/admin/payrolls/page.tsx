@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { requireAdminPermission } from "@/lib/auth/guards";
 import PayrollSummaryCards from "./payroll-summary-cards";
 import PayrollWorkspaceTabs from "./payroll-workspace-tabs.client";
 import { getPayrollPageData } from "./payroll-data";
+import PayrollHeaderActions from "./payroll-header-actions.client";
 
 type PayrollRunStatus =
   | "Not started"
@@ -22,9 +22,9 @@ export default async function AdminPayrollsPage() {
   await requireAdminPermission("payroll:manage");
 
   const data = await getPayrollPageData();
-  const runStatus: PayrollRunStatus =
+  const runStatusLabel: PayrollRunStatus =
     data.headerStatus === "Draft" ? "Not started" : data.headerStatus;
-  const statusClass = statusClassByRunStatus[runStatus] ??
+  const statusClass = statusClassByRunStatus[runStatusLabel] ??
     statusClassByRunStatus["Not started"];
 
   return (
@@ -40,23 +40,22 @@ export default async function AdminPayrollsPage() {
               <span>Payroll date: {data.payrollDate}</span>
               <span className="text-muted-foreground/50">|</span>
               <Badge variant="outline" className={statusClass}>
-                {runStatus}
+                {runStatusLabel}
               </Badge>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline">Start Run</Button>
-            <Button variant="outline">Calculate</Button>
-            <Button variant="outline">Review</Button>
-            <Button variant="outline">Export</Button>
-            <Button>Publish Payslips</Button>
-          </div>
+          <PayrollHeaderActions runStatus={data.headerRunStatus} />
         </div>
       </section>
 
       <PayrollSummaryCards summary={data.summary} />
-      <PayrollWorkspaceTabs payRuns={data.payRuns} />
+      <PayrollWorkspaceTabs
+        payRuns={data.payRuns}
+        activePolicy={data.activePolicy}
+        policyHistory={data.policyHistory}
+        canEditPolicy
+      />
     </div>
   );
 }

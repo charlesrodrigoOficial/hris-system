@@ -28,6 +28,7 @@ import {
 } from "./card-shared";
 
 const employmentTypes = Object.values(EmploymentType);
+const currencyOptions = ["GBP", "USD", "EUR", "PKR", "INR", "MYR", "CAD"];
 
 export function EmploymentDetailsCard({
   form,
@@ -113,6 +114,42 @@ export function EmploymentDetailsCard({
                 {employmentTypes.map((employmentType) => (
                   <SelectItem key={employmentType} value={employmentType}>
                     {formatEnumLabel(employmentType)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <TextField
+        form={form}
+        name="salary"
+        label="Monthly salary"
+        placeholder="e.g. 5000"
+        type="number"
+        inputMode="decimal"
+        step="0.01"
+      />
+      <FormField
+        control={form.control}
+        name="currency"
+        render={({ field }) => (
+          <FormItem className="w-full">
+            <FormLabel>Payroll currency</FormLabel>
+            <Select
+              onValueChange={(value) => field.onChange(value)}
+              value={(field.value as string | undefined) || "GBP"}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {currencyOptions.map((currency) => (
+                  <SelectItem key={currency} value={currency}>
+                    {currency}
                   </SelectItem>
                 ))}
               </SelectContent>

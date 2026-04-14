@@ -245,6 +245,25 @@ function toDateOnly(value?: string) {
   return value ? new Date(`${value}T00:00:00.000Z`) : undefined;
 }
 
+function parseSalary(value?: string) {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed.replaceAll(",", "");
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error("Monthly salary must be a valid non-negative number.");
+  }
+
+  return new Prisma.Decimal(parsed);
+}
+
+function normalizeCurrencyCode(value?: string) {
+  const trimmed = String(value ?? "").trim().toUpperCase();
+  if (!trimmed) return "GBP";
+  return trimmed;
+}
+
 function hasEmployeeProfileValues(user: z.infer<typeof updateUserSchema>) {
   return Boolean(
     emptyToNull(user.accountName) ||
@@ -252,6 +271,8 @@ function hasEmployeeProfileValues(user: z.infer<typeof updateUserSchema>) {
       emptyToNull(user.swiftCode) ||
       emptyToNull(user.iban) ||
       emptyToNull(user.sortCode) ||
+      user.salary ||
+      user.currency ||
       emptyToNull(user.workEligibility) ||
       emptyToNull(user.position) ||
       user.departmentId ||
@@ -375,6 +396,8 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
     const dreamTravelDestination = emptyToNull(user.dreamTravelDestination);
     const address = emptyToNull(user.address);
     const postCode = emptyToNull(user.postCode);
+    const salary = parseSalary(user.salary);
+    const currency = normalizeCurrencyCode(user.currency);
     const normalizedEmail = user.email.trim().toLowerCase();
     const displayName =
       formatDisplayName(firstName, lastName, existingUser.name) ??
@@ -421,6 +444,8 @@ export async function updateUser(user: z.infer<typeof updateUserSchema>) {
         swiftCode: emptyToNull(user.swiftCode),
         iban: emptyToNull(user.iban),
         sortCode: emptyToNull(user.sortCode),
+        salary,
+        currency,
         workEligibility: emptyToNull(user.workEligibility),
         position: emptyToNull(user.position),
         departmentId: user.departmentId || null,

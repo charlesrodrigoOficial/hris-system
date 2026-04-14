@@ -43,7 +43,8 @@ export default async function UserDocumentPage(props: {
   const { view } = await props.searchParams;
   const activeView: DocumentView = view === "company" ? "company" : "my";
 
-  const [myDocumentRecords, companyDocumentRecords] = await Promise.all([
+  const [myDocumentRecordsRaw, companyDocumentRecords, leaveRequests] =
+    await Promise.all([
     prisma.employeeDocument.findMany({
       where: {
         userId: session.user.id,
@@ -77,7 +78,38 @@ export default async function UserDocumentPage(props: {
         createdAt: "desc",
       },
     }),
+    prisma.request.findMany({
+      where: {
+        userId: session.user.id,
+        type: "LEAVE",
+      },
+      select: {
+        title: true,
+      },
+    }),
   ]);
+
+  const leaveApprovalTitles = new Set(
+    leaveRequests
+      .map((request) => request.title?.trim())
+      .filter((title): title is string => Boolean(title))
+      .map((title) => `Approval - ${title}`),
+  );
+
+  const myDocumentRecords = myDocumentRecordsRaw.filter((document) => {
+    const source = document.sourceLabel?.trim();
+    const title = document.title?.trim() || "";
+
+    if (source === "Time Off") {
+      return false;
+    }
+
+    if (source === "Request Approval" && leaveApprovalTitles.has(title)) {
+      return false;
+    }
+
+    return true;
+  });
 
   const myDocuments = myDocumentRecords.map(mapEmployeeDocumentToItem);
   const companyDocuments = companyDocumentRecords.map(mapCompanyDocumentToItem);

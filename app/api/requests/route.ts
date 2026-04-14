@@ -289,7 +289,7 @@ export async function POST(req: Request) {
           attachmentType: "MANAGER_APPROVAL",
         });
 
-        if (created.type === "SUPPORT" || created.type === "LEAVE") {
+        if (created.type === "SUPPORT") {
           try {
             const uploadedBy =
               session.user.name?.trim() ||
@@ -305,8 +305,7 @@ export async function POST(req: Request) {
                 fileUrl: attachment.fileUrl,
                 fileType: attachment.fileType ?? null,
                 fileSize: attachment.fileSize ?? null,
-                sourceLabel:
-                  created.type === "SUPPORT" ? "Support Request" : "Time Off",
+                sourceLabel: "Support Request",
                 uploadedBy,
               },
             });

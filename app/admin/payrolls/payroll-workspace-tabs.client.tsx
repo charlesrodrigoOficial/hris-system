@@ -12,6 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PayrollPolicyEditor from "./payroll-policy-editor.client";
+import type {
+  PayrollPolicyHistoryRow,
+  PayrollPolicyView,
+} from "./payroll-policy.types";
 
 type PayRunStatus = "Draft" | "In progress" | "Ready for review" | "Published";
 type EmployeePayrollStatus = "Ready" | "Missing data" | "Requires review";
@@ -23,7 +28,7 @@ export type PayRunRow = {
   id: string;
   runName: string;
   payPeriod: string;
-  employees: number;
+  activeUsers: number;
   grossPay: number;
   netPay: number;
   status: "Draft" | "In progress" | "Ready for review" | "Published";
@@ -123,7 +128,7 @@ const auditEvents: Array<{
   {
     timestamp: "Apr 13, 2026 08:52",
     actor: "HR Admin",
-    action: "Updated bank details for 2 employees",
+    action: "Updated bank details for 2 active users",
     severity: "Warning",
   },
   {
@@ -193,7 +198,17 @@ function StatusBadge({
   );
 }
 
-export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[] }) {
+export default function PayrollWorkspaceTabs({
+  payRuns,
+  activePolicy,
+  policyHistory,
+  canEditPolicy,
+}: {
+  payRuns: PayRunRow[];
+  activePolicy: PayrollPolicyView | null;
+  policyHistory: PayrollPolicyHistoryRow[];
+  canEditPolicy: boolean;
+}) {
   return (
     <Card className="rounded-2xl">
       <CardHeader className="pb-3">
@@ -205,8 +220,8 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
             <TabsTrigger value="pay-runs" className="rounded-lg">
               Pay Runs
             </TabsTrigger>
-            <TabsTrigger value="employees" className="rounded-lg">
-              Employees
+            <TabsTrigger value="active-users" className="rounded-lg">
+              Active users
             </TabsTrigger>
             <TabsTrigger value="pay-cycles" className="rounded-lg">
               Pay Cycles
@@ -217,6 +232,9 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
             <TabsTrigger value="audit" className="rounded-lg">
               Audit
             </TabsTrigger>
+            <TabsTrigger value="policy" className="rounded-lg">
+              Policy
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pay-runs">
@@ -225,7 +243,7 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
                 <TableRow>
                   <TableHead>Run name</TableHead>
                   <TableHead>Pay period</TableHead>
-                  <TableHead className="text-right">Employees</TableHead>
+                  <TableHead className="text-right">Active users</TableHead>
                   <TableHead className="text-right">Gross pay</TableHead>
                   <TableHead className="text-right">Net pay</TableHead>
                   <TableHead>Status</TableHead>
@@ -238,7 +256,7 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
                   <TableRow key={run.runName}>
                     <TableCell className="font-medium">{run.runName}</TableCell>
                     <TableCell>{run.payPeriod}</TableCell>
-                    <TableCell className="text-right">{run.employees}</TableCell>
+                    <TableCell className="text-right">{run.activeUsers}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(run.grossPay)}
                     </TableCell>
@@ -284,11 +302,11 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
             </Table>
           </TabsContent>
 
-          <TabsContent value="employees">
+          <TabsContent value="active-users">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
+                  <TableHead>Active user</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Payroll change</TableHead>
                   <TableHead>Status</TableHead>
@@ -384,6 +402,14 @@ export default function PayrollWorkspaceTabs({ payRuns }: { payRuns: PayRunRow[]
                 ))}
               </TableBody>
             </Table>
+          </TabsContent>
+
+          <TabsContent value="policy">
+            <PayrollPolicyEditor
+              activePolicy={activePolicy}
+              history={policyHistory}
+              canEdit={canEditPolicy}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

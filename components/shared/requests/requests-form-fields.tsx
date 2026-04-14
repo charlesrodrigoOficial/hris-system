@@ -267,6 +267,26 @@ export default function RequestFormFields({
               onChange={(e) => setSupportAdditionalNotes(e.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label>Supporting Document (Optional)</Label>
+            <Input
+              className="rounded-xl"
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.webp"
+              onChange={(e) =>
+                setSupportingDocument(e.target.files?.[0] ?? null)
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Upload any related document or screenshot for this support request.
+            </p>
+            {supportingDocument && (
+              <p className="text-xs text-muted-foreground">
+                Selected file: {supportingDocument.name}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -356,7 +376,7 @@ export default function RequestFormFields({
           </div>
 
           <div className="space-y-2">
-            <Label>Supporting Document</Label>
+            <Label>Supporting Document (Optional)</Label>
             <Input
               className="rounded-xl"
               type="file"
@@ -366,8 +386,7 @@ export default function RequestFormFields({
               }
             />
             <p className="text-xs text-muted-foreground">
-              Upload the email or chat screenshot that includes your manager's
-              acceptance.
+              Upload your manager approval email/chat screenshot if available.
             </p>
             {supportingDocument && (
               <p className="text-xs text-muted-foreground">

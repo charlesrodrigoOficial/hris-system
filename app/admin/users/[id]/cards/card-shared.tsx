@@ -90,6 +90,8 @@ export function TextField({
   placeholder,
   type = "text",
   disabled = false,
+  inputMode,
+  step,
 }: {
   form: UseFormReturn<UpdateUserFormValues>;
   name: keyof UpdateUserFormValues;
@@ -97,6 +99,8 @@ export function TextField({
   placeholder?: string;
   type?: string;
   disabled?: boolean;
+  inputMode?: React.InputHTMLAttributes<HTMLInputElement>["inputMode"];
+  step?: React.InputHTMLAttributes<HTMLInputElement>["step"];
 }) {
   return (
     <FormField
@@ -111,6 +115,8 @@ export function TextField({
               type={type}
               disabled={disabled}
               placeholder={placeholder}
+              inputMode={inputMode}
+              step={step}
               value={(field.value as string | null | undefined) ?? ""}
             />
           </FormControl>

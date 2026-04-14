@@ -49,7 +49,6 @@ export default async function EditEmployeePage({
       swiftCode: true,
       iban: true,
       sortCode: true,
-      salary: true,
     },
   });
 
@@ -213,16 +212,6 @@ export default async function EditEmployeePage({
               className="grid gap-4 md:grid-cols-2"
             >
               <input type="hidden" name="id" value={employee.id} />
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Salary</label>
-                <Input
-                  name="salary"
-                  defaultValue={employee.salary?.toString() ?? ""}
-                  placeholder="e.g. 5000"
-                  inputMode="decimal"
-                />
-              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Account name</label>

@@ -44,6 +44,10 @@ export default function RequestsPageClient({
   timeOffSummary = null,
 }: Props) {
   const leaveOnly = allowedTypes.length === 1 && allowedTypes[0] === "LEAVE";
+  const allowedTypeSet = React.useMemo(
+    () => new Set<RequestType>(allowedTypes),
+    [allowedTypes],
+  );
   const defaultType = allowedTypes[0] ?? initialType;
   const [open, setOpen] = React.useState(false);
   const [rows, setRows] = React.useState<RequestRow[]>([]);
@@ -89,7 +93,7 @@ export default function RequestsPageClient({
     setError(null);
     try {
       const data = await fetchRequests();
-      setRows(leaveOnly ? data.filter((row) => row.type === "LEAVE") : data);
+      setRows(data.filter((row) => allowedTypeSet.has(row.type)));
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong");
       setRows([]);
@@ -100,7 +104,7 @@ export default function RequestsPageClient({
 
   React.useEffect(() => {
     load();
-  }, []);
+  }, [allowedTypeSet]);
 
   React.useEffect(() => {
     if (!focusRequestId || hasFocused || loading) return;

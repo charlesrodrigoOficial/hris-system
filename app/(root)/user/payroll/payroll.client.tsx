@@ -7,212 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
+import type { PayStubLine, UserPayStub } from "./payroll-data";
+import {
+  formatFullDate,
+  formatMoney,
+  formatShortRange,
+  getInitials,
+  getYtdTotals,
+  monthName,
+  normalizePayStubs,
+  safeCurrency,
+} from "./payroll-client.utils";
 import PayrollDonutChart from "./payroll-donut-chart.client";
 
 type UserPayrollView = {
   name: string;
   image: string | null;
   currency: string;
-  salary: number | null;
 };
-
-type PayStubLine = {
-  label: string;
-  current: number;
-  ytd: number;
-};
-
-type PayStub = {
-  id: string;
-  year: number;
-  monthIndex: number; // 0..11
-  payDate: Date;
-  periodStart: Date;
-  periodEnd: Date;
-  gross: number;
-  net: number;
-  taxes: number;
-  deductions: number;
-  timeOffDays: number;
-  lines: {
-    earnings: PayStubLine[];
-    taxes: PayStubLine[];
-    deductions: PayStubLine[];
-    timeOff: PayStubLine[];
-  };
-};
-
-function safeCurrency(code: string) {
-  const trimmed = String(code || "").trim().toUpperCase();
-  return trimmed || "GBP";
-}
-
-function formatMoney(amount: number, currency: string) {
-  const value = Number.isFinite(amount) ? amount : 0;
-  const code = safeCurrency(currency);
-  try {
-    return new Intl.NumberFormat("en-GB", {
-      style: "currency",
-      currency: code,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  } catch {
-    return `${value.toFixed(2)} ${code}`;
-  }
-}
-
-function formatFullDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatShortRange(start: Date, end: Date) {
-  const fmt = new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-  return `${fmt.format(start)} - ${fmt.format(end)}`;
-}
-
-function monthName(monthIndex: number) {
-  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(
-    new Date(2025, monthIndex, 1),
-  );
-}
-
-function buildPayStubs({
-  salary,
-  years,
-}: {
-  salary: number;
-  years: number[];
-}): PayStub[] {
-  const stubs: PayStub[] = [];
-  const grossMonthly = Math.max(0, salary);
-
-  for (const year of years) {
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      // pay period: 01..14, pay date: 16
-      const periodStart = new Date(year, monthIndex, 1);
-      const periodEnd = new Date(year, monthIndex, 14);
-      const payDate = new Date(year, monthIndex, 16);
-
-      const overtime = ((monthIndex % 3) + 1) * 250;
-      const bonus = monthIndex === 11 ? 1500 : monthIndex === 5 ? 800 : 0;
-      const commission = monthIndex % 2 === 0 ? 500 : 250;
-      const gross = grossMonthly + overtime + bonus + commission;
-
-      const taxes = gross * 0.247;
-      const deductions = gross * 0.152;
-      const net = Math.max(0, gross - taxes - deductions);
-
-      const timeOffDays = monthIndex % 4 === 0 ? 2 : monthIndex % 4 === 1 ? 1 : 0;
-
-      stubs.push({
-        id: `${year}-${monthIndex + 1}`,
-        year,
-        monthIndex,
-        payDate,
-        periodStart,
-        periodEnd,
-        gross,
-        net,
-        taxes,
-        deductions,
-        timeOffDays,
-        lines: {
-          earnings: [
-            { label: "Base salary", current: grossMonthly, ytd: 0 },
-            { label: "Overtime", current: overtime, ytd: 0 },
-            { label: "Bonus", current: bonus, ytd: 0 },
-            { label: "Commission", current: commission, ytd: 0 },
-          ],
-          taxes: [
-            { label: "PAYE / Income tax", current: taxes * 0.78, ytd: 0 },
-            { label: "National Insurance", current: taxes * 0.22, ytd: 0 },
-          ],
-          deductions: [
-            { label: "Pension", current: deductions * 0.5, ytd: 0 },
-            { label: "Health insurance", current: deductions * 0.25, ytd: 0 },
-            { label: "Other", current: deductions * 0.25, ytd: 0 },
-          ],
-          timeOff: [
-            {
-              label: "Time off taken",
-              current: timeOffDays,
-              ytd: 0,
-            },
-          ],
-        },
-      });
-    }
-  }
-
-  // add YTD numbers per year
-  const byYear = new Map<number, PayStub[]>();
-  for (const stub of stubs) {
-    byYear.set(stub.year, [...(byYear.get(stub.year) ?? []), stub]);
-  }
-
-  for (const [year, yearStubs] of byYear.entries()) {
-    yearStubs.sort((a, b) => a.monthIndex - b.monthIndex);
-
-    const running = {
-      earnings: new Map<string, number>(),
-      taxes: new Map<string, number>(),
-      deductions: new Map<string, number>(),
-      timeOff: new Map<string, number>(),
-    };
-
-    for (const stub of yearStubs) {
-      for (const section of Object.keys(stub.lines) as Array<
-        keyof PayStub["lines"]
-      >) {
-        for (const line of stub.lines[section]) {
-          const bucket = running[section];
-          const prev = bucket.get(line.label) ?? 0;
-          bucket.set(line.label, prev + line.current);
-          line.ytd = bucket.get(line.label) ?? 0;
-        }
-      }
-    }
-  }
-
-  return stubs.sort((a, b) => b.payDate.getTime() - a.payDate.getTime());
-}
-
-function getInitials(name: string) {
-  const parts = String(name || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  const first = parts[0]?.[0] ?? "U";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return `${first}${last}`.toUpperCase();
-}
-
-function getYtdTotals(payStubs: PayStub[], selected: PayStub) {
-  const yearStubs = payStubs
-    .filter((s) => s.year === selected.year && s.monthIndex <= selected.monthIndex)
-    .sort((a, b) => a.monthIndex - b.monthIndex);
-
-  return yearStubs.reduce(
-    (acc, stub) => {
-      acc.gross += stub.gross;
-      acc.net += stub.net;
-      acc.taxes += stub.taxes;
-      acc.deductions += stub.deductions;
-      acc.timeOffDays += stub.timeOffDays;
-      return acc;
-    },
-    { gross: 0, net: 0, taxes: 0, deductions: 0, timeOffDays: 0 },
-  );
-}
 
 function LineTable({
   currency,
@@ -254,34 +66,55 @@ function LineTable({
   );
 }
 
-export default function PayrollClient({ user }: { user: UserPayrollView }) {
+export default function PayrollClient({
+  user,
+  payStubs,
+}: {
+  user: UserPayrollView;
+  payStubs: UserPayStub[];
+}) {
   const currency = safeCurrency(user.currency);
-  const salaryFallback = 15500;
-  const baseSalary = Number.isFinite(user.salary ?? NaN)
-    ? Math.max(0, user.salary as number)
-    : salaryFallback;
 
-  const currentYear = new Date().getFullYear();
-  const years = React.useMemo(() => [currentYear, currentYear - 1], [currentYear]);
-
-  const payStubs = React.useMemo(
-    () => buildPayStubs({ salary: baseSalary, years }),
-    [baseSalary, years],
+  const normalizedPayStubs = React.useMemo(
+    () => normalizePayStubs(payStubs),
+    [payStubs],
   );
 
-  const [selectedId, setSelectedId] = React.useState(payStubs[0]?.id ?? "");
+  const [selectedId, setSelectedId] = React.useState(
+    normalizedPayStubs[0]?.id ?? "",
+  );
+
+  React.useEffect(() => {
+    if (!normalizedPayStubs.length) {
+      setSelectedId("");
+      return;
+    }
+
+    if (!selectedId || !normalizedPayStubs.some((s) => s.id === selectedId)) {
+      setSelectedId(normalizedPayStubs[0].id);
+    }
+  }, [normalizedPayStubs, selectedId]);
+
   const selected = React.useMemo(
-    () => payStubs.find((s) => s.id === selectedId) ?? payStubs[0],
-    [payStubs, selectedId],
+    () =>
+      normalizedPayStubs.find((stub) => stub.id === selectedId) ??
+      normalizedPayStubs[0],
+    [normalizedPayStubs, selectedId],
   );
 
   const [viewMode, setViewMode] = React.useState<"current" | "ytd">("current");
 
-  if (!selected) return null;
+  if (!selected) {
+    return (
+      <div className="rounded-2xl border bg-background p-6 text-sm text-muted-foreground">
+        No published payslips yet.
+      </div>
+    );
+  }
 
   const ytdTotals = React.useMemo(
-    () => getYtdTotals(payStubs, selected),
-    [payStubs, selected],
+    () => getYtdTotals(normalizedPayStubs, selected),
+    [normalizedPayStubs, selected],
   );
 
   const totals = viewMode === "ytd" ? ytdTotals : selected;
@@ -292,9 +125,9 @@ export default function PayrollClient({ user }: { user: UserPayrollView }) {
     { name: "Deductions", value: totals.deductions, color: "#e11d48" },
   ];
 
-  const yearsInHistory = Array.from(new Set(payStubs.map((s) => s.year))).sort(
-    (a, b) => b - a,
-  );
+  const yearsInHistory = Array.from(
+    new Set(normalizedPayStubs.map((stub) => stub.year)),
+  ).sort((a, b) => b - a);
 
   return (
     <div className="space-y-6">
@@ -318,9 +151,9 @@ export default function PayrollClient({ user }: { user: UserPayrollView }) {
               Pay history
             </div>
             {yearsInHistory.map((year) => {
-              const stubsByYear = payStubs
-                .filter((s) => s.year === year)
-                .sort((a, b) => b.monthIndex - a.monthIndex);
+              const stubsByYear = normalizedPayStubs
+                .filter((stub) => stub.year === year)
+                .sort((a, b) => b.payDate.getTime() - a.payDate.getTime());
 
               return (
                 <div key={year} className="space-y-2">

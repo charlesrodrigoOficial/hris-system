@@ -116,6 +116,8 @@ const AdminUserUpdatePage = async (props: {
     orgLevel: user.orgLevel ?? "",
     managerId: user.managerId ?? "",
     secondLevelManagerId: user.secondLevelManagerId ?? "",
+    salary: user.salary?.toString() ?? "",
+    currency: user.currency ?? "GBP",
     employeeId: user.id,
   };
 

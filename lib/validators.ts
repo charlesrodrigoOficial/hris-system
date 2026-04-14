@@ -44,6 +44,19 @@ const optionalAdminDate = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
   .or(z.literal(""))
   .optional();
+const optionalSalary = z
+  .string()
+  .trim()
+  .regex(
+    /^$|^\d{1,9}(\.\d{1,2})?$/,
+    "Enter a valid monthly salary (up to 2 decimal places)",
+  )
+  .optional();
+const optionalCurrencyCode = z
+  .string()
+  .trim()
+  .regex(/^$|^[A-Za-z]{3}$/, "Use a 3-letter currency code (e.g. GBP)")
+  .optional();
 const optionalUuid = z
   .string()
   .uuid("Select a valid option")
@@ -108,6 +121,8 @@ export const updateUserSchema = z
   orgLevel: optionalAdminText,
   managerId: optionalUuid,
   secondLevelManagerId: optionalUuid,
+  salary: optionalSalary,
+  currency: optionalCurrencyCode,
 })
   .superRefine((data, ctx) => {
     if (

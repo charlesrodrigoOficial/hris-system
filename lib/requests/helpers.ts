@@ -197,9 +197,6 @@ export function validateRequest(input: {
     if (new Date(endDate).getTime() < new Date(startDate).getTime()) {
       return "End date must be after start date.";
     }
-    if (!supportingDocument || supportingDocument.size === 0) {
-      return "Please upload the manager approval document.";
-    }
   }
 
   if (type === "CLAIM") {
