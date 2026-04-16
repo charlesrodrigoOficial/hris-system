@@ -2,16 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Building2,
-  CalendarCheck,
-  CalendarDays,
-  Shield,
-  User,
-  Users,
-  Wallet,
-} from "lucide-react";
-import { adminHomePath, canAccessAdminArea, hasPermission, isPayrollAdmin, isSuperAdmin } from "@/lib/auth/rbac";
+import { Shield, User } from "lucide-react";
 
 type SettingsTile = {
   title: string;
@@ -28,74 +19,12 @@ const settingsItems = [
     description: "Personal and contact details",
   },
   {
-    title: "Payroll settings",
-    href: "/user/profile/edit?section=banking",
-    Icon: Wallet,
-    description: "Banking & payroll details",
-  },
-  {
     title: "Security settings",
     href: "/user/profile/edit#security",
     Icon: Shield,
     description: "Password & account security",
   },
 ] satisfies SettingsTile[];
-
-const adminSettingsItems = [
-  {
-    title: "Company settings",
-    href: "/admin/organization",
-    Icon: Building2,
-    description: "Company structure & org data",
-  },
-  {
-    title: "User and Role Management",
-    href: "/admin/users",
-    Icon: Users,
-    description: "Users, roles, and permissions",
-  },
-  {
-    title: "Attendance settings",
-    href: "/admin/attendance",
-    Icon: CalendarCheck,
-    description: "Attendance tracking configuration",
-  },
-  {
-    title: "Calender & event settings",
-    href: "/admin/calender",
-    Icon: CalendarDays,
-    description: "Company events and schedules",
-  },
-  ] satisfies SettingsTile[];
-
-function adminTilesForRole(role?: string | null) {
-  const tiles: SettingsTile[] = [];
-
-  if (isPayrollAdmin(role) || isSuperAdmin(role)) {
-    tiles.push({
-      title: "Payroll settings",
-      href: "/admin/payrolls",
-      Icon: Wallet,
-      description: "Payroll runs, schedules, and exports",
-    });
-  }
-
-  if (hasPermission(role, "org:manage")) tiles.push(adminSettingsItems[0]);
-  if (isSuperAdmin(role)) tiles.push(adminSettingsItems[1]);
-  if (hasPermission(role, "attendance:review")) tiles.push(adminSettingsItems[2]);
-  if (hasPermission(role, "calendar:manage")) tiles.push(adminSettingsItems[3]);
-
-  if (canAccessAdminArea(role)) {
-    tiles.unshift({
-      title: "Admin dashboard",
-      href: adminHomePath(role),
-      Icon: Shield,
-      description: "Administration & operations",
-    });
-  }
-
-  return tiles;
-}
 
 function SettingsTiles({
   items,
@@ -131,11 +60,6 @@ export default async function UserSettingsPage() {
     redirect("/sign-in");
   }
 
-  const role = (session.user as any)?.role as string | undefined;
-  const allItems = canAccessAdminArea(role)
-    ? [...settingsItems, ...adminTilesForRole(role)]
-    : settingsItems;
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Card className="rounded-lg border-slate-200 bg-white/80 shadow-sm">
@@ -143,7 +67,7 @@ export default async function UserSettingsPage() {
           <CardTitle className="text-2xl">Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          <SettingsTiles items={allItems} />
+          <SettingsTiles items={settingsItems} />
         </CardContent>
       </Card>
     </div>
