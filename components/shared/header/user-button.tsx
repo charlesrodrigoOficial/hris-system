@@ -44,7 +44,7 @@ const UserButton = async () => {
           <div className="flex items-center">
             <Button
               variant="ghost"
-              className="relative ml-2 h-8 w-8 overflow-hidden rounded-full bg-gray-200 p-0"
+              className="relative ml-2 h-8 w-8 overflow-hidden rounded-full border border-[#93C5FD]/60 bg-white/12 p-0 text-white hover:bg-white/20"
             >
               {displayImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -54,7 +54,7 @@ const UserButton = async () => {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-700">
+                <span className="flex h-full w-full items-center justify-center text-sm font-semibold text-white">
                   {firstInitial}
                 </span>
               )}
@@ -74,8 +74,8 @@ const UserButton = async () => {
           </DropdownMenuLabel>
 
           <DropdownMenuItem>
-            <Link href="/user/profile/edit" className="w-full">
-              Edit Profile
+            <Link href="/user/profile" className="w-full">
+              Profile
             </Link>
           </DropdownMenuItem>
 

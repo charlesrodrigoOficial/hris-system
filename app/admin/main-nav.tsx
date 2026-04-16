@@ -50,8 +50,8 @@ const MainNav = ({
             key={item.href}
             href={item.href}
             className={cn(
-              "text-sm font-medium transition-colors hover:text-primary",
-              active ? "text-foreground" : "text-muted-foreground"
+              "text-sm font-medium transition-colors hover:text-white",
+              active ? "text-white" : "text-[#DBEAFE]/85"
             )}
           >
             {item.title}

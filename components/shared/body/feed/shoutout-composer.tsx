@@ -52,23 +52,32 @@ export default function ShoutoutComposer({
   const [options, setOptions] = useState<string[]>(["", ""]);
 
   return (
-    <div className="space-y-3 rounded-lg border border-slate-300/70 bg-gradient-to-b from-white via-slate-50 to-white p-4 text-slate-950 shadow-lg">
+    <div className="space-y-3 rounded-2xl border border-[#BFDBFE] bg-gradient-to-b from-white via-[#F8FAFF] to-[#DBEAFE]/35 p-4 text-[#0F172A] shadow-[0_16px_34px_-26px_rgba(29,78,216,0.45)]">
       {/* Shoutout */}
       <form action={action} className="flex items-center gap-3">
         <input type="hidden" name="type" value="SHOUTOUT" />
-        <Input name="content" placeholder="Post a Shoutout" className="text-xs" />
-        <Button type="submit" className="text-xs">Post</Button>
+        <Input
+          name="content"
+          placeholder="Post a Shoutout"
+          className="border-[#BFDBFE] bg-white text-xs placeholder:text-[#64748B]"
+        />
+        <Button
+          type="submit"
+          className="bg-[#0B1F5F] text-xs text-white hover:bg-[#132f86]"
+        >
+          Post
+        </Button>
       </form>
       <Msg state={state} />
 
       {/* Actions row */}
-      <div className="flex items-center justify-between border-t border-slate-300/70 pt-3">
+      <div className="flex items-center justify-between border-t border-[#BFDBFE] pt-3">
         {/* Kudos */}
         <Dialog open={kudosOpen} onOpenChange={setKudosOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
-              className="gap-2 text-xs text-slate-900 hover:bg-slate-200 hover:text-black"
+              className="gap-2 text-xs text-[#0B1F5F] hover:bg-[#DBEAFE]/70 hover:text-[#0B1F5F]"
             >
               🏆 Give Kudos
             </Button>
@@ -102,7 +111,7 @@ export default function ShoutoutComposer({
           <DialogTrigger asChild>
             <Button
               variant="ghost"
-              className="gap-2 text-xs text-slate-900 hover:bg-slate-200 hover:text-black"
+              className="gap-2 text-xs text-[#0B1F5F] hover:bg-[#DBEAFE]/70 hover:text-[#0B1F5F]"
             >
               📊 Create a poll
             </Button>

@@ -132,8 +132,8 @@ export default function PayrollClient({
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        <aside className="space-y-6">
-          <div className="flex items-center gap-3 px-1">
+        <aside className="space-y-6 lg:sticky lg:top-4 lg:self-start lg:flex lg:max-h-[calc(100vh-96px)] lg:flex-col">
+          <div className="flex items-center gap-3 bg-transparent px-0 shadow-none">
             <Avatar className="h-12 w-12">
               {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
               <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
@@ -146,7 +146,7 @@ export default function PayrollClient({
             </div>
           </div>
 
-          <div className="space-y-4 px-1">
+          <div className="space-y-4 px-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
             <div className="text-sm font-semibold text-muted-foreground">
               Pay history
             </div>

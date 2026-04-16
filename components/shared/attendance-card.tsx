@@ -212,9 +212,9 @@ export function AttendanceCard() {
   }, [attendance]);
 
   return (
-    <Card className="relative w-full overflow-hidden rounded-lg border border-sky-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.96),_rgba(224,242,254,0.94)_28%,_rgba(191,219,254,0.9)_62%,_rgba(147,197,253,0.92)_100%)] p-3 text-slate-900 shadow-[0_18px_44px_-30px_rgba(29,78,216,0.32)]">
+    <Card className="relative w-full overflow-hidden rounded-2xl border border-[#BFDBFE] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.98),_rgba(219,234,254,0.92)_30%,_rgba(191,219,254,0.9)_62%,_rgba(147,197,253,0.9)_100%)] p-3 text-[#0F172A] shadow-[0_18px_44px_-30px_rgba(11,31,95,0.35)]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base font-semibold bg-gradient-to-r from-sky-700 via-blue-700 to-cyan-600 bg-clip-text text-transparent">
+        <CardTitle className="text-base font-semibold bg-gradient-to-r from-[#0B1F5F] via-[#1D4ED8] to-[#1D4ED8] bg-clip-text text-transparent">
           Attendance
         </CardTitle>
 
@@ -223,7 +223,7 @@ export function AttendanceCard() {
             {statusLabel(attendance.status)}
           </Badge>
         ) : (
-          <Badge variant="secondary">Not marked</Badge>
+          <Badge className="border border-[#BFDBFE] bg-white/90 text-[#0B1F5F]" variant="secondary">Not marked</Badge>
         )}
       </CardHeader>
 
@@ -236,14 +236,14 @@ export function AttendanceCard() {
 
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="dashboard-gradient-soft rounded-md p-3">
-            <div className="text-slate-700">Check in</div>
+            <div className="text-[#64748B]">Check in</div>
             <div className="mt-1 font-medium">
               {formatTime(attendance?.checkIn ?? null)}
             </div>
           </div>
 
           <div className="dashboard-gradient-soft rounded-md p-3">
-            <div className="text-slate-700">Check out</div>
+            <div className="text-[#64748B]">Check out</div>
             <div className="mt-1 font-medium">
               {formatTime(attendance?.checkOut ?? null)}
             </div>
@@ -253,7 +253,7 @@ export function AttendanceCard() {
         {/* Work mode selector shown only before check-in */}
         {state === "NO_RECORD" && (
           <div className="space-y-2">
-            <div className="text-xs text-slate-600">Work mode</div>
+            <div className="text-xs text-[#64748B]">Work mode</div>
             <RadioGroup
               value={workMode}
               onValueChange={(v) => setWorkMode(v as WorkMode)}
@@ -286,7 +286,7 @@ export function AttendanceCard() {
             </Button>
           ) : state === "NO_RECORD" ? (
             <Button
-              className="w-full text-xs"
+              className="w-full bg-[#0B1F5F] text-xs text-white hover:bg-[#132f86]"
               onClick={checkIn}
               disabled={actionLoading !== null}
             >

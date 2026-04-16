@@ -34,24 +34,28 @@ export default function NameCardClient({
       <div
         className="tilt-card relative flex-1 overflow-hidden rounded-lg p-6 text-white sm:p-8 md:p-10"
       >
-        <div className="relative z-10 pr-0 md:pr-[290px]">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border border-sky-200/50 shadow-sm">
+        <div
+          className="relative z-10 pr-0 md:pr-[290px]"
+          style={{ transform: "none" }}
+        >
+          <div className="flex items-start gap-4">
+            <Avatar className="h-16 w-16 border border-[#BFDBFE]/70 shadow-sm sm:h-20 sm:w-20">
               <AvatarImage src={image ?? undefined} alt={displayName} />
-              <AvatarFallback className="bg-sky-500/25 text-xs text-white">
+              <AvatarFallback className="bg-[#1D4ED8]/30 text-sm text-white">
                 {displayName?.[0] ?? "U"}
               </AvatarFallback>
             </Avatar>
-            <p className="text-lg font-medium tracking-wide opacity-90">
-              Hi {displayName}
-            </p>
+            <div className="min-w-0 flex-1 subpixel-antialiased [text-rendering:geometricPrecision]">
+              <p className="text-2xl font-extrabold tracking-tight text-white [text-shadow:0_1px_1px_rgba(2,6,23,0.4)] sm:text-3xl md:text-4xl">
+                Hi {displayName}
+              </p>
+              <h1 className="mt-1 text-lg font-normal leading-tight text-[#DBEAFE]/85 [text-shadow:0_1px_0_rgba(2,6,23,0.28)] sm:text-xl md:text-2xl">
+                Glad you&apos;re here
+              </h1>
+            </div>
 
-            <InlineLogo className="ml-auto md:hidden" />
+            <InlineLogo className="ml-2 self-start md:hidden" />
           </div>
-
-          <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl md:text-4xl">
-            Glad you&apos;re here
-          </h1>
         </div>
 
         <div className="lava-container">

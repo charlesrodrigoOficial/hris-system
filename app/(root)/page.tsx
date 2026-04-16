@@ -1,7 +1,5 @@
 import ShoutoutComposer from "@/components/shared/body/feed/shoutout-composer";
-import MainNav from "./user/main-nav";
 import NameCard from "./user/profile/name-card";
-import Profile from "./user/profile/page";
 import { AttendanceCard } from "@/components/shared/attendance-card";
 import { FeedPostCard } from "@/components/shared/body/feed-post-card";
 import BirthdaysCarousel from "@/components/shared/body/birthdays-carousel";
@@ -60,8 +58,6 @@ const Homepage = async () => {
         </div>
         
       </div>
-
-      <Profile />
     </div>
   );
 };

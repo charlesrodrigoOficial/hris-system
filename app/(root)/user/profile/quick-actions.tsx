@@ -44,20 +44,20 @@ export function QuickActions({ className, role }: QuickActionsProps) {
   return (
     <Card
       className={cn(
-        "relative overflow-hidden rounded-lg border border-sky-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.96),_rgba(224,242,254,0.94)_28%,_rgba(191,219,254,0.9)_62%,_rgba(147,197,253,0.92)_100%)] p-4 text-slate-900 shadow-[0_18px_44px_-30px_rgba(29,78,216,0.32)] transition hover:-translate-y-1 hover:shadow-[0_22px_56px_-34px_rgba(29,78,216,0.35)]",
+        "relative overflow-hidden rounded-2xl border border-[#BFDBFE] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.98),_rgba(219,234,254,0.92)_30%,_rgba(191,219,254,0.9)_62%,_rgba(147,197,253,0.9)_100%)] p-4 text-[#0F172A] shadow-[0_18px_44px_-30px_rgba(11,31,95,0.35)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_-36px_rgba(11,31,95,0.4)]",
         className,
       )}
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/70 bg-sky-100/60 text-sky-700 shadow-sm">
+        <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/70 bg-[#DBEAFE]/80 text-[#1D4ED8] shadow-sm">
           <Sparkles className="h-4 w-4" />
         </div>
         <div>
-          <p className="text-sm font-semibold bg-gradient-to-r from-sky-700 via-blue-700 to-cyan-600 bg-clip-text text-transparent">
+          <p className="text-sm font-semibold bg-gradient-to-r from-[#0B1F5F] via-[#1D4ED8] to-[#1D4ED8] bg-clip-text text-transparent">
             Quick Actions
           </p>
-          <p className="text-xs text-slate-600">Jump into common tasks</p>
+          <p className="text-xs text-[#64748B]">Jump into common tasks</p>
         </div>
       </div>
 
@@ -70,15 +70,15 @@ export function QuickActions({ className, role }: QuickActionsProps) {
             variant="outline"
             className="
               group h-11 flex-col items-center justify-center gap-1
-              rounded-xl border border-sky-200 bg-white/75
-              text-xs font-medium text-slate-800
+              rounded-xl border border-[#BFDBFE] bg-white/75
+              text-xs font-medium text-[#0F172A]
               transition
-              hover:-translate-y-1 hover:border-sky-300
+              hover:-translate-y-1 hover:border-[#93C5FD]
               hover:bg-white hover:shadow
             "
           >
             <Link href={href}>
-              <Icon className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
+              <Icon className="h-4 w-4 text-[#64748B] group-hover:text-[#1D4ED8]" />
               {title}
             </Link>
           </Button>
@@ -100,15 +100,15 @@ export function QuickActionsCompact({ className, role }: QuickActionsProps) {
           variant="outline"
           className="
             group h-11 flex-col items-center justify-center gap-1
-            rounded-xl border border-sky-200 bg-white/75
-            text-xs font-medium text-slate-800
+            rounded-xl border border-[#BFDBFE] bg-white/75
+            text-xs font-medium text-[#0F172A]
             transition
-            hover:-translate-y-1 hover:border-sky-300
+            hover:-translate-y-1 hover:border-[#93C5FD]
             hover:bg-white hover:shadow
           "
         >
           <Link href={href} aria-label={title} title={title}>
-            <Icon className="h-4 w-4 text-slate-500 group-hover:text-sky-700" />
+            <Icon className="h-4 w-4 text-[#64748B] group-hover:text-[#1D4ED8]" />
             {title}
           </Link>
         </Button>

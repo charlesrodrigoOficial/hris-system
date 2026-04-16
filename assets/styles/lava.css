@@ -4,10 +4,10 @@
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 22%, rgba(103, 232, 249, 0.14), transparent 20%),
-    radial-gradient(circle at 76% 18%, rgba(148, 163, 184, 0.14), transparent 24%),
-    radial-gradient(circle at 52% 64%, rgba(59, 130, 246, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(2, 6, 23, 0.98) 0%, rgba(15, 23, 42, 0.98) 36%, rgba(30, 41, 59, 0.98) 68%, rgba(12, 74, 110, 0.96) 100%);
+    radial-gradient(circle at 18% 22%, rgba(147, 197, 253, 0.18), transparent 20%),
+    radial-gradient(circle at 76% 18%, rgba(191, 219, 254, 0.16), transparent 24%),
+    radial-gradient(circle at 52% 64%, rgba(29, 78, 216, 0.22), transparent 28%),
+    linear-gradient(135deg, rgba(11, 31, 95, 0.99) 0%, rgba(20, 46, 137, 0.98) 44%, rgba(29, 78, 216, 0.95) 100%);
   background-size: 160% 160%;
   transform-style: preserve-3d;
   transition: transform 180ms ease, box-shadow 180ms ease;
@@ -20,7 +20,7 @@
   background:
     radial-gradient(circle at var(--hx, 50%) var(--hy, 50%),
       rgba(255,255,255,0.24),
-      rgba(103,232,249,0.10) 24%,
+      rgba(147,197,253,0.16) 24%,
       rgba(255,255,255,0.03) 42%,
       transparent 62%);
   mix-blend-mode: plus-lighter;
@@ -44,7 +44,7 @@
 .tilt-bevel {
   background:
     radial-gradient(circle at var(--hx, 50%) var(--hy, 50%),
-      rgba(125,211,252,0.18),
+      rgba(147,197,253,0.2),
       transparent 55%),
     linear-gradient(135deg,
       rgba(255,255,255,0.10),
@@ -93,7 +93,7 @@
   background:
     radial-gradient(circle at 10% 14%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.5px),
     radial-gradient(circle at 24% 66%, rgba(255, 255, 255, 0.85) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 42% 28%, rgba(103, 232, 249, 0.85) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 42% 28%, rgba(147, 197, 253, 0.85) 0 1px, transparent 1.6px),
     radial-gradient(circle at 58% 74%, rgba(255, 255, 255, 0.92) 0 1.3px, transparent 1.9px),
     radial-gradient(circle at 74% 18%, rgba(191, 219, 254, 0.88) 0 1px, transparent 1.7px),
     radial-gradient(circle at 88% 52%, rgba(255, 255, 255, 0.8) 0 1.1px, transparent 1.8px);
@@ -106,10 +106,10 @@
 
 .lava-blur {
   background:
-    radial-gradient(circle at 18% 30%, rgba(56, 189, 248, 0.18), transparent 20%),
-    radial-gradient(circle at 34% 68%, rgba(96, 165, 250, 0.16), transparent 24%),
-    radial-gradient(circle at 70% 30%, rgba(34, 211, 238, 0.14), transparent 22%),
-    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.16), transparent 24%);
+    radial-gradient(circle at 18% 30%, rgba(147, 197, 253, 0.2), transparent 20%),
+    radial-gradient(circle at 34% 68%, rgba(191, 219, 254, 0.18), transparent 24%),
+    radial-gradient(circle at 70% 30%, rgba(147, 197, 253, 0.14), transparent 22%),
+    radial-gradient(circle at 80% 70%, rgba(29, 78, 216, 0.16), transparent 24%);
   mix-blend-mode: screen;
   opacity: 0.82;
   filter: blur(38px);
@@ -124,7 +124,7 @@
       transparent 0%,
       transparent 42%,
       rgba(255,255,255,0.18) 49%,
-      rgba(103,232,249,0.22) 50%,
+      rgba(147,197,253,0.22) 50%,
       transparent 58%,
       transparent 100%);
   background-size: 220% 100%;
@@ -141,10 +141,10 @@
   width: 150px;
   height: 3px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.08) 28%, rgba(103, 232, 249, 0.42) 64%, rgba(255, 255, 255, 0.92) 100%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.08) 28%, rgba(147, 197, 253, 0.42) 64%, rgba(255, 255, 255, 0.92) 100%);
   box-shadow:
     0 0 8px rgba(255, 255, 255, 0.3),
-    0 0 18px rgba(103, 232, 249, 0.24);
+    0 0 18px rgba(147, 197, 253, 0.24);
   filter: blur(0.2px);
   opacity: 0;
   transform: rotate(13deg);
@@ -159,7 +159,7 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(125, 211, 252, 0.75) 45%, rgba(255, 255, 255, 0) 75%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(147, 197, 253, 0.75) 45%, rgba(255, 255, 255, 0) 75%);
   transform: translateY(-50%);
 }
 

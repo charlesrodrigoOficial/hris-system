@@ -109,6 +109,9 @@ export function AdminSidebarNav({
   const [overviewLink, ...remainingLinks] = links;
   const OverviewIcon = overviewLink.icon;
   const buttonClassName = getSidebarButtonClassName(collapsed);
+  const activeItemClass = "border-[#93C5FD] bg-[#DBEAFE] text-[#0B1F5F] shadow-sm";
+  const idleItemClass =
+    "text-[#DBEAFE] hover:-translate-y-0.5 hover:border-[#93C5FD]/60 hover:bg-white/12 hover:text-white hover:shadow-sm";
 
   return (
     <nav
@@ -126,8 +129,8 @@ export function AdminSidebarNav({
             className={cn(
               buttonClassName,
               isActivePath(pathname, overviewLink.href)
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+                ? activeItemClass
+                : idleItemClass
             )}
           >
             <OverviewIcon className="h-4 w-4 shrink-0" />
@@ -141,8 +144,8 @@ export function AdminSidebarNav({
           className={cn(
             buttonClassName,
             isActivePath(pathname, overviewLink.href)
-              ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+              ? activeItemClass
+              : idleItemClass
           )}
         >
           <OverviewIcon className="h-4 w-4 shrink-0" />
@@ -163,8 +166,8 @@ export function AdminSidebarNav({
               className={cn(
                 buttonClassName,
                 active
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+                  ? activeItemClass
+                  : idleItemClass
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -196,10 +199,10 @@ export default function Sidebar({
 }) {
   return (
     <div className={cn("flex h-full flex-col", collapsed ? "px-2" : "px-4")}>
-      <div className="sticky top-0 z-10 bg-background pb-3">
+      <div className="sticky top-0 z-10 bg-transparent pb-3">
         <div className={cn("mb-3 flex items-center", collapsed ? "justify-center" : "justify-between")}>
           {!collapsed && (
-            <p className="text-center text-base font-semibold text-muted-foreground">
+            <p className="text-center text-base font-semibold text-white">
               Admin Dashboard
             </p>
           )}
@@ -209,7 +212,7 @@ export default function Sidebar({
               onClick={onToggleCollapsed}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               className={cn(
-                "inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900",
+                "inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-[#DBEAFE] transition hover:border-[#93C5FD]/60 hover:bg-white/12 hover:text-white",
                 collapsed && "mx-auto"
               )}
             >

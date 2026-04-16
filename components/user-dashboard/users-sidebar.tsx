@@ -94,6 +94,10 @@ export function UserSidebarNav({
   const [overviewItem, ...secondaryItems] = items;
   const OverviewIcon = overviewItem.icon;
   const labelClassName = collapsed ? "sr-only" : undefined;
+  const activeItemClass =
+    "border-[#93C5FD] bg-[#DBEAFE] text-[#0B1F5F] shadow-sm";
+  const idleItemClass =
+    "text-[#DBEAFE] hover:-translate-y-0.5 hover:border-[#93C5FD]/60 hover:bg-white/12 hover:text-white hover:shadow-sm";
   const linkBaseClassName = collapsed
     ? "flex w-full items-center justify-center rounded-xl border border-transparent p-3 text-sm font-medium transition"
     : "grid w-full grid-cols-[16px_1fr] items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium transition";
@@ -112,8 +116,8 @@ export function UserSidebarNav({
             className={cn(
               linkBaseClassName,
               isActivePath(pathname, overviewItem.href)
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+                ? activeItemClass
+                : idleItemClass
             )}
           >
             <OverviewIcon className="h-4 w-4 shrink-0" />
@@ -126,8 +130,8 @@ export function UserSidebarNav({
           className={cn(
             linkBaseClassName,
             isActivePath(pathname, overviewItem.href)
-              ? "bg-muted text-foreground"
-              : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
+              ? activeItemClass
+              : idleItemClass
           )}
         >
           <OverviewIcon className="h-4 w-4 shrink-0" />
@@ -144,9 +148,9 @@ export function UserSidebarNav({
             linkBaseClassName,
             item.href || isAttendanceItem
               ? active
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50/70 hover:text-slate-900 hover:shadow"
-              : "cursor-not-allowed border border-dashed border-slate-200 bg-slate-50 text-slate-400"
+                ? activeItemClass
+                : idleItemClass
+              : "cursor-not-allowed border border-dashed border-[#93C5FD]/30 bg-white/5 text-[#BFDBFE]"
           );
 
           return (
@@ -216,11 +220,14 @@ export default function Sidebar({
 }) {
   return (
     <div className={cn("flex h-full flex-col", collapsed ? "px-2" : "px-4")}>
-      <div className="sticky top-0 z-10 bg-background pb-3">
-        <div className={cn("border-b py-1", collapsed ? "px-2" : "px-4")}>
+      <div className="sticky top-0 z-10 bg-transparent pb-3">
+        <div className={cn("border-b border-[#93C5FD]/30 py-1", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/"
-            className={cn("flex items-center gap-2", collapsed && "justify-center")}
+            className={cn(
+              "flex items-center gap-2 rounded-xl bg-white/95 px-2 py-1 shadow-sm",
+              collapsed && "justify-center"
+            )}
             title={collapsed ? "Dashboard" : undefined}
           >
             <Image
@@ -233,7 +240,7 @@ export default function Sidebar({
           </Link>
         </div>
         {!collapsed ? (
-          <p className="mb-3 mt-3 text-center text-base font-semibold text-muted-foreground">
+          <p className="mb-3 mt-3 text-center text-base font-semibold text-white">
             Dashboard
           </p>
         ) : null}

@@ -12,7 +12,7 @@ const AdminMenu = async () => {
 
   return (
     <div className="flex justify-end gap-3">
-      <nav className="hidden md:flex w-full max-w-xs gap-1">
+      <nav className="hidden md:flex w-full max-w-xs items-center gap-1 text-[#DBEAFE]">
         <NotificationBell />
         <ModeToggle />
         <UserButton />
@@ -20,11 +20,14 @@ const AdminMenu = async () => {
 
       <nav className="md:hidden">
         <Sheet>
-          <SheetTrigger className="align-middle">
+          <SheetTrigger className="align-middle text-[#DBEAFE]">
             <EllipsisVertical />
           </SheetTrigger>
 
-          <SheetContent side="left" className="flex flex-col gap-4 min-h-0">
+          <SheetContent
+            side="left"
+            className="flex min-h-0 flex-col gap-4 bg-gradient-to-b from-[#0B1F5F] via-[#123187] to-[#1D4ED8] text-[#DBEAFE]"
+          >
             <SheetTitle>Admin Menu</SheetTitle>
 
             <div className="flex items-center gap-2">
@@ -39,7 +42,7 @@ const AdminMenu = async () => {
             <AdminSidebarNav
               role={role}
               closeOnNavigate
-              className="w-full min-h-0 border-t pt-3"
+              className="w-full min-h-0 border-t border-[#93C5FD]/40 pt-3"
             />
           </SheetContent>
         </Sheet>

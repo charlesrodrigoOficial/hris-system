@@ -17,7 +17,7 @@ const Menu = async () => {
 
   return (
     <div className="flex justify-end gap-3">
-      <nav className="hidden md:flex w-full max-w-xs gap-1">
+      <nav className="hidden md:flex w-full max-w-xs items-center gap-1 text-[#DBEAFE]">
         <NotificationBell />
         <ModeToggle />
 
@@ -25,7 +25,7 @@ const Menu = async () => {
       </nav>
       <nav className="md:hidden">
         <Sheet>
-          <SheetTrigger className="align-middle">
+          <SheetTrigger className="align-middle text-[#DBEAFE]">
             <EllipsisVertical />
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col gap-4 min-h-0">

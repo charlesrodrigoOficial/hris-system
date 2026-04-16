@@ -78,7 +78,7 @@ function BirthdayPostContent({
         Birthday wish for {displayName}
       </div>
 
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-pink-500 via-violet-500 to-indigo-500 p-6 text-white">
+      <div className="relative overflow-hidden rounded-xl border border-[#BFDBFE] bg-gradient-to-br from-[#0B1F5F] via-[#1D4ED8] to-[#93C5FD] p-6 text-white">
         <div className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-xl" />
         <div className="pointer-events-none absolute -bottom-10 right-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
         <div className="pointer-events-none absolute inset-0 opacity-35">
@@ -136,12 +136,12 @@ export function FeedPostCard({
   canModerate: boolean;
 }) {
   return (
-    <Card className="overflow-hidden rounded-lg border border-slate-300/70 bg-gradient-to-b from-white via-slate-50 to-white shadow-lg">
+    <Card className="overflow-hidden rounded-2xl border border-[#BFDBFE] bg-gradient-to-b from-white via-[#F8FAFF] to-[#DBEAFE]/25 shadow-[0_16px_34px_-26px_rgba(29,78,216,0.45)]">
       <CardHeader className="flex flex-row items-start justify-between gap-3 p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={post.authorImage ?? undefined} alt={post.authorName} />
-            <AvatarFallback className="bg-slate-100 text-slate-900">
+            <AvatarFallback className="bg-[#DBEAFE] text-[#0B1F5F]">
               {post.authorName?.[0] ?? "U"}
             </AvatarFallback>
           </Avatar>
@@ -149,14 +149,8 @@ export function FeedPostCard({
           <div className="leading-tight">
             <div className="font-medium">
               {post.authorName}
-              {post.authorRole ? (
-                <span className="ml-1 text-xs font-normal text-slate-800">
-                  {" "}
-                  • {post.authorRole}
-                </span>
-              ) : null}
             </div>
-            <div className="text-xs text-slate-800">
+            <div className="text-xs text-[#64748B]">
               {post.createdAtLabel}
             </div>
           </div>
@@ -165,7 +159,7 @@ export function FeedPostCard({
         {canModerate ? <PostMenu postId={post.id} /> : null}
       </CardHeader>
 
-      <CardContent className="px-4 pb-4 text-xs text-slate-700">
+      <CardContent className="px-4 pb-4 text-xs text-[#334155]">
         {post.type === "BIRTHDAY" ? (
           <BirthdayPostContent
             message={post.body}
@@ -178,14 +172,14 @@ export function FeedPostCard({
         )}
       </CardContent>
 
-      <CardFooter className="block border-t border-slate-300/70 p-3">
+      <CardFooter className="block border-t border-[#BFDBFE] p-3">
         <div className="flex items-center justify-between gap-2">
           <ReactButton
             postId={post.id}
             count={post.reactionsCount}
             myReactionType={post.myReactionType}
           />
-          <div className="inline-flex items-center gap-2 text-xs text-slate-500">
+          <div className="inline-flex items-center gap-2 text-xs text-[#64748B]">
             <MessageSquare className="h-4 w-4" />
             {post.comments.length} Comments
           </div>
@@ -196,7 +190,7 @@ export function FeedPostCard({
             {post.reactionSummary.map((reaction) => (
               <div
                 key={reaction.type}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white/80 px-2.5 py-1 text-xs text-slate-700"
+                className="inline-flex items-center gap-1 rounded-full border border-[#BFDBFE] bg-white/90 px-2.5 py-1 text-xs text-[#334155]"
               >
                 <span>{reaction.emoji}</span>
                 <span>{reaction.count}</span>
@@ -213,14 +207,14 @@ export function FeedPostCard({
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-medium text-slate-900">{comment.authorName}</p>
-                  <p className="text-slate-700">{comment.content}</p>
+                  <p className="font-medium text-[#0F172A]">{comment.authorName}</p>
+                  <p className="text-[#334155]">{comment.content}</p>
                 </div>
                 {canModerate ? (
                   <DeleteCommentButton commentId={comment.id} />
                 ) : null}
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[#64748B]">
                 {comment.createdAtLabel}
               </p>
             </div>

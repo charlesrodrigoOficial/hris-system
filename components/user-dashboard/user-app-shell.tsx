@@ -25,14 +25,14 @@ export default function UserAppShell({
     <div className="flex h-full w-full gap-6">
       <aside
         className={cn(
-          "hidden h-full shrink-0 overflow-y-auto border-r bg-background py-5 md:block",
+          "hidden h-full shrink-0 overflow-y-auto border-r border-[#1D4ED8]/45 bg-gradient-to-b from-[#0B1F5F] via-[#123187] to-[#1D4ED8] py-5 md:block",
           collapseSidebar ? "w-20 overflow-x-hidden" : APP_SIDEBAR_WIDTH_CLASS
         )}
       >
         <UserSidebar role={role} collapsed={collapseSidebar} />
       </aside>
 
-      <main className="scrollbar-hidden min-h-0 w-full flex-1 overflow-y-auto py-5 pl-4 pr-4 md:pl-6 md:pr-6">
+      <main className="scrollbar-hidden min-h-0 w-full flex-1 overflow-y-auto bg-transparent py-5 pl-4 pr-4 md:pl-6 md:pr-6">
         {children}
       </main>
     </div>

@@ -7,6 +7,7 @@ import {
   CalendarCheck,
   CalendarDays,
   Shield,
+  User,
   Users,
   Wallet,
 } from "lucide-react";
@@ -20,6 +21,12 @@ type SettingsTile = {
 };
 
 const settingsItems = [
+  {
+    title: "Edit Profile",
+    href: "/user/profile/edit",
+    Icon: User,
+    description: "Personal and contact details",
+  },
   {
     title: "Payroll settings",
     href: "/user/profile/edit?section=banking",

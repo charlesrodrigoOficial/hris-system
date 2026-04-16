@@ -10,7 +10,7 @@ export default function AdminSidebarShell({ role }: { role?: string | null }) {
   return (
     <aside
       className={cn(
-        "hidden h-full shrink-0 border-r py-6 transition-[width] duration-200 md:block",
+        "hidden h-full shrink-0 border-r border-[#1D4ED8]/45 bg-gradient-to-b from-[#0B1F5F] via-[#123187] to-[#1D4ED8] py-6 transition-[width] duration-200 md:block",
         collapsed ? "w-20" : "w-56"
       )}
     >
