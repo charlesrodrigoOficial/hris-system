@@ -279,16 +279,16 @@ export default function PayrollPolicyEditor({ activePolicy, history, canEdit }: 
 
         <div className="overflow-x-auto rounded-xl border">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Label</TableHead>
-                <TableHead>Kind</TableHead>
-                <TableHead>Value type</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Min</TableHead>
-                <TableHead>Max</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+            <TableHeader className="bg-blue-50/80">
+              <TableRow className="border-blue-100">
+                <TableHead className="font-semibold text-blue-700">Label</TableHead>
+                <TableHead className="font-semibold text-blue-700">Kind</TableHead>
+                <TableHead className="font-semibold text-blue-700">Value type</TableHead>
+                <TableHead className="font-semibold text-blue-700">Value</TableHead>
+                <TableHead className="font-semibold text-blue-700">Min</TableHead>
+                <TableHead className="font-semibold text-blue-700">Max</TableHead>
+                <TableHead className="font-semibold text-blue-700">Active</TableHead>
+                <TableHead className="text-right font-semibold text-blue-700">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -395,14 +395,14 @@ export default function PayrollPolicyEditor({ activePolicy, history, canEdit }: 
         <h3 className="text-sm font-semibold text-slate-900">Policy history</h3>
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Version</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Currency</TableHead>
-                <TableHead>Effective From</TableHead>
-                <TableHead>Effective To</TableHead>
+            <TableHeader className="bg-blue-50/80">
+              <TableRow className="border-blue-100">
+                <TableHead className="font-semibold text-blue-700">Name</TableHead>
+                <TableHead className="font-semibold text-blue-700">Version</TableHead>
+                <TableHead className="font-semibold text-blue-700">Status</TableHead>
+                <TableHead className="font-semibold text-blue-700">Currency</TableHead>
+                <TableHead className="font-semibold text-blue-700">Effective From</TableHead>
+                <TableHead className="font-semibold text-blue-700">Effective To</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -431,4 +431,3 @@ export default function PayrollPolicyEditor({ activePolicy, history, canEdit }: 
     </div>
   );
 }
-
