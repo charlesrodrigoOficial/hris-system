@@ -703,7 +703,7 @@ model PayCycle {
   @@index([payDate])
   @@index([status])
   @@map("pay_cycles")
-}e
+}
 
 model PayrollRun {
   id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
