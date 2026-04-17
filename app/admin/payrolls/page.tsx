@@ -24,7 +24,8 @@ export default async function AdminPayrollsPage() {
   const data = await getPayrollPageData();
   const runStatusLabel: PayrollRunStatus =
     data.headerStatus === "Draft" ? "Not started" : data.headerStatus;
-  const statusClass = statusClassByRunStatus[runStatusLabel] ??
+  const statusClass =
+    statusClassByRunStatus[runStatusLabel] ??
     statusClassByRunStatus["Not started"];
 
   return (
@@ -52,6 +53,9 @@ export default async function AdminPayrollsPage() {
       <PayrollSummaryCards summary={data.summary} />
       <PayrollWorkspaceTabs
         payRuns={data.payRuns}
+        payCycles={data.payCycles}
+        runEmployeesByRun={data.runEmployeesByRun}
+        auditTrail={data.auditTrail}
         activePolicy={data.activePolicy}
         policyHistory={data.policyHistory}
         canEditPolicy

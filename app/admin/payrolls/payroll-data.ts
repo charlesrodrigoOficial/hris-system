@@ -4,41 +4,50 @@ import type {
   PayrollPolicyHistoryRow,
   PayrollPolicyView,
 } from "./payroll-policy.types";
+import type {
+  HeaderRunStatus,
+  PayCycleRow,
+  PayRunRow,
+  PayrollAuditTrailRow,
+  PayrollPageData,
+  PayrollRunEmployeeRow,
+  UiRunStatus,
+} from "./types";
 
-export type UiRunStatus =
-  | "Draft"
-  | "In progress"
-  | "Ready for review"
-  | "Published";
-export type HeaderRunStatus =
-  | "NOT_STARTED"
-  | "DRAFT"
-  | "CALCULATED"
-  | "IN_REVIEW"
-  | "APPROVED"
-  | "COMPLETED";
-
-export type PayRunRow = {
-  id: string;
-  runName: string;
-  payPeriod: string;
-  activeUsers: number;
-  grossPay: number;
-  netPay: number;
-  status: UiRunStatus;
-  alerts: number;
-};
-
-export type PayrollPageData = {
-  payRuns: PayRunRow[];
-  summary: PayrollSummary;
-  currentPayCycle: string;
-  payrollDate: string;
-  headerRunStatus: HeaderRunStatus;
-  headerStatus: UiRunStatus;
-  activePolicy: PayrollPolicyView | null;
-  policyHistory: PayrollPolicyHistoryRow[];
-};
+function mapPayCycles(
+  payCycles: Array<{
+    id: string;
+    name: string;
+    periodStart: Date;
+    periodEnd: Date;
+    payDate: Date;
+    frequency: PayCycleRow["frequency"];
+    status: "OPEN" | "CLOSED";
+    _count: { payrollRuns: number };
+    payrollRuns: Array<{
+      id: string;
+      runNumber: number;
+      status: Exclude<HeaderRunStatus, "NOT_STARTED">;
+    }>;
+  }>,
+): PayCycleRow[] {
+  return payCycles.map((cycle) => {
+    const latestRun = cycle.payrollRuns[0] ?? null;
+    return {
+      id: cycle.id,
+      name: cycle.name,
+      startDate: toIsoDate(cycle.periodStart) ?? "",
+      endDate: toIsoDate(cycle.periodEnd) ?? "",
+      payDate: toIsoDate(cycle.payDate) ?? "",
+      frequency: cycle.frequency,
+      status: cycle.status,
+      runCount: cycle._count.payrollRuns,
+      latestRunId: latestRun?.id ?? null,
+      latestRunNumber: latestRun?.runNumber ?? null,
+      latestRunStatus: latestRun?.status ?? null,
+    };
+  });
+}
 
 function decToNumber(value: unknown) {
   return (
@@ -72,7 +81,162 @@ function mapRunStatus(status: string): UiRunStatus {
   return "Draft";
 }
 
+function mapAuditActionLabel(
+  action: string,
+): PayrollAuditTrailRow["action"] {
+  if (action === "PAYROLL_RUN_STARTED") return "Started run";
+  if (action === "PAYROLL_RUN_CALCULATED") return "Calculated run";
+  if (action === "PAYROLL_RUN_REVIEWED") return "Reviewed run";
+  if (action === "PAYROLL_RUN_PUBLISHED") return "Published run";
+  return "Started run";
+}
+
+function mapAuditTrail(
+  rows: Array<{
+    id: string;
+    action: string;
+    createdAt: Date;
+    actor: { name: string | null; email: string };
+    payrollRun: {
+      id: string;
+      runNumber: number;
+      payCycle: {
+        name: string;
+        periodStart: Date;
+        periodEnd: Date;
+      };
+    } | null;
+  }>,
+): PayrollAuditTrailRow[] {
+  return rows.map((row) => ({
+    id: row.id,
+    runId: row.payrollRun?.id ?? null,
+    runName: row.payrollRun
+      ? `${row.payrollRun.payCycle.name} - Run ${row.payrollRun.runNumber}`
+      : "Unknown run",
+    payPeriod: row.payrollRun
+      ? fmtRange(row.payrollRun.payCycle.periodStart, row.payrollRun.payCycle.periodEnd)
+      : "-",
+    action: mapAuditActionLabel(row.action),
+    actorName: row.actor.name?.trim() || row.actor.email || "Unknown user",
+    actorEmail: row.actor.email,
+    actedAt: row.createdAt.toISOString(),
+  }));
+}
+
+function getPayrollEligibility(user: {
+  isActive: boolean;
+  salary: unknown;
+  workEligibility: string | null;
+}) {
+  if (!user.isActive) {
+    return {
+      payrollEligibility: "Not eligible" as const,
+      eligibilityReason: "Inactive account",
+    };
+  }
+
+  const salary = decToNumber(user.salary);
+  if (salary <= 0) {
+    return {
+      payrollEligibility: "Not eligible" as const,
+      eligibilityReason: "Missing salary",
+    };
+  }
+
+  if (!user.workEligibility?.trim()) {
+    return {
+      payrollEligibility: "Not eligible" as const,
+      eligibilityReason: "Work eligibility missing",
+    };
+  }
+
+  return {
+    payrollEligibility: "Eligible" as const,
+    eligibilityReason: "Eligible for payroll",
+  };
+}
+
 export async function getPayrollPageData(): Promise<PayrollPageData> {
+  
+  const auditTrailRaw = await prisma.payrollAuditLog.findMany({
+    take: 100,
+    where: {
+      action: {
+        in: [
+          "PAYROLL_RUN_STARTED",
+          "PAYROLL_RUN_CALCULATED",
+          "PAYROLL_RUN_REVIEWED",
+          "PAYROLL_RUN_PUBLISHED",
+        ],
+      },
+    },
+    orderBy: [{ createdAt: "desc" }],
+    select: {
+      id: true,
+      action: true,
+      createdAt: true,
+      actor: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      payrollRun: {
+        select: {
+          id: true,
+          runNumber: true,
+          payCycle: {
+            select: {
+              name: true,
+              periodStart: true,
+              periodEnd: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const auditTrail = mapAuditTrail(auditTrailRaw);
+
+  const payCyclesRaw = await prisma.payCycle.findMany({
+    take: 50,
+    orderBy: [{ periodEnd: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      name: true,
+      periodStart: true,
+      periodEnd: true,
+      payDate: true,
+      frequency: true,
+      status: true,
+      _count: {
+        select: {
+          payrollRuns: true,
+        },
+      },
+      payrollRuns: {
+        take: 1,
+        orderBy: [{ runNumber: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+          runNumber: true,
+          status: true,
+        },
+      },
+    },
+  });
+  const payCycles = mapPayCycles(
+    payCyclesRaw.map((cycle) => ({
+      ...cycle,
+      payrollRuns: cycle.payrollRuns.map((run) => ({
+        ...run,
+        status: run.status as Exclude<HeaderRunStatus, "NOT_STARTED">,
+      })),
+    })),
+  );
+
   const runs = await prisma.payrollRun.findMany({
     take: 25,
     orderBy: [{ createdAt: "desc" }],
@@ -120,6 +284,9 @@ export async function getPayrollPageData(): Promise<PayrollPageData> {
 
     return {
       payRuns: [],
+      payCycles,
+      runEmployeesByRun: {},
+      auditTrail,
       summary: {
         activeUsersInRun: 0,
         grossPay: 0,
@@ -173,77 +340,148 @@ export async function getPayrollPageData(): Promise<PayrollPageData> {
 
   const runIds = runs.map((r) => r.id);
 
-  const [rollups, alertRollups, activePolicy, policyHistory] = await Promise.all([
-    prisma.payrollRunEmployee.groupBy({
-      by: ["payrollRunId"],
-      where: {
-        payrollRunId: { in: runIds },
-        user: {
-          is: {
-            isActive: true,
+  const [rollups, alertRollups, runEmployees, activePolicy, policyHistory] =
+    await Promise.all([
+      prisma.payrollRunEmployee.groupBy({
+        by: ["payrollRunId"],
+        where: {
+          payrollRunId: { in: runIds },
+          user: {
+            is: {
+              isActive: true,
+            },
           },
         },
-      },
-      _count: { _all: true },
-      _sum: {
-        grossPay: true,
-        taxesTotal: true,
-        deductionsTotal: true,
-        netPay: true,
-      },
-    }),
-    prisma.payrollRunEmployee.groupBy({
-      by: ["payrollRunId"],
-      where: {
-        payrollRunId: { in: runIds },
-        reviewedAt: null,
-        user: {
-          is: {
-            isActive: true,
+        _count: { _all: true },
+        _sum: {
+          grossPay: true,
+          taxesTotal: true,
+          deductionsTotal: true,
+          netPay: true,
+        },
+      }),
+      prisma.payrollRunEmployee.groupBy({
+        by: ["payrollRunId"],
+        where: {
+          payrollRunId: { in: runIds },
+          reviewedAt: null,
+          user: {
+            is: {
+              isActive: true,
+            },
           },
         },
-      },
-      _count: { _all: true },
-    }),
-    prisma.payrollPolicy.findFirst({
-      where: { status: "ACTIVE" },
-      include: {
-        rules: {
-          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        _count: { _all: true },
+      }),
+      prisma.payrollRunEmployee.findMany({
+        where: {
+          payrollRunId: { in: runIds },
         },
-      },
-      orderBy: [{ effectiveFrom: "desc" }, { version: "desc" }],
-    }),
-    prisma.payrollPolicy.findMany({
-      take: 10,
-      orderBy: [{ effectiveFrom: "desc" }, { version: "desc" }],
-      select: {
-        id: true,
-        name: true,
-        version: true,
-        status: true,
-        currency: true,
-        effectiveFrom: true,
-        effectiveTo: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
+        select: {
+          id: true,
+          payrollRunId: true,
+          userId: true,
+          baseSalary: true,
+          grossPay: true,
+          taxesTotal: true,
+          deductionsTotal: true,
+          netPay: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+              isActive: true,
+              salary: true,
+              workEligibility: true,
+              department: {
+                select: {
+                  departmentName: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ createdAt: "asc" }],
+      }),
+      prisma.payrollPolicy.findFirst({
+        where: { status: "ACTIVE" },
+        include: {
+          rules: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          },
+        },
+        orderBy: [{ effectiveFrom: "desc" }, { version: "desc" }],
+      }),
+      prisma.payrollPolicy.findMany({
+        take: 10,
+        orderBy: [{ effectiveFrom: "desc" }, { version: "desc" }],
+        select: {
+          id: true,
+          name: true,
+          version: true,
+          status: true,
+          currency: true,
+          effectiveFrom: true,
+          effectiveTo: true,
+          updatedAt: true,
+        },
+      }),
+    ]);
 
   const rollupByRunId = new Map(rollups.map((r) => [r.payrollRunId, r]));
   const alertsByRunId = new Map(
     alertRollups.map((r) => [r.payrollRunId, r._count._all]),
   );
 
+  const runEmployeesByRun: Record<string, PayrollRunEmployeeRow[]> = {};
+  for (const runId of runIds) runEmployeesByRun[runId] = [];
+
+  for (const row of runEmployees) {
+    const user = row.user;
+    const { payrollEligibility, eligibilityReason } =
+      getPayrollEligibility(user);
+
+    runEmployeesByRun[row.payrollRunId].push({
+      id: row.id,
+      userId: row.userId,
+      name: user.name?.trim() || user.email || "Unnamed user",
+      email: user.email,
+      department: user.department?.departmentName || "Unassigned",
+      baseSalary: decToNumber(row.baseSalary),
+      grossPay: decToNumber(row.grossPay),
+      taxesTotal: decToNumber(row.taxesTotal),
+      deductionsTotal: decToNumber(row.deductionsTotal),
+      netPay: decToNumber(row.netPay),
+      employmentStatus: user.isActive ? "Active" : "Inactive",
+      payrollEligibility,
+      eligibilityReason,
+    });
+  }
+
+  for (const runId of runIds) {
+    runEmployeesByRun[runId].sort((a, b) => {
+      if (a.employmentStatus !== b.employmentStatus) {
+        return a.employmentStatus === "Active" ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }
+
   const payRuns: PayRunRow[] = runs.map((run) => {
+    const employees = runEmployeesByRun[run.id] ?? [];
     const agg = rollupByRunId.get(run.id);
     return {
       id: run.id,
       runName: `${run.payCycle.name} - Run ${run.runNumber}`,
       payPeriod: fmtRange(run.payCycle.periodStart, run.payCycle.periodEnd),
-      activeUsers: agg?._count._all ?? 0,
+      activeUsers: employees.filter(
+        (employee) => employee.employmentStatus === "Active",
+      ).length,
       grossPay: decToNumber(agg?._sum.grossPay),
+      taxes: decToNumber(agg?._sum.taxesTotal),
+      deductions: decToNumber(agg?._sum.deductionsTotal),
       netPay: decToNumber(agg?._sum.netPay),
+      runStatus: run.status as Exclude<HeaderRunStatus, "NOT_STARTED">,
       status: mapRunStatus(run.status),
       alerts: alertsByRunId.get(run.id) ?? 0,
     };
@@ -251,11 +489,18 @@ export async function getPayrollPageData(): Promise<PayrollPageData> {
 
   const currentRun = runs[0];
   const currentAgg = rollupByRunId.get(currentRun.id);
+  const currentRunEmployees = runEmployeesByRun[currentRun.id] ?? [];
+  const currentRunActiveUsersCount = currentRunEmployees.filter(
+    (employee) => employee.employmentStatus === "Active",
+  ).length;
 
   return {
     payRuns,
+    payCycles,
+    runEmployeesByRun,
+    auditTrail,
     summary: {
-      activeUsersInRun: currentAgg?._count._all ?? 0,
+      activeUsersInRun: currentRunActiveUsersCount,
       grossPay: decToNumber(currentAgg?._sum.grossPay),
       taxes: decToNumber(currentAgg?._sum.taxesTotal),
       deductions: decToNumber(currentAgg?._sum.deductionsTotal),
@@ -288,8 +533,10 @@ export async function getPayrollPageData(): Promise<PayrollPageData> {
             value: decToNumber(rule.value),
             isActive: rule.isActive,
             sortOrder: rule.sortOrder,
-            minAmount: rule.minAmount == null ? null : decToNumber(rule.minAmount),
-            maxAmount: rule.maxAmount == null ? null : decToNumber(rule.maxAmount),
+            minAmount:
+              rule.minAmount == null ? null : decToNumber(rule.minAmount),
+            maxAmount:
+              rule.maxAmount == null ? null : decToNumber(rule.maxAmount),
           })),
         }
       : null,

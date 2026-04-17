@@ -2,7 +2,13 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/db/prisma";
 import { calculateFromPolicy } from "@/lib/payroll/policy";
 
-export type PayrollAction = "START_RUN" | "CALCULATE" | "REVIEW" | "PUBLISH";
+export type PayrollAction =
+  | "START_RUN"
+  | "CALCULATE"
+  | "REVIEW"
+  | "APPROVE"
+  | "PUBLISH"
+  | "SYNC";
 
 type PayrollActionResult = {
   message: string;
@@ -19,7 +25,9 @@ export function isPayrollAction(value: string): value is PayrollAction {
     value === "START_RUN" ||
     value === "CALCULATE" ||
     value === "REVIEW" ||
-    value === "PUBLISH"
+    value === "APPROVE" ||
+    value === "PUBLISH" ||
+    value === "SYNC"
   );
 }
 
@@ -67,7 +75,60 @@ async function findCurrentRun() {
   });
 }
 
-async function handleStartRun(actorId: string): Promise<PayrollActionResult> {
+async function findTargetRun(payrollRunId?: string | null) {
+  if (payrollRunId) {
+    return prisma.payrollRun.findUnique({
+      where: { id: payrollRunId },
+      include: { payCycle: true },
+    });
+  }
+  return findCurrentRun();
+}
+
+async function handleStartRun(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  if (payrollRunId) {
+    return prisma.$transaction(async (tx) => {
+      const selectedRun = await tx.payrollRun.findUnique({
+        where: { id: payrollRunId },
+      });
+
+      if (!selectedRun) {
+        throw new Error("Selected payroll run was not found.");
+      }
+      if (selectedRun.status === "COMPLETED") {
+        throw new Error("Cannot open a published payroll run.");
+      }
+
+      const startedRun = await tx.payrollRun.update({
+        where: { id: selectedRun.id },
+        data: {
+          startedAt: selectedRun.startedAt ?? new Date(),
+        },
+      });
+
+      await tx.payrollAuditLog.create({
+        data: {
+          actorId,
+          payrollRunId: startedRun.id,
+          payCycleId: startedRun.payCycleId,
+          action: "PAYROLL_RUN_STARTED",
+          details: {
+            selectedRun: true,
+            status: startedRun.status,
+          },
+        },
+      });
+
+      return {
+        message: "Payroll run opened.",
+        runId: startedRun.id,
+      };
+    }, PAYROLL_TRANSACTION_OPTIONS);
+  }
+
   return prisma.$transaction(async (tx) => {
     const latestRun = await tx.payrollRun.findFirst({
       orderBy: [{ createdAt: "desc" }],
@@ -200,10 +261,21 @@ async function handleStartRun(actorId: string): Promise<PayrollActionResult> {
   }, PAYROLL_TRANSACTION_OPTIONS);
 }
 
-async function handleCalculate(actorId: string): Promise<PayrollActionResult> {
-  const run = await findCurrentRun();
+async function handleCalculate(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  const run = await findTargetRun(payrollRunId);
   if (!run || run.status === "COMPLETED") {
     throw new Error("No active payroll run found. Start a run first.");
+  }
+  if (
+    run.status !== "DRAFT" &&
+    run.status !== "CALCULATED" &&
+    run.status !== "IN_REVIEW" &&
+    run.status !== "APPROVED"
+  ) {
+    throw new Error("Only active payroll runs can be calculated.");
   }
 
   return prisma.$transaction(async (tx) => {
@@ -243,9 +315,7 @@ async function handleCalculate(actorId: string): Promise<PayrollActionResult> {
     await tx.payrollRunEmployee.deleteMany({
       where: {
         payrollRunId: run.id,
-        ...(userIds.length > 0
-          ? { userId: { notIn: userIds } }
-          : {}),
+        ...(userIds.length > 0 ? { userId: { notIn: userIds } } : {}),
       },
     });
 
@@ -275,6 +345,8 @@ async function handleCalculate(actorId: string): Promise<PayrollActionResult> {
           netPay: toDecimal(netPay),
           varianceAmount: toDecimal(0),
           varianceNote: null,
+          reviewedAt: null,
+          reviewedById: null,
         },
         create: {
           payrollRunId: run.id,
@@ -295,6 +367,8 @@ async function handleCalculate(actorId: string): Promise<PayrollActionResult> {
         status: "CALCULATED",
         syncedAt: new Date(),
         startedAt: run.startedAt ?? new Date(),
+        reviewedAt: null,
+        completedAt: null,
         payrollPolicyId: policy.id,
       },
     });
@@ -323,8 +397,11 @@ async function handleCalculate(actorId: string): Promise<PayrollActionResult> {
   }, PAYROLL_TRANSACTION_OPTIONS);
 }
 
-async function handleReview(actorId: string): Promise<PayrollActionResult> {
-  const run = await findCurrentRun();
+async function handleReview(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  const run = await findTargetRun(payrollRunId);
   if (!run || run.status === "COMPLETED") {
     throw new Error("No active payroll run found to review.");
   }
@@ -346,9 +423,7 @@ async function handleReview(actorId: string): Promise<PayrollActionResult> {
     await tx.payrollRunEmployee.deleteMany({
       where: {
         payrollRunId: run.id,
-        ...(activeUserIds.length > 0
-          ? { userId: { notIn: activeUserIds } }
-          : {}),
+        ...(activeUserIds.length > 0 ? { userId: { notIn: activeUserIds } } : {}),
       },
     });
 
@@ -394,14 +469,135 @@ async function handleReview(actorId: string): Promise<PayrollActionResult> {
     });
 
     return {
-      message: "Payroll run reviewed and approved for publishing.",
+      message: "Payroll run moved to In Review.",
       runId: run.id,
     };
   }, PAYROLL_TRANSACTION_OPTIONS);
 }
 
-async function handlePublish(actorId: string): Promise<PayrollActionResult> {
-  const run = await findCurrentRun();
+async function handleApprove(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  const run = await findTargetRun(payrollRunId);
+  if (!run || run.status === "COMPLETED") {
+    throw new Error("No active payroll run found to approve.");
+  }
+  if (run.status !== "IN_REVIEW") {
+    throw new Error("Run Review before Approve.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const activeUserCount = await tx.payrollRunEmployee.count({
+      where: {
+        payrollRunId: run.id,
+        user: {
+          is: {
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (activeUserCount === 0) {
+      throw new Error("No payroll calculations found. Run Calculate first.");
+    }
+
+    await tx.payrollRun.update({
+      where: { id: run.id },
+      data: {
+        status: "APPROVED",
+      },
+    });
+
+    await tx.payrollAuditLog.create({
+      data: {
+        actorId,
+        payrollRunId: run.id,
+        payCycleId: run.payCycleId,
+        action: "PAYROLL_RUN_APPROVED",
+        details: {
+          employeesApproved: activeUserCount,
+          activeUsersApproved: activeUserCount,
+        },
+      },
+    });
+
+    return {
+      message: "Payroll run approved and ready to publish.",
+      runId: run.id,
+    };
+  }, PAYROLL_TRANSACTION_OPTIONS);
+}
+
+async function handleSync(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  const run = await findTargetRun(payrollRunId);
+  if (!run || run.status === "COMPLETED") {
+    throw new Error("No active payroll run found to sync.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const activeUsers = await tx.user.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+    const activeUserIds = activeUsers.map((user) => user.id);
+
+    await tx.payrollRunEmployee.deleteMany({
+      where: {
+        payrollRunId: run.id,
+        ...(activeUserIds.length > 0 ? { userId: { notIn: activeUserIds } } : {}),
+      },
+    });
+
+    const now = new Date();
+    await tx.payrollRun.update({
+      where: { id: run.id },
+      data: {
+        syncedAt: now,
+        startedAt: run.startedAt ?? now,
+      },
+    });
+
+    const activeEmployeesInRun = await tx.payrollRunEmployee.count({
+      where: {
+        payrollRunId: run.id,
+        user: {
+          is: {
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    await tx.payrollAuditLog.create({
+      data: {
+        actorId,
+        payrollRunId: run.id,
+        payCycleId: run.payCycleId,
+        action: "PAYROLL_RUN_SYNCED",
+        details: {
+          activeUsers: activeUsers.length,
+          activeUsersInRun: activeEmployeesInRun,
+        },
+      },
+    });
+
+    return {
+      message: "Payroll run synced with active users.",
+      runId: run.id,
+    };
+  }, PAYROLL_TRANSACTION_OPTIONS);
+}
+
+async function handlePublish(
+  actorId: string,
+  payrollRunId?: string | null,
+): Promise<PayrollActionResult> {
+  const run = await findTargetRun(payrollRunId);
   if (!run || run.status === "COMPLETED") {
     throw new Error("No active payroll run found to publish.");
   }
@@ -423,9 +619,7 @@ async function handlePublish(actorId: string): Promise<PayrollActionResult> {
     await tx.payrollRunEmployee.deleteMany({
       where: {
         payrollRunId: run.id,
-        ...(activeUserIds.length > 0
-          ? { userId: { notIn: activeUserIds } }
-          : {}),
+        ...(activeUserIds.length > 0 ? { userId: { notIn: activeUserIds } } : {}),
       },
     });
 
@@ -570,18 +764,25 @@ async function handlePublish(actorId: string): Promise<PayrollActionResult> {
 export async function executePayrollAction(params: {
   action: PayrollAction;
   actorId: string;
+  payrollRunId?: string | null;
 }): Promise<PayrollActionResult> {
-  const { action, actorId } = params;
+  const { action, actorId, payrollRunId } = params;
 
   if (action === "START_RUN") {
-    return handleStartRun(actorId);
+    return handleStartRun(actorId, payrollRunId);
   }
   if (action === "CALCULATE") {
-    return handleCalculate(actorId);
+    return handleCalculate(actorId, payrollRunId);
   }
   if (action === "REVIEW") {
-    return handleReview(actorId);
+    return handleReview(actorId, payrollRunId);
+  }
+  if (action === "APPROVE") {
+    return handleApprove(actorId, payrollRunId);
+  }
+  if (action === "SYNC") {
+    return handleSync(actorId, payrollRunId);
   }
 
-  return handlePublish(actorId);
+  return handlePublish(actorId, payrollRunId);
 }

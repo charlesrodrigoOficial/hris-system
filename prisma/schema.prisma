@@ -157,6 +157,12 @@ enum PayCycleStatus {
   CLOSED
 }
 
+enum PayCycleFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
 enum PayrollRunStatus {
   DRAFT
   IN_REVIEW
@@ -677,14 +683,15 @@ model FeedComment {
 }
 
 model PayCycle {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
-  periodStart DateTime       @map("period_start") @db.Date
-  periodEnd   DateTime       @map("period_end") @db.Date
-  payDate     DateTime       @map("pay_date") @db.Date
-  status      PayCycleStatus @default(OPEN)
-  createdById String?        @map("created_by_id") @db.Uuid
-  createdBy   User?          @relation("PayCycleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  periodStart DateTime          @map("period_start") @db.Date
+  periodEnd   DateTime          @map("period_end") @db.Date
+  payDate     DateTime          @map("pay_date") @db.Date
+  status      PayCycleStatus    @default(OPEN)
+  createdById String?           @map("created_by_id") @db.Uuid
+  createdBy   User?             @relation("PayCycleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  frequency   PayCycleFrequency @default(MONTHLY)
 
   payrollRuns PayrollRun[]
   auditLogs   PayrollAuditLog[]
@@ -696,7 +703,7 @@ model PayCycle {
   @@index([payDate])
   @@index([status])
   @@map("pay_cycles")
-}
+}e
 
 model PayrollRun {
   id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
