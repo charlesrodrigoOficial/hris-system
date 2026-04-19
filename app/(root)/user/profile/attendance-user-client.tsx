@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ATTENDANCE_UPDATED_EVENT } from "@/lib/attendance/events";
 
 type AttendanceStatus =
   | "PRESENT"
@@ -33,6 +34,15 @@ type AttendanceItem = {
   status: AttendanceStatus;
   workMode: WorkMode;
   createdAt: string;
+};
+
+type AttendanceToday = {
+  id: string;
+  date: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  status: AttendanceStatus;
+  workMode?: WorkMode | null;
 };
 
 type AttendanceUserClientProps = {
@@ -99,6 +109,25 @@ function formatTime(value: string | null) {
   });
 }
 
+async function readJsonSafe(res: Response) {
+  const contentType = res.headers.get("content-type") ?? "";
+  const text = await res.text();
+
+  if (!contentType.includes("application/json")) {
+    return { data: null as unknown, text, isJson: false };
+  }
+
+  if (!text.trim()) {
+    return { data: null as unknown, text: "", isJson: false };
+  }
+
+  try {
+    return { data: JSON.parse(text) as unknown, text, isJson: true };
+  } catch {
+    return { data: null as unknown, text, isJson: false };
+  }
+}
+
 function toHoursNumber(value: string | number | null) {
   const parsed = Number(value ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -126,6 +155,10 @@ function statusLabel(status: AttendanceStatus) {
   return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
+function isBlockedStatus(status: AttendanceStatus) {
+  return ["LEAVE", "HOLIDAY", "PUBLIC_HOLIDAY", "WEEKOFF"].includes(status);
+}
+
 function SummaryTile({
   label,
   value,
@@ -147,11 +180,23 @@ function SummaryTile({
 export default function AttendanceUserClient({
   renderTrigger,
 }: AttendanceUserClientProps) {
+  const timeZone = React.useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    [],
+  );
   const [open, setOpen] = React.useState(false);
   const [items, setItems] = React.useState<AttendanceItem[]>([]);
+  const [todayAttendance, setTodayAttendance] =
+    React.useState<AttendanceToday | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [todayLoading, setTodayLoading] = React.useState(false);
+  const [actionLoading, setActionLoading] = React.useState<null | "in" | "out">(
+    null,
+  );
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [actionError, setActionError] = React.useState<string | null>(null);
+  const [now, setNow] = React.useState(() => new Date());
   const [selectedMonthDate, setSelectedMonthDate] =
     React.useState(getCurrentDateValue);
   const [selectedMonth, setSelectedMonth] = React.useState(() =>
@@ -185,12 +230,106 @@ export default function AttendanceUserClient({
     }
   }
 
+  async function loadTodayAttendance() {
+    setTodayLoading(true);
+    setActionError(null);
+
+    try {
+      const res = await fetch(
+        `/api/attendance/today?tz=${encodeURIComponent(timeZone)}`,
+        {
+          cache: "no-store",
+        },
+      );
+      const { data } = await readJsonSafe(res);
+      const payload = (data as { attendance?: AttendanceToday | null }) ?? {};
+
+      if (!res.ok) {
+        setTodayAttendance(null);
+        setActionError(
+          (data as { error?: string } | null)?.error ??
+            "Failed to load today's attendance",
+        );
+        return;
+      }
+
+      setTodayAttendance(payload.attendance ?? null);
+    } catch {
+      setTodayAttendance(null);
+      setActionError("Failed to load today's attendance");
+    } finally {
+      setTodayLoading(false);
+    }
+  }
+
+  async function handleAttendanceAction() {
+    const isCheckedIn = Boolean(
+      todayAttendance?.checkIn && !todayAttendance?.checkOut,
+    );
+    const endpoint = isCheckedIn
+      ? "/api/attendance/check-out"
+      : "/api/attendance/check-in";
+    const loadingState = isCheckedIn ? "out" : "in";
+
+    setActionLoading(loadingState);
+    setActionError(null);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          timeZone,
+          workMode: todayAttendance?.workMode ?? "OFFICE",
+        }),
+      });
+      const { data, text, isJson } = await readJsonSafe(res);
+      const payload = (data as { attendance?: AttendanceToday; error?: string }) ?? {};
+
+      if (!res.ok || !payload.attendance) {
+        setActionError(
+          payload.error ??
+            (!isJson && text
+              ? `${isCheckedIn ? "Check-out" : "Check-in"} failed (unexpected response). Please sign in again.`
+              : `${isCheckedIn ? "Check-out" : "Check-in"} failed`),
+        );
+        return;
+      }
+
+      setTodayAttendance(payload.attendance);
+      window.dispatchEvent(new Event(ATTENDANCE_UPDATED_EVENT));
+      await loadAttendance();
+    } catch {
+      setActionError(
+        `${isCheckedIn ? "Check-out" : "Check-in"} failed. Please try again.`,
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   React.useEffect(() => {
     if (!open) return;
     if (loaded) return;
 
     void loadAttendance();
   }, [open, loaded]);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    void loadTodayAttendance();
+  }, [open, timeZone]);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 30_000);
+
+    return () => clearInterval(timer);
+  }, [open]);
 
   React.useEffect(() => {
     if (!selectedDate) return;
@@ -234,8 +373,21 @@ export default function AttendanceUserClient({
   }, [monthItems]);
 
   const selectedMonthLabel = formatMonthLabel(selectedMonth);
-  const selectedDateLabel = selectedDate ? formatDate(selectedDate) : "All days";
+  const selectedDateLabel = selectedDate
+    ? formatDate(selectedDate)
+    : "All days";
   const monthBounds = getMonthBounds(selectedMonth);
+  const actionState = React.useMemo(() => {
+    if (!todayAttendance) return "NO_RECORD";
+    if (isBlockedStatus(todayAttendance.status)) return "BLOCKED";
+    if (todayAttendance.checkIn && !todayAttendance.checkOut) return "CHECKED_IN";
+    if (todayAttendance.checkIn && todayAttendance.checkOut) return "DONE";
+    return "NO_RECORD";
+  }, [todayAttendance]);
+  const actionTime = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <>
@@ -255,27 +407,66 @@ export default function AttendanceUserClient({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] overflow-hidden rounded-2xl sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Your Attendance History</DialogTitle>
-            <DialogDescription>
-              Review monthly attendance totals and inspect a specific day when
-              needed.
-            </DialogDescription>
+          <DialogHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-1">
+              <DialogTitle>Attendance</DialogTitle>
+              <DialogDescription>
+                Review monthly attendance totals and inspect a specific day when
+                needed.
+              </DialogDescription>
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => void handleAttendanceAction()}
+              disabled={
+                todayLoading ||
+                actionLoading !== null ||
+                actionState === "BLOCKED" ||
+                actionState === "DONE"
+              }
+              variant={actionState === "CHECKED_IN" ? "destructive" : "default"}
+              className="min-w-[170px] shrink-0"
+            >
+              {todayLoading ? (
+                "Loading..."
+              ) : actionLoading === "in" ? (
+                "Checking in..."
+              ) : actionLoading === "out" ? (
+                "Checking out..."
+              ) : actionState === "CHECKED_IN" ? (
+                `Check Out (${actionTime})`
+              ) : actionState === "BLOCKED" ? (
+                `Blocked (${statusLabel(todayAttendance!.status)})`
+              ) : actionState === "DONE" ? (
+                `Checked Out (${formatTime(todayAttendance?.checkOut ?? null)})`
+              ) : (
+                `Check In (${actionTime})`
+              )}
+            </Button>
           </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                <Input
-                  type="date"
-                  value={selectedMonthDate}
-                  lang="en-GB"
-                  onChange={(event) => {
-                    const nextDate = event.target.value || getCurrentDateValue();
-                    setSelectedMonthDate(nextDate);
-                    setSelectedMonth(getMonthValue(nextDate) || getCurrentMonthValue());
-                  }}
-                  aria-label="Select month (date)"
-                />
+          <div className="space-y-4">
+            {actionError ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                {actionError}
+              </div>
+            ) : null}
+
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+              <Input
+                type="date"
+                value={selectedMonthDate}
+                lang="en-GB"
+                onChange={(event) => {
+                  const nextDate = event.target.value || getCurrentDateValue();
+                  setSelectedMonthDate(nextDate);
+                  setSelectedMonth(
+                    getMonthValue(nextDate) || getCurrentMonthValue(),
+                  );
+                }}
+                aria-label="Select month (date)"
+              />
 
               <Input
                 type="date"
@@ -386,7 +577,9 @@ export default function AttendanceUserClient({
                         </td>
                         <td className="p-3">{formatTime(item.checkIn)}</td>
                         <td className="p-3">{formatTime(item.checkOut)}</td>
-                        <td className="p-3">{formatHours(item.workingHours)}</td>
+                        <td className="p-3">
+                          {formatHours(item.workingHours)}
+                        </td>
                         <td className="p-3">{item.workMode}</td>
                         <td className="p-3">
                           <Badge variant={statusVariant(item.status)}>

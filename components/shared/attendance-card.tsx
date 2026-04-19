@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { ATTENDANCE_UPDATED_EVENT } from "@/lib/attendance/events";
 
 type AttendanceStatus =
   | "PRESENT"
@@ -93,7 +94,7 @@ export function AttendanceCard() {
   const [workMode, setWorkMode] = React.useState<WorkMode>("OFFICE");
   const [error, setError] = React.useState<string | null>(null);
 
-  async function loadToday() {
+  const loadToday = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     const res = await fetch(
@@ -131,11 +132,25 @@ export function AttendanceCard() {
     setAttendance(attendanceData ?? null);
     if (attendanceData?.workMode) setWorkMode(attendanceData.workMode);
     setLoading(false);
-  }
+  }, []);
 
   React.useEffect(() => {
     void loadToday();
-  }, []);
+  }, [loadToday]);
+
+  React.useEffect(() => {
+    function handleAttendanceUpdated() {
+      void loadToday();
+    }
+
+    window.addEventListener(ATTENDANCE_UPDATED_EVENT, handleAttendanceUpdated);
+    return () => {
+      window.removeEventListener(
+        ATTENDANCE_UPDATED_EVENT,
+        handleAttendanceUpdated,
+      );
+    };
+  }, [loadToday]);
 
   async function checkIn() {
     setActionLoading("in");
@@ -167,6 +182,7 @@ export function AttendanceCard() {
     }
 
     setAttendance(data.attendance);
+    window.dispatchEvent(new Event(ATTENDANCE_UPDATED_EVENT));
     setActionLoading(null);
   }
 
@@ -200,6 +216,7 @@ export function AttendanceCard() {
     }
 
     setAttendance(data.attendance);
+    window.dispatchEvent(new Event(ATTENDANCE_UPDATED_EVENT));
     setActionLoading(null);
   }
 

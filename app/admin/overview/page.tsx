@@ -47,8 +47,8 @@ export default async function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">
             Admin Overview
           </h1>
@@ -57,11 +57,11 @@ export default async function OverviewPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
             <Link href="/admin/attendance">Attendance</Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/admin/requests" className="flex items-center gap-2">
               HR Requests
               {pendingRequestCount > 0 ? (
@@ -74,7 +74,7 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Online Today</CardTitle>
@@ -106,8 +106,8 @@ export default async function OverviewPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Attendance test</CardTitle>
             <CardDescription>Today's workforce status</CardDescription>
@@ -131,8 +131,8 @@ export default async function OverviewPage() {
 
               <TabsContent value="online" className="mt-4">
                 <div className="rounded-md border">
-                  <ScrollArea className="h-[360px]">
-                    <Table>
+                  <ScrollArea className="h-[360px] w-full">
+                    <Table className="min-w-[720px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
@@ -207,8 +207,8 @@ export default async function OverviewPage() {
 
               <TabsContent value="not-active" className="mt-4">
                 <div className="rounded-md border">
-                  <ScrollArea className="h-[360px]">
-                    <Table>
+                  <ScrollArea className="h-[360px] w-full">
+                    <Table className="min-w-[680px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
@@ -292,7 +292,7 @@ export default async function OverviewPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Alert>
-              <AlertTitle className="flex items-center justify-between">
+              <AlertTitle className="flex flex-wrap items-center gap-3">
                 <span>Action needed</span>
                 <div className="text-3xl font-semibold">
                   {kpiValue(alertCount)}
@@ -300,7 +300,7 @@ export default async function OverviewPage() {
 
                 <div
                   className={
-                    "rounded-full px-3 py-1 text-xs font-semibold " +
+                    "rounded-full px-3 py-1 text-xs font-semibold sm:ml-auto " +
                     (alertCount > 0
                       ? "bg-red-100 text-red-700"
                       : "bg-green-100 text-green-700")
@@ -321,7 +321,7 @@ export default async function OverviewPage() {
                   {alerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="flex items-start justify-between gap-3 rounded-lg border bg-card p-3"
+                      className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:flex-row sm:items-start sm:justify-between"
                     >
                       <div className="min-w-0">
                         <p className="truncate font-medium">{alert.name}</p>
@@ -359,7 +359,7 @@ export default async function OverviewPage() {
                         asChild
                         size="sm"
                         variant="outline"
-                        className="shrink-0"
+                        className="w-full shrink-0 sm:w-auto"
                       >
                         <Link href={`/admin/employees?userId=${alert.id}`}>
                           View Employee
