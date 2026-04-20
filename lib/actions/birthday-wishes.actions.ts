@@ -64,6 +64,19 @@ function getTodayUtc() {
   );
 }
 
+function isWishDateExpired(targetWishDate: Date, today: Date) {
+  if (targetWishDate >= today) {
+    return false;
+  }
+
+  // Birthday cards stay visible for the full birthday month in the UI,
+  // so allow wishing for earlier days within the same UTC month/year.
+  return !(
+    targetWishDate.getUTCFullYear() === today.getUTCFullYear() &&
+    targetWishDate.getUTCMonth() === today.getUTCMonth()
+  );
+}
+
 function isMissingBirthdayWishTable(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -153,7 +166,7 @@ export async function sendBirthdayWish(
   const targetWishDate = parseUtcDate(parsed.data.wishDate);
   const today = getTodayUtc();
 
-  if (targetWishDate < today) {
+  if (isWishDateExpired(targetWishDate, today)) {
     return { success: false, message: "This birthday wish has expired" };
   }
 
@@ -268,7 +281,7 @@ export async function createBirthdayWishPost(prev: any, formData: FormData) {
   const targetWishDate = parseUtcDate(parsed.data.wishDate);
   const today = getTodayUtc();
 
-  if (targetWishDate < today) {
+  if (isWishDateExpired(targetWishDate, today)) {
     return { success: false, message: "This birthday wish has expired" };
   }
 
