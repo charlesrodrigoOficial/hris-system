@@ -11,11 +11,22 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { prisma } from "@/db/prisma";
+import {
+  isGoogleMeetUrl,
+  normalizeOptionalMeetLink,
+} from "@/lib/calender/functions/meeting-link";
 
 const createCalendarItemSchema = z
   .object({
     title: z.string().trim().min(2, "Title is required."),
     description: z.string().trim().optional().nullable(),
+    meetLink: z
+      .string()
+      .trim()
+      .url("Enter a valid URL.")
+      .refine(isGoogleMeetUrl, "Use a valid Google Meet link.")
+      .optional()
+      .nullable(),
     type: z.nativeEnum(CalendarItemType),
     visibility: z.nativeEnum(CalendarVisibility),
     startDate: z.string().min(1, "Start date is required."),
@@ -128,6 +139,7 @@ export async function createCalendarItemAction(
   const rawData = {
     title: formData.get("title"),
     description: normalizeOptionalString(formData.get("description")),
+    meetLink: normalizeOptionalMeetLink(String(formData.get("meetLink") ?? "")),
     type: formData.get("type"),
     visibility: formData.get("visibility"),
     startDate: normalizeDateTime(
@@ -209,6 +221,7 @@ export async function createCalendarItemAction(
       data: {
         title: data.title,
         description: data.description,
+        meetLink: data.meetLink,
         type: data.type,
         visibility: finalVisibility,
         startDate: new Date(data.startDate),

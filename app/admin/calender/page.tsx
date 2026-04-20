@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { getCalendarEvents } from "@/lib/calender";
 import CreateCalendarItemModal from "@/components/admin/calendar/create-calendar-item";
 import { prisma } from "@/db/prisma";
+import { isGoogleMeetUrl } from "@/lib/calender/functions/meeting-link";
 import {
   ADMIN_CALENDAR_ROLES,
   buildEventsByDate,
@@ -230,7 +231,18 @@ export default async function AdminCalendarPage({
                         style={eventStyles}
                         title={event.title}
                       >
-                        <div className="truncate">{event.title}</div>
+                        {event.meetLink && isGoogleMeetUrl(event.meetLink) ? (
+                          <a
+                            href={event.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block truncate underline underline-offset-2 hover:opacity-80"
+                          >
+                            {event.title}
+                          </a>
+                        ) : (
+                          <div className="truncate">{event.title}</div>
+                        )}
                       </div>
                     );
                   })}

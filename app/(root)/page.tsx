@@ -5,7 +5,7 @@ import { FeedPostCard } from "@/components/shared/body/feed-post-card";
 import BirthdaysCarousel from "@/components/shared/body/birthdays-carousel";
 import { getFeedPosts } from "@/lib/feed/getFeedPoosts";
 import { auth } from "@/auth";
-import { QuickActions } from "./user/profile/quick-actions";
+import { CalendarCard } from "./user/profile/calendar-card";
 import { canCreateFeedPost, canManageFeed } from "@/lib/auth/roles";
 import { getUpcomingBirthdays } from "@/lib/user/get-upcoming-birthdays";
 import { EssentialsCard } from "./user/profile/essentials";
@@ -53,7 +53,7 @@ const Homepage = async () => {
           <div id="attendance">
             <AttendanceCard />
           </div>
-          <QuickActions className="mt-3" role={session?.user?.role} />
+          <CalendarCard className="mt-3" />
           <EssentialsCard />
         </div>
         

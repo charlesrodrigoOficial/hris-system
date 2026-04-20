@@ -205,6 +205,22 @@ export default function CreateCalendarItemModal({
                   <FieldError errors={state.errors?.description} />
                 </div>
 
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Google Meet Link
+                  </label>
+                  <input
+                    name="meetLink"
+                    type="url"
+                    placeholder="https://meet.google.com/abc-defg-hij"
+                    className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Optional. Only secure Google Meet links are allowed.
+                  </p>
+                  <FieldError errors={state.errors?.meetLink} />
+                </div>
+
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">
                     Type

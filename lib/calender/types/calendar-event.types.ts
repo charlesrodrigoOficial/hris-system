@@ -21,6 +21,7 @@ export type CalendarEvent = {
   id: string;
   title: string;
   description?: string | null;
+  meetLink?: string | null;
   type: CalendarEventType;
   source: CalendarEventSource;
   start: string;
